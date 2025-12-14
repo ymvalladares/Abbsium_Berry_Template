@@ -33,15 +33,13 @@ export default function Logo() {
           sx={{
             height: 25,
             width: 25,
-            mr: 1.5,
-            display: { xs: 'none', sm: 'block' }
+            mr: 1.5
           }}
         />
 
         <Typography
           variant="h6"
           sx={{
-            display: { xs: 'none', sm: 'block' },
             lineHeight: 1,
             fontSize: '1.0rem'
           }}
