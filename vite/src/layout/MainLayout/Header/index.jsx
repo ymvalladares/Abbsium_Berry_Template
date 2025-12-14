@@ -10,6 +10,7 @@ import SearchSection from './SearchSection';
 import ProfileSection from './ProfileSection';
 import NotificationSection from './NotificationSection';
 import Button from '@mui/material/Button';
+import { Link } from 'react-router-dom';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
@@ -67,9 +68,15 @@ export default function Header() {
         </>
       ) : (
         <Button
-          sx={{ border: '2.5px solid #EDE7F6', borderRadius: '8px', color: '#5E35C0', fontWeight: 'bold' }}
+          component={Link}
+          to="/login"
+          sx={{
+            border: '2.5px solid #EDE7F6',
+            borderRadius: '8px',
+            color: '#5E35C0',
+            fontWeight: 'bold'
+          }}
           variant="outlined"
-          href="/login"
         >
           Login
         </Button>
