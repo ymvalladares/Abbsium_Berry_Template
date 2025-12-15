@@ -47,7 +47,7 @@ export default function TextMotion({ text }) {
             color: { duration: 0.9 },
             textShadow: { duration: 1 }
           }}
-          style={{ display: 'inline-block', fontWeight: 'bold' }}
+          style={{ display: 'inline-block' }}
         >
           {letter === ' ' ? '\u00A0' : letter}
         </motion.span>
