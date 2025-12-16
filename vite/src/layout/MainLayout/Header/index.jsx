@@ -18,6 +18,7 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import { IconMenu2 } from '@tabler/icons-react';
 
 import { useAuth } from '../../../contexts/AuthContext';
+import LanguageSelector from './LanguagePopover/LanguageSelector';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -39,7 +40,7 @@ export default function Header() {
         </Box>
 
         <Avatar
-          variant="rounded"
+          variant="square"
           sx={{
             ...theme.typography.commonAvatar,
             ...theme.typography.mediumAvatar,
@@ -63,6 +64,7 @@ export default function Header() {
       {/* Authenticated? Show Notification + Profile */}
       {isAuthenticated ? (
         <>
+          <LanguageSelector />
           <NotificationSection />
           <ProfileSection />
         </>
