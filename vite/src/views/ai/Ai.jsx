@@ -235,7 +235,7 @@ export default function Ai() {
             maxRows={4}
             InputProps={{
               disableUnderline: true,
-              sx: { fontSize: 14, color: '#111827', pr: 6 },
+              sx: { fontSize: { xs: 16, sm: 14 }, color: '#111827', pr: 6 },
               endAdornment: (
                 <InputAdornment position="end" sx={{ mr: -6 }}>
                   <IconButton disabled={!canSend} onClick={handleSend} sx={{ color: '#5E35B1' }} aria-label="Send">

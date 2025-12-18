@@ -18,7 +18,7 @@ const ChatMessage = ({ role, content }) => {
           px: isUser ? 2 : { xs: 2, md: 6 },
           py: isUser ? 0 : 2.5,
           borderRadius: 4,
-          maxWidth: isUser ? '75%' : '100%', // 🔥 Cambia aquí
+          maxWidth: isUser ? '50%' : '98%', // 🔥 Cambia aquí
           bgcolor: isUser ? '#5E35B1' : 'transparent',
           color: isUser ? 'white' : 'text.primary'
         }}
