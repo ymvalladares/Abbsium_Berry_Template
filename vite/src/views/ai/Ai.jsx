@@ -52,10 +52,10 @@ export default function Ai() {
       const res = await api.post('Ai/Chat-Ai', {
         message: input,
         model: model.id,
-        messages
+        messages: prevMessages
       });
 
-      setMessages([...prevMessages, { role: 'assistant', content: res.data.response || 'No response received' }]);
+      setMessages([...prevMessages, { role: 'assistant', content: res.data.content || 'No response received' }]);
     } catch {
       setMessages([...prevMessages, { role: 'assistant', content: '❌ Something went wrong. Please try again.' }]);
     } finally {
@@ -105,10 +105,11 @@ export default function Ai() {
           width: '100%',
           maxWidth: { xs: '100%', md: '80%' },
           overflowY: 'auto',
-          overflowX: 'hidden', // ✅ FIX (invisible)
+          overflowX: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          pb: 5
+          pb: 5,
+          flexShrink: 0
         }}
       >
         {/* HERO */}
@@ -151,7 +152,7 @@ export default function Ai() {
         ))}
 
         {loading && (
-          <Typography sx={{ mt: 2, color: '#6B7280' }}>
+          <Typography sx={{ mt: 2, color: '#6B7280', mb: 5 }}>
             <TextMotion text="Thinking..." />
           </Typography>
         )}
@@ -166,7 +167,7 @@ export default function Ai() {
           bgcolor: '#FFF',
           width: '100%',
           maxWidth: { xs: '100%', sm: '90%', md: '65%' },
-          flexShrink: 0, // ✅ FIX (invisible)
+          flexShrink: 0,
           borderRadius: '30px',
           p: 2.5,
           mb: firstMessageSent ? 0 : 4,
@@ -174,14 +175,16 @@ export default function Ai() {
           mt: -5
         }}
       >
-        {/* QUICK PROMPTS */}
         <Box
           sx={{
             display: 'flex',
             gap: 1,
             mb: 2,
-            overflowX: 'auto',
-            flexWrap: { xs: 'nowrap', sm: 'wrap' }
+            width: '100%',
+            flexWrap: 'nowrap', // nunca se apilen
+            overflowX: { xs: 'auto', md: 'visible' }, // scroll solo en móviles
+            scrollbarWidth: 'none', // Firefox
+            '&::-webkit-scrollbar': { display: { xs: 'none', md: 'none' } } // Chrome/Safari
           }}
         >
           {QUICK_PROMPTS.map((text) => (
@@ -199,8 +202,7 @@ export default function Ai() {
                 color: '#5E35B1',
                 borderColor: '#E0D7F8',
                 whiteSpace: 'nowrap',
-                flexShrink: 0,
-                '&:hover': { bgcolor: '#EDE7F6' }
+                flexShrink: 0 // mantiene tamaño
               }}
             >
               {text}

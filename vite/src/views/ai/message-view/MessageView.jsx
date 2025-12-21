@@ -9,18 +9,19 @@ const ChatMessage = ({ role, content }) => {
       sx={{
         display: 'flex',
         justifyContent: isUser ? 'flex-end' : 'flex-start',
-        my: 1,
         width: '100%'
       }}
     >
       <Paper
         sx={{
           px: isUser ? 2 : { xs: 2, md: 6 },
-          py: isUser ? 0 : 2.5,
+          py: isUser ? 0 : 2.5, // agrega un padding mínimo para usuarios también
           borderRadius: 4,
-          maxWidth: isUser ? '50%' : '98%', // 🔥 Cambia aquí
+          maxWidth: isUser ? '50%' : '90%', // 98% puede romper en móvil
           bgcolor: isUser ? '#5E35B1' : 'transparent',
-          color: isUser ? 'white' : 'text.primary'
+          color: isUser ? 'white' : 'text.primary',
+          wordBreak: 'break-word', // importante para links o textos largos
+          overflowWrap: 'break-word' // soporte extra para enlaces largos
         }}
       >
         {typeof content === 'string' ? <OpenAIResponseDisplay markdownContent={content} /> : content}
