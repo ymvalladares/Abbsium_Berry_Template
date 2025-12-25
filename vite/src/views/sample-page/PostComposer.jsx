@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Typography, Divider, Paper, Grid, Stack, Avatar } from '@mui/material';
+import DevicesIcon from '@mui/icons-material/Devices';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import PlatformSelector from './PlatformSelector';
 import ContentTypeStep from './ContentTypeStep';
@@ -11,8 +14,8 @@ export default function PostComposer() {
 
   const [postData, setPostData] = useState({
     platforms: [],
-    contentType: null, // post | reel | video
-    mode: 'manual', // manual | ai
+    contentType: null,
+    mode: 'manual',
     files: [],
     title: '',
     description: '',
@@ -27,6 +30,75 @@ export default function PostComposer() {
 
   return (
     <Box sx={{ width: '100%', maxWidth: { sx: '100%', md: '65%' }, mx: 'auto', mb: 3 }}>
+      <Box
+        sx={{
+          mt: 3,
+          mb: 5
+        }}
+      >
+        <Stack spacing={1} alignItems="center" textAlign="center">
+          <Typography sx={{ fontSize: 20, fontWeight: 900, color: '#111' }}>
+            Distribute on YouTube, Instagram, Facebook, and TikTok from a single platform.{' '}
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', maxWidth: 720 }}>
+            Publish on multiple platforms with an optimized workflow — AI generation, one-click upload, and scheduling.
+          </Typography>
+        </Stack>
+
+        <Grid container spacing={2} sx={{ mt: 3, justifyContent: 'center', display: { xs: 'none', md: 'flex' } }}>
+          <Grid item xs={12} sm={4}>
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ p: 2, borderRadius: 2, transition: 'transform .18s ease', '&:hover': { transform: 'translateY(-4px)' } }}
+            >
+              <Avatar sx={{ bgcolor: '#EDE7F6', color: '#5E35B1' }}>
+                <DevicesIcon />
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#5E35B1' }}>4+</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Compatible Platforms</Typography>
+              </Box>
+            </Stack>
+          </Grid>
+
+          <Grid item xs={12} sm={4}>
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ p: 2, borderRadius: 2, transition: 'transform .18s ease', '&:hover': { transform: 'translateY(-4px)' } }}
+            >
+              <Avatar sx={{ bgcolor: '#EDE7F6', color: '#5E35B1' }}>
+                <FlashOnIcon />
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#5E35B1' }}>1-Click</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Instant Publication</Typography>
+              </Box>
+            </Stack>
+          </Grid>
+
+          <Grid item xs={12} sm={4}>
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ p: 2, borderRadius: 2, transition: 'transform .18s ease', '&:hover': { transform: 'translateY(-4px)' } }}
+            >
+              <Avatar sx={{ bgcolor: '#EDE7F6', color: '#5E35B1' }}>
+                <AutoAwesomeIcon />
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#5E35B1' }}>AI</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Generation and Optimization</Typography>
+              </Box>
+            </Stack>
+          </Grid>
+        </Grid>
+      </Box>
+
       <PlatformSelector value={postData.platforms} onChange={(v) => updatePostData('platforms', v)} />
 
       <ContentTypeStep value={postData.contentType} onChange={(v) => updatePostData('contentType', v)} />

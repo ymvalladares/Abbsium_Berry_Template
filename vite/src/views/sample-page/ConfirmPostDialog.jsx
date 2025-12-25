@@ -8,7 +8,6 @@ import {
   Box,
   Chip,
   Stack,
-  Divider,
   useMediaQuery,
   LinearProgress
 } from '@mui/material';
