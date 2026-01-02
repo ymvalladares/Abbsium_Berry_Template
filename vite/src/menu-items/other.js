@@ -11,10 +11,10 @@ const other = {
   type: 'group',
   children: [
     {
-      id: 'sample-page',
-      title: 'Sample Page',
+      id: 'util-color',
+      title: 'Color',
       type: 'item',
-      url: '/sample-page',
+      url: '/color',
       icon: icons.IconBrandChrome,
       breadcrumbs: false
     }
