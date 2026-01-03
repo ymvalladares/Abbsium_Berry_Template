@@ -14,6 +14,7 @@ const Earnings = Loadable(lazy(() => import('views/admin/Earnings')));
 const Post = Loadable(lazy(() => import('views/content-creator/post')));
 const SocialNetwork = Loadable(lazy(() => import('views/content-creator/socialNetwork')));
 const Ai = Loadable(lazy(() => import('views/ai/Ai')));
+const ClippingsAgent = Loadable(lazy(() => import('views/content-creator/clippingAgent')));
 
 const MainRoutes = {
   path: '/',
@@ -28,7 +29,7 @@ const MainRoutes = {
     //Content Creator routes
     { path: 'color', element: <UtilsColor /> },
     { path: 'content/create-post', element: <Post /> },
-    { path: 'content/clippings-agent', element: <SocialNetwork /> },
+    { path: 'content/clippings-agent', element: <ClippingsAgent /> },
     { path: 'content/social-networks', element: <SocialNetwork /> },
     //Admin routes
     { path: 'admin/earnings', element: <Earnings /> },

@@ -29,7 +29,7 @@ export default function PostComposer() {
   const canSubmit = postData.platforms.length > 0 && postData.contentType && (postData.mode === 'ai' || postData.files.length > 0);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: { sx: '100%', md: '65%' }, mx: 'auto', mb: 3 }}>
+    <Box sx={{ width: '100%', maxWidth: { sx: '100%', md: '75%' }, mx: 'auto', mb: 3 }}>
       <Box
         sx={{
           mt: 3,
