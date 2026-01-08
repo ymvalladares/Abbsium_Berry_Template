@@ -21,7 +21,7 @@ const utilities = {
       id: 'ai',
       title: 'Chat-AI',
       type: 'item',
-      url: '/chat-ai',
+      url: '/platform/chat-ai',
       icon: icons.IconBubbleText,
       breadcrumbs: false
     }

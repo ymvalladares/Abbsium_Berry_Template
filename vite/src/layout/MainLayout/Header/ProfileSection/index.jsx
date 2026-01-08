@@ -32,10 +32,11 @@ import User1 from 'assets/images/users/user-round.svg';
 import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
 
 import { useAuth } from '../../../../contexts/AuthContext';
-
+import { useNavigate } from 'react-router-dom';
 // ==============================|| PROFILE MENU ||============================== //
 
 export default function ProfileSection() {
+  const navigate = useNavigate();
   const theme = useTheme();
   const {
     state: { borderRadius }
@@ -57,7 +58,7 @@ export default function ProfileSection() {
   };
 
   const handleClose = (event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+    if (event && anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
 
@@ -73,8 +74,12 @@ export default function ProfileSection() {
     prevOpen.current = open;
   }, [open]);
 
-  const Logout = async () => {
-    const ok = await logout();
+  const handleLogout = async () => {
+    const result = await logout();
+
+    if (result?.success) {
+      navigate('/authenticate', { replace: true });
+    }
   };
 
   return (
@@ -219,11 +224,17 @@ export default function ProfileSection() {
                             />
                           </ListItemButton>
 
-                          <ListItemButton onClick={handleClose} sx={{ borderRadius: `${borderRadius}px` }}>
+                          <ListItemButton
+                            onClick={() => {
+                              handleClose();
+                              handleLogout();
+                            }}
+                            sx={{ borderRadius: `${borderRadius}px` }}
+                          >
                             <ListItemIcon>
                               <IconLogout stroke={1.5} size="20px" />
                             </ListItemIcon>
-                            <ListItemText onClick={Logout} primary={<Typography variant="body2">Logout</Typography>} />
+                            <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
                           </ListItemButton>
                         </List>
                       </Box>

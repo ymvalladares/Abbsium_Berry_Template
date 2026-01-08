@@ -14,6 +14,7 @@
     "@vitejs/plugin-react": "5.0.4",
     "apexcharts": "5.3.5",
     "axios": "^1.13.2",
+    "formik": "^2.4.9",
     "framer-motion": "12.23.22",
     "lodash-es": "4.17.21",
     "material-ui-popup-state": "5.3.6",
@@ -28,6 +29,7 @@
     "react-markdown": "^10.1.0",
     "react-router": "7.9.3",
     "react-router-dom": "7.9.3",
+    "react-spinners": "^0.17.0",
     "react-syntax-highlighter": "^16.1.0",
     "remark-gfm": "^4.0.1",
     "simplebar-react": "3.3.2",
@@ -36,7 +38,7 @@
     "vite": "7.1.9",
     "vite-jsconfig-paths": "2.0.1",
     "web-vitals": "5.1.0",
-    "yup": "1.7.1"
+    "yup": "^1.7.1"
   },
   "scripts": {
     "start": "vite",

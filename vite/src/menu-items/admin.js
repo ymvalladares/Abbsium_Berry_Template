@@ -21,24 +21,24 @@ const business = {
       icon: icons.IconBrandPnpm,
       children: [
         {
-          id: 'sales',
-          title: 'Sales',
+          id: 'dashboard',
+          title: 'Dashboard',
           type: 'item',
-          url: '/admin/sales',
+          url: '/platform/admin/dashboard',
           breadcrumbs: false
         },
         {
           id: 'earnings',
           title: 'Earnings',
           type: 'item',
-          url: '/admin/earnings',
+          url: '/platform/admin/earnings',
           breadcrumbs: false
         },
         {
           id: 'workers',
           title: 'Workers',
           type: 'item',
-          url: '/admin/workers',
+          url: '/platform/admin/workers',
           breadcrumbs: false
         }
       ]

@@ -3,97 +3,72 @@ import api from '../services/AxiosService';
 
 const AuthContext = createContext(null);
 
-const getStoredUser = () => {
-  try {
-    const stored = localStorage.getItem('user');
-    if (!stored || stored === 'undefined') return null;
-    return JSON.parse(stored);
-  } catch {
-    return null;
-  }
-};
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(getStoredUser());
-  const [authError, setAuthError] = useState('');
   const [token, setToken] = useState(localStorage.getItem('accessToken'));
+  const [user, setUser] = useState(null);
 
-  const login = useCallback(async (email, password) => {
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
+
+  const authenticate = useCallback(async (action, payload) => {
+    setAuthLoading(true);
+    setAuthError('');
+    setAuthMessage('');
+
     try {
-      const res = await api.post('account/login', { email, password });
+      const res = await api.post(`account/${action}`, payload);
 
-      localStorage.setItem('accessToken', res.data.token);
-      localStorage.setItem('refreshToken', res.data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(res.data.userName));
+      if (action === 'login') {
+        localStorage.setItem('accessToken', res.data.token);
+        localStorage.setItem('refreshToken', res.data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(res.data.userName));
 
-      setUser(res.data.userName);
-      setToken(res.data.token);
+        setToken(res.data.token);
+        setUser(res.data.userName);
 
-      return true;
-    } catch (err) {
-      const message = err.response?.data?.message || 'Error al iniciar sesión.';
-      setAuthError(message);
-      return false;
-    }
-  }, []);
-
-  // ======================== LOGOUT ========================
-  const logout = useCallback(async () => {
-    try {
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
-
-      if (accessToken && refreshToken) {
-        await api.post('account/logout', {
-          accessToken,
-          refreshToken
-        });
+        return { success: true }; // 🔑 CLAVE
       }
+
+      setAuthMessage(res.data?.message || (action === 'register' ? 'User created successfully' : 'Check your email for instructions'));
+
+      return { success: true };
     } catch (err) {
-      console.warn('Logout request failed, cleaning anyway.');
-    }
-
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-
-    setUser(null);
-    setToken(null);
-  }, []);
-
-  const forgotPassword = useCallback(async (email) => {
-    try {
-      setAuthError('');
-
-      const res = await api.post('account/forgetPassword', { email });
-
-      return {
-        success: true,
-        message: res.data?.message || 'Check your email with the instructions'
-      };
-    } catch (err) {
-      const message = err.response?.data?.message || 'Unable to send the request. Try later';
-      setAuthError(message);
-
-      return {
-        success: false,
-        message
-      };
+      setAuthError(err.response?.data?.message || 'Something went wrong. Try again.');
+      return { success: false };
+    } finally {
+      setAuthLoading(false);
     }
   }, []);
 
-  const values = {
-    user,
-    token,
-    login,
-    logout,
-    forgotPassword,
-    authError,
-    isAuthenticated: !!token,
-    isAdmin: user?.role === 'admin'
+  const clearAuthFeedback = () => {
+    setAuthError('');
+    setAuthMessage('');
   };
 
-  return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
+  const logout = useCallback(async () => {
+    localStorage.clear();
+    setToken(null);
+    setUser(null);
+
+    return { success: true };
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        authenticate,
+        authLoading,
+        authError,
+        authMessage,
+        clearAuthFeedback,
+        logout,
+        isAuthenticated: !!token
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

@@ -14,7 +14,7 @@ const other = {
       id: 'util-color',
       title: 'Color',
       type: 'item',
-      url: '/color',
+      url: '/platform/color',
       icon: icons.IconBrandChrome,
       breadcrumbs: false
     }

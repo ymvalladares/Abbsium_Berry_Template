@@ -22,21 +22,21 @@ const socialMedia = {
           id: 'post',
           title: 'Post',
           type: 'item',
-          url: '/content/create-post',
+          url: '/platform/content/create-post',
           breadcrumbs: false
         },
         {
           id: 'Clippings-agent',
           title: 'Clippings Agent',
           type: 'item',
-          url: '/content/clippings-agent',
+          url: '/platform/content/clippings-agent',
           breadcrumbs: false
         },
         {
           id: 'social-networks',
           title: 'Social Networks',
           type: 'item',
-          url: '/content/social-networks',
+          url: '/platform/content/social-networks',
           breadcrumbs: false
         }
       ]

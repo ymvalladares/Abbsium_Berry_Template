@@ -11,7 +11,7 @@ import Logo from 'ui-component/Logo';
 
 export default function LogoSection() {
   return (
-    <Link sx={{ textDecoration: 'none' }} component={RouterLink} to={DASHBOARD_PATH} aria-label="theme-logo">
+    <Link sx={{ textDecoration: 'none' }} component={RouterLink} to="/" aria-label="theme-logo">
       <Logo />
     </Link>
   );

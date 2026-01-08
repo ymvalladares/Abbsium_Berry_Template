@@ -2,16 +2,6 @@
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
-// project imports
-
-/**
- * if you want to use image instead of <svg> uncomment following.
- *
- * import logoDark from 'assets/images/logo-dark.svg';
- * import logo from 'assets/images/logo.svg';
- *
- */
-
 import logo from 'assets/images/abbsium192.png';
 
 export default function Logo() {
