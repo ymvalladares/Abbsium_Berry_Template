@@ -22,7 +22,11 @@ const Input_Fields = ({ label, ...props }) => {
         error={meta.touched && meta.error ? true : false}
         label={label}
         sx={{
-          padding: '4px'
+          padding: '4px',
+          mt: 1,
+          '& input': {
+            fontSize: '16px' // ✅ CLAVE: evita zoom en mobile
+          }
         }}
         InputProps={
           props.type == 'password'

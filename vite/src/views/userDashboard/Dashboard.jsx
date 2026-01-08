@@ -3,15 +3,18 @@ import { Box, Container, Card, CardContent, Typography, Grid, Button } from '@mu
 import { Add, Upload, CalendarMonth, BarChart, Description, Visibility, People, TrendingUp } from '@mui/icons-material';
 import VideoCameraBackIcon from '@mui/icons-material/VideoCameraBack';
 import AddIcon from '@mui/icons-material/Add';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  console.log('User data in Dashboard:', user);
   return (
     <Box sx={{ width: '100%', maxWidth: { sx: '100%', md: '75%' }, mx: 'auto', mb: 3, mt: 3 }}>
       <Container maxWidth="lg">
         {/* Header */}
         <Box sx={{ mb: 5 }}>
           <Typography variant="h2" sx={{ fontWeight: 'bold', color: '#1f2937', mb: 1.5 }}>
-            Welcome, Yordan Jesus Martínez Valladares! 👋
+            Welcome, {user.userName || 'User'}! 👋
           </Typography>
           <Typography variant="h5" sx={{ color: '#6b7280', fontWeight: 400 }}>
             Comienza a distribuir tu contenido en todas las plataformas.

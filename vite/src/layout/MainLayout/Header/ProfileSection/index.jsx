@@ -33,7 +33,6 @@ import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-re
 
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-// ==============================|| PROFILE MENU ||============================== //
 
 export default function ProfileSection() {
   const navigate = useNavigate();
@@ -46,206 +45,160 @@ export default function ProfileSection() {
   const [value, setValue] = useState('');
   const [notification, setNotification] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth();
 
-  /**
-   * anchorRef is used on different components and specifying one type leads to other components throwing an error
-   * */
+  const { user, logout, isAuthenticated } = useAuth();
+
   const anchorRef = useRef(null);
 
   const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
+    setOpen((prev) => !prev);
   };
 
   const handleClose = (event) => {
-    if (event && anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
-
+    if (event && anchorRef.current?.contains(event.target)) return;
     setOpen(false);
   };
 
   const prevOpen = useRef(open);
   useEffect(() => {
     if (prevOpen.current === true && open === false) {
-      anchorRef.current.focus();
+      anchorRef.current?.focus();
     }
-
     prevOpen.current = open;
   }, [open]);
 
   const handleLogout = async () => {
     const result = await logout();
-
     if (result?.success) {
       navigate('/authenticate', { replace: true });
     }
   };
 
+  // 🔒 Protección total al reload
+  if (!isAuthenticated || !user) return null;
+
   return (
     <>
-      <>
-        <Chip
-          slotProps={{ label: { sx: { lineHeight: 0 } } }}
-          sx={{ ml: 2, height: '48px', alignItems: 'center', borderRadius: '27px' }}
-          icon={
-            <Avatar
-              src={User1}
-              alt="user-images"
-              sx={{ typography: 'mediumAvatar', margin: '8px 0 8px 8px !important', cursor: 'pointer' }}
-              ref={anchorRef}
-              aria-controls={open ? 'menu-list-grow' : undefined}
-              aria-haspopup="true"
-              color="inherit"
-            />
-          }
-          label={<IconSettings stroke={1.5} size="24px" />}
-          ref={anchorRef}
-          aria-controls={open ? 'menu-list-grow' : undefined}
-          aria-haspopup="true"
-          onClick={handleToggle}
-          color="primary"
-          aria-label="user-account"
-        />
+      <Chip
+        slotProps={{ label: { sx: { lineHeight: 0 } } }}
+        sx={{ ml: 2, height: '48px', alignItems: 'center', borderRadius: '27px' }}
+        icon={
+          <Avatar
+            src={User1}
+            alt="user-images"
+            sx={{
+              typography: 'mediumAvatar',
+              margin: '8px 0 8px 8px !important',
+              cursor: 'pointer'
+            }}
+            ref={anchorRef}
+            aria-controls={open ? 'menu-list-grow' : undefined}
+            aria-haspopup="true"
+            color="inherit"
+          />
+        }
+        label={<IconSettings stroke={1.5} size="24px" />}
+        ref={anchorRef}
+        onClick={handleToggle}
+        color="primary"
+        aria-label="user-account"
+      />
 
-        <Popper
-          placement="bottom"
-          open={open}
-          anchorEl={anchorRef.current}
-          role={undefined}
-          transition
-          disablePortal
-          modifiers={[
-            {
-              name: 'offset',
-              options: {
-                offset: [0, 14]
-              }
-            }
-          ]}
-        >
-          {({ TransitionProps }) => (
-            <ClickAwayListener onClickAway={handleClose}>
-              <Transitions in={open} {...TransitionProps}>
-                <Paper>
-                  {open && (
-                    <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
-                      <Box sx={{ p: 2, pb: 0 }}>
-                        <Stack>
-                          <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                            <Typography variant="h4">Good Morning,</Typography>
-                            <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                              {user || ''}
-                            </Typography>
+      <Popper
+        placement="bottom"
+        open={open}
+        anchorEl={anchorRef.current}
+        transition
+        disablePortal
+        modifiers={[
+          {
+            name: 'offset',
+            options: { offset: [0, 14] }
+          }
+        ]}
+      >
+        {({ TransitionProps }) => (
+          <ClickAwayListener onClickAway={handleClose}>
+            <Transitions in={open} {...TransitionProps}>
+              <Paper>
+                <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
+                  <Box sx={{ p: 2, pb: 0 }}>
+                    <Stack>
+                      <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="h4">Good Morning,</Typography>
+                        <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
+                          {user.userName}
+                        </Typography>
+                      </Stack>
+
+                      <Typography variant="subtitle2">{user.rol}</Typography>
+                    </Stack>
+
+                    <OutlinedInput
+                      sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                      placeholder="Search profile options"
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <IconSearch stroke={1.5} size="16px" />
+                        </InputAdornment>
+                      }
+                    />
+                    <Divider />
+                  </Box>
+
+                  <Box sx={{ p: 2, maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
+                    <UpgradePlanCard />
+                    <Divider />
+
+                    <Card sx={{ bgcolor: 'primary.light', my: 2 }}>
+                      <CardContent>
+                        <Stack gap={3}>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="subtitle1">Start DND Mode</Typography>
+                            <Switch checked={sdm} onChange={(e) => setSdm(e.target.checked)} size="small" />
                           </Stack>
 
-                          <Typography variant="subtitle2">Manager</Typography>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="subtitle1">Allow Notifications</Typography>
+                            <Switch checked={notification} onChange={(e) => setNotification(e.target.checked)} size="small" />
+                          </Stack>
                         </Stack>
+                      </CardContent>
+                    </Card>
 
-                        <OutlinedInput
-                          sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
-                          id="input-search-profile"
-                          value={value}
-                          onChange={(e) => setValue(e.target.value)}
-                          placeholder="Search profile options"
-                          startAdornment={
-                            <InputAdornment position="start">
-                              <IconSearch stroke={1.5} size="16px" />
-                            </InputAdornment>
-                          }
-                        />
-                        <Divider />
-                      </Box>
+                    <Divider />
 
-                      <Box
-                        sx={{
-                          p: 2,
-                          py: 0,
-                          height: '100%',
-                          maxHeight: 'calc(100vh - 250px)',
-                          overflowX: 'hidden',
-                          '&::-webkit-scrollbar': { width: 5 }
-                        }}
-                      >
-                        <UpgradePlanCard />
-                        <Divider />
+                    <List sx={{ minWidth: 300 }}>
+                      <ListItemButton sx={{ borderRadius }}>
+                        <ListItemIcon>
+                          <IconSettings size={20} />
+                        </ListItemIcon>
+                        <ListItemText primary="Account Settings" />
+                      </ListItemButton>
 
-                        <Card sx={{ bgcolor: 'primary.light', my: 2 }}>
-                          <CardContent>
-                            <Stack sx={{ gap: 3 }}>
-                              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="subtitle1">Start DND Mode</Typography>
-                                <Switch color="primary" checked={sdm} onChange={(e) => setSdm(e.target.checked)} name="sdm" size="small" />
-                              </Stack>
+                      <ListItemButton sx={{ borderRadius }}>
+                        <ListItemIcon>
+                          <IconUser size={20} />
+                        </ListItemIcon>
+                        <ListItemText primary="Social Profile" />
+                      </ListItemButton>
 
-                              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="subtitle1">Allow Notifications</Typography>
-                                <Switch
-                                  checked={notification}
-                                  onChange={(e) => setNotification(e.target.checked)}
-                                  name="notifications"
-                                  size="small"
-                                />
-                              </Stack>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-
-                        <Divider />
-
-                        <List
-                          component="nav"
-                          sx={{
-                            width: '100%',
-                            maxWidth: 350,
-                            minWidth: 300,
-                            borderRadius: `${borderRadius}px`,
-                            '& .MuiListItemButton-root': { mt: 0.5 }
-                          }}
-                        >
-                          <ListItemButton onClick={handleClose} sx={{ borderRadius: `${borderRadius}px` }}>
-                            <ListItemIcon>
-                              <IconSettings stroke={1.5} size="20px" />
-                            </ListItemIcon>
-                            <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
-                          </ListItemButton>
-
-                          <ListItemButton onClick={handleClose} sx={{ borderRadius: `${borderRadius}px` }}>
-                            <ListItemIcon>
-                              <IconUser stroke={1.5} size="20px" />
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={
-                                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                  <Typography variant="body2">Social Profile</Typography>
-                                  <Chip label="02" variant="filled" size="small" color="warning" />
-                                </Stack>
-                              }
-                            />
-                          </ListItemButton>
-
-                          <ListItemButton
-                            onClick={() => {
-                              handleClose();
-                              handleLogout();
-                            }}
-                            sx={{ borderRadius: `${borderRadius}px` }}
-                          >
-                            <ListItemIcon>
-                              <IconLogout stroke={1.5} size="20px" />
-                            </ListItemIcon>
-                            <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
-                          </ListItemButton>
-                        </List>
-                      </Box>
-                    </MainCard>
-                  )}
-                </Paper>
-              </Transitions>
-            </ClickAwayListener>
-          )}
-        </Popper>
-      </>
+                      <ListItemButton onClick={handleLogout} sx={{ borderRadius }}>
+                        <ListItemIcon>
+                          <IconLogout size={20} />
+                        </ListItemIcon>
+                        <ListItemText primary="Logout" />
+                      </ListItemButton>
+                    </List>
+                  </Box>
+                </MainCard>
+              </Paper>
+            </Transitions>
+          </ClickAwayListener>
+        )}
+      </Popper>
     </>
   );
 }

@@ -4,8 +4,12 @@ import api from '../services/AxiosService';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('accessToken'));
-  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
+
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -22,12 +26,12 @@ export const AuthProvider = ({ children }) => {
       if (action === 'login') {
         localStorage.setItem('accessToken', res.data.token);
         localStorage.setItem('refreshToken', res.data.refreshToken);
-        localStorage.setItem('user', JSON.stringify(res.data.userName));
+        localStorage.setItem('user', JSON.stringify(res.data));
 
         setToken(res.data.token);
-        setUser(res.data.userName);
+        setUser(res.data);
 
-        return { success: true }; // 🔑 CLAVE
+        return { success: true };
       }
 
       setAuthMessage(res.data?.message || (action === 'register' ? 'User created successfully' : 'Check your email for instructions'));
@@ -41,13 +45,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const clearAuthFeedback = () => {
-    setAuthError('');
-    setAuthMessage('');
-  };
+  const logout = useCallback(() => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
 
-  const logout = useCallback(async () => {
-    localStorage.clear();
     setToken(null);
     setUser(null);
 
@@ -61,8 +63,8 @@ export const AuthProvider = ({ children }) => {
         authLoading,
         authError,
         authMessage,
-        clearAuthFeedback,
         logout,
+        user,
         isAuthenticated: !!token
       }}
     >
