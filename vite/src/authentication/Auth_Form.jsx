@@ -4,7 +4,6 @@ import { Schema_Login_Validation } from './Helpers/SchemaValidation';
 import Input_Fields from './Helpers/Input_Fields';
 import CustomCheckbox from './Helpers/CustomCheckbox';
 import { Box, Button, Chip, Divider, Stack, Typography, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -14,19 +13,22 @@ const FORM_FIELDS = [
   { name: 'password', label: 'Password', type: 'password', action: ['login', 'register'] }
 ];
 
-const Auth_Form = () => {
+const Auth_Form = ({ onSuccess }) => {
   const [userAction, setUserAction] = useState('login');
-  const navigate = useNavigate();
 
-  const { authenticate, authLoading, authError, authMessage, isAuthenticated } = useAuth();
+  const { authenticate, authLoading, authError, authMessage } = useAuth();
 
   const filteredInputs = useMemo(() => FORM_FIELDS.filter((f) => f.action.includes(userAction)), [userAction]);
 
   const handleSubmit = async (values) => {
     const result = await authenticate(userAction, values);
 
+    console.log('🔍 Authentication result:', result); // Debug
+
+    // ✅ Cambiado: Si es login exitoso, pasar al código de verificación
     if (userAction === 'login' && result?.success) {
-      navigate('/platform/dashboard');
+      console.log('✅ Login exitoso, mostrando verificación para:', values.email);
+      onSuccess?.(values.email);
     }
   };
 

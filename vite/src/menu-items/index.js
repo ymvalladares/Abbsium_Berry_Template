@@ -1,13 +1,16 @@
+// menu-items.js
 import dashboard from './dashboard';
-//import pages from './pages';
 import utilities from './utilities';
 import other from './other';
 import admin from './admin';
 import contentCreator from './contentCreator';
-// ==============================|| MENU ITEMS ||============================== //
 
-const menuItems = {
-  items: [dashboard, utilities, admin, contentCreator, other]
+const menuItems = ({ role }) => {
+  const items = [dashboard, contentCreator, utilities];
+
+  if (role === 'Admin') items.push(admin);
+
+  return { items };
 };
 
 export default menuItems;

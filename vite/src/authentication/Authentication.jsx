@@ -3,8 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Container, Chip } from '@mui/material';
 import { Lock, Security, Shield, CheckCircle } from '@mui/icons-material';
 import Auth_Form from './Auth_Form';
+import VerificationCode from './VerificationCode';
 
 const Authentication = () => {
+  const [step, setStep] = useState('login');
+  const [email, setEmail] = useState('');
+
+  const handleLoginSuccess = (userEmail) => {
+    setEmail(userEmail);
+    setStep('verify');
+  };
+
+  const handleResendCode = async () => {
+    // mock resend
+    return Promise.resolve();
+  };
   return (
     <Box
       sx={{
@@ -259,7 +272,6 @@ const Authentication = () => {
         </Box>
       </Box>
 
-      {/* Right Side - Login Form */}
       <Box
         sx={{
           position: 'relative',
@@ -271,7 +283,9 @@ const Authentication = () => {
           px: { xs: 0, lg: '6%' }
         }}
       >
-        <Auth_Form />
+        {step === 'login' && <Auth_Form onSuccess={handleLoginSuccess} />}
+
+        {step === 'verify' && <VerificationCode email={email} onResendCode={handleResendCode} />}
       </Box>
     </Box>
   );
