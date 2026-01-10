@@ -1,4 +1,4 @@
-import SocialConnectionCard from './SocialConnectionCard';
+import SocialConnectionCard from './SocialHub';
 
 export default function Index() {
   return <SocialConnectionCard />;

@@ -28,7 +28,7 @@ import Transitions from 'ui-component/extended/Transitions';
 import useConfig from 'hooks/useConfig';
 
 // assets
-import User1 from 'assets/images/users/user-round.svg';
+import User1 from 'assets/images/users/userAvatar.svg';
 import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
 
 import { useAuth } from '../../../../contexts/AuthContext';
