@@ -12,10 +12,10 @@ export default function SocialHub() {
   useEffect(() => {
     setTimeout(() => {
       setConnections({
-        Facebook: true,
-        Instagram: true,
-        YouTube: false,
-        TikTok: false,
+        Facebook: false,
+        Instagram: false,
+        YouTube: true,
+        TikTok: true,
         Twitter: false
       });
     }, 600);
@@ -44,7 +44,7 @@ export default function SocialHub() {
         <Box
           sx={{
             mb: 4,
-            p: 4,
+            p: 3,
             borderRadius: 3,
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             position: 'relative',

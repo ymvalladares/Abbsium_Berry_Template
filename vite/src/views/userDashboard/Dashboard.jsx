@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Card, CardContent, Typography, Grid, Divider, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -85,6 +86,7 @@ const StatsCard = ({ title, value, subtitle, trend, trendValue, iconBgColor, ico
 /* ===================== MAIN ===================== */
 export default function StatsCards() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const cardsData = [
     {
@@ -387,6 +389,7 @@ export default function StatsCards() {
                 </Box>
 
                 <Button
+                  onClick={() => navigate('/platform/content/create-post')}
                   startIcon={<CreateIcon />}
                   sx={{
                     px: 4,

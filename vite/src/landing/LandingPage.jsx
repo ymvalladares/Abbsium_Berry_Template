@@ -215,7 +215,7 @@ export default function AbbsiumLanding() {
       </Container>
 
       {/* ================= FEATURE CARDS ================= */}
-      <Container maxWidth="lg" sx={{ pb: 12 }}>
+      <Container maxWidth="lg">
         <Grid container spacing={3} justifyContent="center">
           {[
             {
@@ -284,38 +284,223 @@ export default function AbbsiumLanding() {
         </Grid>
       </Container>
 
-      {/* ================= STATS ================= */}
-      <Box sx={{ mt: 10, py: 8, background: '#fff' }}>
-        <Container maxWidth="md">
-          <Grid container spacing={4} textAlign="center">
-            {[
-              { value: '500K+', label: 'Active Creators' },
-              { value: '10M+', label: 'Videos Generated' },
-              { value: '99.9%', label: 'Platform Uptime' }
-            ].map((stat, i) => (
-              <Grid key={i} size={{ xs: 12, sm: 4, md: 4 }}>
-                <Typography
+      {/* ================= BRAND SECTION ================= */}
+      <Box sx={{ mt: { xs: 9, md: 20 } }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={8} alignItems="center" justifyContent="space-between">
+            {/* LEFT TEXT */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  fontSize: { xs: '2rem', md: '2.6rem' },
+                  lineHeight: 1.15,
+                  mb: 1
+                }}
+              >
+                Built for creators
+                <Box component="span" sx={{ color: '#667eea' }}>
+                  {' '}
+                  who think bigger
+                </Box>
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: '#64748b',
+                  fontSize: '1.05rem',
+                  lineHeight: 1.8,
+                  mb: 4,
+                  maxWidth: 520
+                }}
+              >
+                Abbsium is being designed as a modern content platform focused on speed, simplicity and creative freedom.
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: '#64748b',
+                  fontSize: '1.05rem',
+                  lineHeight: 1.8,
+                  maxWidth: 520
+                }}
+              >
+                No noise. No complexity. Just tools that help creators move faster and stay focused on what matters.
+              </Typography>
+            </Grid>
+
+            {/* RIGHT VISUAL */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  height: { xs: 280, md: 380 },
+                  borderRadius: 6,
+                  background: 'linear-gradient(135deg, rgba(102,126,234,.12), rgba(118,75,162,.12))',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Abstract layers */}
+                <Box
                   sx={{
-                    fontSize: '2.6rem',
-                    fontWeight: 900,
-                    color: '#667eea'
+                    position: 'absolute',
+                    top: 40,
+                    left: 40,
+                    right: 80,
+                    height: { xs: 50, md: 80 },
+                    borderRadius: 3,
+                    background: '#ffffff',
+                    boxShadow: '0 10px 30px rgba(0,0,0,.08)'
                   }}
-                >
-                  {stat.value}
+                />
+
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: { xs: 120, md: 140 },
+                    left: 80,
+                    right: 40,
+                    height: { xs: 50, md: 80 },
+                    borderRadius: 3,
+                    background: '#ffffff',
+                    boxShadow: '0 10px 30px rgba(0,0,0,.08)'
+                  }}
+                />
+
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: { xs: 200, md: 240 },
+                    left: 60,
+                    right: 120,
+                    height: { xs: 50, md: 80 },
+                    borderRadius: 3,
+                    background: '#ffffff',
+                    boxShadow: '0 10px 30px rgba(0,0,0,.08)'
+                  }}
+                />
+
+                {/* Accent glow */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'radial-gradient(circle at top right, rgba(102,126,234,.25), transparent 60%)'
+                  }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+      {/* ================= FOOTER ================= */}
+      <Box
+        sx={{
+          mt: 20,
+          background: 'linear-gradient(180deg,#f8fafc,#eef2ff)',
+          color: '#334155'
+        }}
+      >
+        <Container maxWidth="lg" sx={{ py: 3 }}>
+          <Grid container spacing={8}>
+            {/* BRAND */}
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Stack spacing={3}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg,#667eea,#764ba2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <AutoAwesome sx={{ color: '#fff', fontSize: 18 }} />
+                  </Box>
+
+                  <Typography fontWeight={900} fontSize="1.1rem">
+                    Abbsium
+                  </Typography>
+                </Stack>
+
+                <Typography sx={{ color: '#475569', maxWidth: 420, lineHeight: 1.8 }}>
+                  A modern content platform built for creators who value clarity, speed and creative control.
                 </Typography>
 
-                <Typography
+                <Button
+                  onClick={handleLogin}
+                  endIcon={<ArrowForward />}
                   sx={{
-                    fontSize: '.95rem',
-                    fontWeight: 600,
-                    color: '#64748b'
+                    alignSelf: 'flex-start',
+                    fontWeight: 700,
+                    px: 3,
+                    py: 1.2,
+                    borderRadius: '999px',
+                    background: 'linear-gradient(135deg,#667eea,#764ba2)',
+                    color: '#fff',
+                    '&:hover': { opacity: 0.9 }
                   }}
                 >
-                  {stat.label}
-                </Typography>
+                  Get started
+                </Button>
+              </Stack>
+            </Grid>
+
+            {/* LINKS */}
+            <Grid size={{ xs: 12, md: 7 }}>
+              <Grid container spacing={6}>
+                {[
+                  { title: 'Product', links: ['Features', 'Pricing', 'Analytics'] },
+                  { title: 'Company', links: ['About', 'Blog', 'Careers'] },
+                  { title: 'Legal', links: ['Privacy', 'Terms', 'Security'] }
+                ].map((group, i) => (
+                  <Grid key={i} size={{ xs: 6, sm: 4 }}>
+                    <Typography fontWeight={700} mb={2}>
+                      {group.title}
+                    </Typography>
+
+                    <Stack spacing={1.5}>
+                      {group.links.map((link) => (
+                        <Typography
+                          key={link}
+                          sx={{
+                            color: '#475569',
+                            fontSize: '.9rem',
+                            cursor: 'pointer',
+                            '&:hover': { color: '#667eea' }
+                          }}
+                        >
+                          {link}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
+            </Grid>
           </Grid>
+
+          {/* BOTTOM */}
+          <Box
+            sx={{
+              mt: 10,
+              pt: 4,
+              borderTop: '1px solid rgba(100,116,139,.25)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 2
+            }}
+          >
+            <Typography sx={{ color: '#64748b', fontSize: '.85rem' }}>
+              © {new Date().getFullYear()} Abbsium. All rights reserved.
+            </Typography>
+
+            <Typography sx={{ color: '#64748b', fontSize: '.85rem' }}>Built with focus, not noise.</Typography>
+          </Box>
         </Container>
       </Box>
     </Box>

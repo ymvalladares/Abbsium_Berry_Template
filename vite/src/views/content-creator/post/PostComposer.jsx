@@ -44,59 +44,6 @@ export default function PostComposer() {
             Publish on multiple platforms with an optimized workflow — AI generation, one-click upload, and scheduling.
           </Typography>
         </Stack>
-
-        <Grid container spacing={2} sx={{ mt: 3, justifyContent: 'center', display: { xs: 'none', md: 'flex' } }}>
-          <Grid item xs={12} sm={4}>
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              sx={{ p: 2, borderRadius: 2, transition: 'transform .18s ease', '&:hover': { transform: 'translateY(-4px)' } }}
-            >
-              <Avatar sx={{ bgcolor: '#EDE7F6', color: '#5E35B1' }}>
-                <DevicesIcon />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#5E35B1' }}>4+</Typography>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Compatible Platforms</Typography>
-              </Box>
-            </Stack>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              sx={{ p: 2, borderRadius: 2, transition: 'transform .18s ease', '&:hover': { transform: 'translateY(-4px)' } }}
-            >
-              <Avatar sx={{ bgcolor: '#EDE7F6', color: '#5E35B1' }}>
-                <FlashOnIcon />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#5E35B1' }}>1-Click</Typography>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Instant Publication</Typography>
-              </Box>
-            </Stack>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              sx={{ p: 2, borderRadius: 2, transition: 'transform .18s ease', '&:hover': { transform: 'translateY(-4px)' } }}
-            >
-              <Avatar sx={{ bgcolor: '#EDE7F6', color: '#5E35B1' }}>
-                <AutoAwesomeIcon />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#5E35B1' }}>AI</Typography>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Generation and Optimization</Typography>
-              </Box>
-            </Stack>
-          </Grid>
-        </Grid>
       </Box>
 
       <PlatformSelector value={postData.platforms} onChange={(v) => updatePostData('platforms', v)} />
