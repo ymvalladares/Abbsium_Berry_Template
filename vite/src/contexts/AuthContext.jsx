@@ -4,7 +4,7 @@ import api from '../services/AxiosService';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
 
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post(`account/${action}`, payload);
 
       if (action === 'login') {
-        localStorage.setItem('accessToken', res.data.token);
+        localStorage.setItem('token', res.data.token);
         localStorage.setItem('refreshToken', res.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(res.data));
 
@@ -45,8 +45,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('accessToken');
+  const logout = useCallback(async () => {
+    await api.post('/account/logout');
+
+    localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
 

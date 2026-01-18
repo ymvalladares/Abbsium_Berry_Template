@@ -3,6 +3,7 @@ import LandingPage from 'landing/LandingPage';
 import Authentication from '../authentication/Authentication.jsx';
 import ProtectedRoute from './ProtectedRoute';
 import MainRoutes from './MainRoutes';
+import AdminRoute from './AdminRoute.jsx';
 
 const router = createBrowserRouter(
   [
@@ -18,8 +19,8 @@ const router = createBrowserRouter(
       path: '/platform/*', // todas las rutas bajo /platform
       element: (
         <ProtectedRoute>
-          {/* MainLayout y todas las rutas hijas estarán protegidas */}
           <MainRoutes.element.type {...MainRoutes.element.props} />
+          <AdminRoute>// Aquí puedes agregar rutas específicas para administradores si es necesario</AdminRoute>
         </ProtectedRoute>
       ),
       children: MainRoutes.children

@@ -12,7 +12,10 @@ import {
   IconBrandInstagram,
   IconBrandYoutube,
   IconBrandTiktok,
-  IconBrandTwitter
+  IconBrandTwitter,
+  IconShieldCheck,
+  IconClock,
+  IconPlugConnected
 } from '@tabler/icons-react';
 
 const PLATFORM_CONFIG = {
@@ -43,12 +46,27 @@ const PLATFORM_CONFIG = {
   }
 };
 
-export default function SocialCard({ platform, connected, onConnect, onDisconnect }) {
+export default function SocialCard({ platform, connected, expiresAt, onConnect, onDisconnect }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const config = PLATFORM_CONFIG[platform];
+  if (!config) return null;
   const Icon = config.icon;
+
+  // Calculate time remaining
+  const getTimeRemaining = () => {
+    if (!expiresAt) return null;
+    const now = new Date();
+    const expires = new Date(expiresAt);
+    const diff = expires - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} remaining`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} remaining`;
+    return 'Expires soon';
+  };
 
   return (
     <Paper
@@ -63,6 +81,9 @@ export default function SocialCard({ platform, connected, onConnect, onDisconnec
         overflow: 'hidden',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         bgcolor: 'background.paper',
+        minHeight: 340,
+        display: 'flex',
+        flexDirection: 'column',
         '&:hover': {
           borderColor: config.color,
           transform: 'translateY(-4px)',
@@ -102,10 +123,9 @@ export default function SocialCard({ platform, connected, onConnect, onDisconnec
         />
       )}
 
-      <Box sx={{ p: 3, position: 'relative' }}>
+      <Box sx={{ p: 3, position: 'relative', display: 'flex', flexDirection: 'column', flex: 1 }}>
         {/* Header */}
         <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 3 }}>
-          {/* Icon */}
           <Box
             sx={{
               width: 56,
@@ -162,11 +182,7 @@ export default function SocialCard({ platform, connected, onConnect, onDisconnec
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             PaperProps={{
               elevation: 8,
-              sx: {
-                minWidth: 180,
-                borderRadius: 2,
-                mt: 0.5
-              }
+              sx: { minWidth: 180, borderRadius: 2, mt: 0.5 }
             }}
           >
             <MenuItem onClick={() => setAnchorEl(null)}>
@@ -185,12 +201,153 @@ export default function SocialCard({ platform, connected, onConnect, onDisconnec
           </Menu>
         </Stack>
 
-        {/* Description */}
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
-          {connected
-            ? 'Your account is active and ready for publishing content and viewing analytics.'
-            : 'Connect your account to start managing content and accessing insights.'}
-        </Typography>
+        {/* Content - Professional Design */}
+        <Box sx={{ flex: 1, minHeight: 140, mb: 3 }}>
+          {connected ? (
+            <Stack spacing={1.5}>
+              {/* Provider Info */}
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        display: 'block',
+                        mb: 0.5
+                      }}
+                    >
+                      PROVIDER
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      {platform}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: 1,
+                      bgcolor: alpha(config.color, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: config.color
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: config.color,
+                        fontWeight: 700,
+                        fontSize: '0.7rem'
+                      }}
+                    >
+                      Active
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+
+              {/* Token Expiration */}
+              {expiresAt && (
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      display: 'block',
+                      mb: 0.5
+                    }}
+                  >
+                    TOKEN EXPIRES
+                  </Typography>
+                  <Stack direction="row" alignItems="baseline" justifyContent="space-between">
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25 }}>
+                        {new Date(expiresAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                        {new Date(expiresAt).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#f57c00',
+                        fontWeight: 700,
+                        fontSize: '0.7rem',
+                        bgcolor: alpha('#f57c00', 0.1),
+                        px: 1,
+                        py: 0.5,
+                        borderRadius: 1
+                      }}
+                    >
+                      {getTimeRemaining()}
+                    </Typography>
+                  </Stack>
+                </Box>
+              )}
+            </Stack>
+          ) : (
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                bgcolor: 'grey.50',
+                border: '1px dashed',
+                borderColor: 'divider',
+                textAlign: 'center',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+              }}
+            >
+              <IconShieldCheck size={40} color="#bdbdbd" style={{ margin: '0 auto 12px' }} />
+              <Typography variant="subtitle2" fontWeight={600} color="text.primary" sx={{ mb: 1 }}>
+                No Active Connection
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
+                Connect your {platform} account to manage content, schedule posts, and access analytics
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
         {/* Action Button */}
         <Button

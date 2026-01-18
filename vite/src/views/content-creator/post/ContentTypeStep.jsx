@@ -1,6 +1,7 @@
 import { Box, Paper, Typography } from '@mui/material';
 import { IconInbox, IconRewindBackward60, IconVideo } from '@tabler/icons-react';
 
+const PRIMARY = '#5E35B1';
 const TYPES = [
   {
     id: 'post',
@@ -53,10 +54,10 @@ export default function ContentTypeStep({ value, onChange }) {
                 p: 3,
                 cursor: 'pointer',
                 borderRadius: 3,
-                border: '3px solid',
+                border: '2.5px solid',
                 borderColor: mainColor,
                 textAlign: 'center',
-                backgroundColor: '#FFF',
+                background: active ? `linear-gradient(135deg, ${PRIMARY}22, ${PRIMARY}08)` : 'background.paper',
                 transition: '0.25s ease',
                 '&:hover': {
                   transform: 'scale(1.05)'

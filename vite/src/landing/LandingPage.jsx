@@ -149,68 +149,93 @@ export default function AbbsiumLanding() {
       <Container maxWidth="lg">
         <Box
           sx={{
-            pt: { xs: 14, md: 18 },
+            pt: { xs: 16, md: 22 },
+            pb: { xs: 14, md: 18 },
             textAlign: 'center',
-            minHeight: '67vh'
+            minHeight: '72vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
           }}
         >
-          <Chip
-            icon={<Rocket />}
-            label="AI-powered content platform"
-            sx={{
-              mb: 4,
-              px: 2,
-              fontWeight: 700,
-              borderRadius: '999px',
-              background: 'rgba(102,126,234,.12)',
-              color: '#667eea'
-            }}
-          />
-
+          {/* Micro label */}
           <Typography
             sx={{
-              fontSize: '2.5rem',
+              mb: 4,
+              fontSize: '.75rem',
+              fontWeight: 700,
+              letterSpacing: '.14em',
+              textTransform: 'uppercase',
+              color: '#667eea'
+            }}
+          >
+            AI-Powered Content Platform
+          </Typography>
+
+          {/* Headline */}
+          <Typography
+            sx={{
+              fontSize: { xs: '2.8rem', md: '3.8rem' },
               fontWeight: 900,
-              lineHeight: 1.1,
-              mb: 3
+              lineHeight: 1.05,
+              letterSpacing: '-.03em',
+              mb: 4
             }}
           >
             Build Viral Content
-            <Box component="span" sx={{ color: '#667eea' }}>
-              {' '}
+            <Box component="span" sx={{ display: 'block', color: '#667eea' }}>
               Faster Than Ever
             </Box>
           </Typography>
 
+          {/* Subheadline */}
           <Typography
             sx={{
-              maxWidth: 720,
+              maxWidth: 760,
               mx: 'auto',
-              fontSize: '1.15rem',
-              color: '#64748b',
-              lineHeight: 1.7,
-              mb: 6
+              fontSize: { xs: '1.05rem', md: '1.15rem' },
+              color: '#475569',
+              lineHeight: 1.8,
+              mb: 7
             }}
           >
-            Abbsium helps creators, marketers and teams generate, edit and publish high-performing content using AI automation.
+            Abbsium helps creators, marketers, and teams generate, refine, and publish high-performing content with AI — without adding
+            friction to their workflow.
           </Typography>
 
+          {/* CTA */}
           <Stack direction="row" spacing={2} justifyContent="center">
             <Button
               onClick={handleLogin}
               startIcon={<Bolt />}
               sx={{
-                fontWeight: 800,
-                px: 4,
+                px: 5,
                 py: 1.6,
+                fontWeight: 800,
+                fontSize: '.95rem',
                 borderRadius: '999px',
-                background: 'linear-gradient(135deg,#667eea,#764ba2)',
-                color: '#fff'
+                background: '#0f172a',
+                color: '#fff',
+                boxShadow: '0 14px 40px rgba(15,23,42,.35)',
+                '&:hover': {
+                  background: '#020617'
+                }
               }}
             >
               Start Free Trial
             </Button>
           </Stack>
+
+          {/* Trust micro-copy */}
+          <Typography
+            sx={{
+              mt: 4,
+              fontSize: '.8rem',
+              color: '#64748b'
+            }}
+          >
+            No credit card required · Cancel anytime
+          </Typography>
         </Box>
       </Container>
 

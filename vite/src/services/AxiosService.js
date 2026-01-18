@@ -23,11 +23,11 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-const getAccessToken = () => localStorage.getItem('accessToken');
+const getToken = () => localStorage.getItem('token');
 const getRefreshToken = () => localStorage.getItem('refreshToken');
 
 const saveTokens = (access, refresh) => {
-  localStorage.setItem('accessToken', access);
+  localStorage.setItem('token', access);
   if (refresh) localStorage.setItem('refreshToken', refresh);
 };
 
@@ -36,7 +36,7 @@ const saveTokens = (access, refresh) => {
 // =====================================================
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = getAccessToken();
+    const token = getToken();
     if (token) config.headers['Authorization'] = `Bearer ${token}`;
     return config;
   },
@@ -49,6 +49,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.log('Error response interceptor:', error);
     const status = error.response?.status;
     const originalRequest = error.config;
 
@@ -71,12 +72,14 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const token = getToken();
         const refreshToken = getRefreshToken();
-        const result = await axios.post(`${baseURL}/auth/refresh`, {
+        const result = await axios.post(`${baseURL}account/refresh-token`, {
+          token,
           refreshToken
         });
 
-        const newAccess = result.data.accessToken;
+        const newAccess = result.data.token;
         const newRefresh = result.data.refreshToken;
 
         saveTokens(newAccess, newRefresh);
@@ -89,11 +92,12 @@ axiosInstance.interceptors.response.use(
         originalRequest.headers['Authorization'] = 'Bearer ' + newAccess;
         return axiosInstance(originalRequest);
       } catch (e) {
+        console.log('Refresh token failed:', e);
         processQueue(e, null);
         isRefreshing = false;
 
         localStorage.clear();
-        window.location.href = '/login';
+        window.location.href = '/authenticate';
 
         return Promise.reject(e);
       }
@@ -135,3 +139,48 @@ const api = {
 };
 
 export default api;
+
+// =====================================================
+// MÉTODOS SOCIALES CON POPUP
+// =====================================================
+export const socialAPI = {
+  getStatus: () => axiosInstance.get('/SocialAuth/status'),
+  checkConnections: () => axiosInstance.get('/SocialAuth/connections/check'),
+
+  connectFacebook: async (onSuccess) => {
+    // <--- Recibe el callback
+    try {
+      const res = await api.post('/SocialAuth/facebook/connect');
+      const url = res.data.url;
+
+      const popup = window.open(url, 'Facebook Connect', 'width=600,height=700');
+
+      const handleMessage = async (event) => {
+        if (event.data.type === 'AUTH_SUCCESS') {
+          console.log('¡Éxito! Facebook conectado');
+
+          if (onSuccess) await onSuccess(); // <--- 2️⃣ Ejecuta el refresh aquí
+
+          window.removeEventListener('message', handleMessage);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      const timer = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(timer);
+          window.removeEventListener('message', handleMessage);
+        }
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  // Otros providers aún usando redirect normal
+  connectInstagram: () => (window.location.href = `${baseURL}SocialAuth/instagram/connect`),
+  connectYouTube: () => (window.location.href = `${baseURL}SocialAuth/youtube/connect`),
+  connectTikTok: () => (window.location.href = `${baseURL}SocialAuth/tiktok/connect`),
+  disconnect: (provider) => axiosInstance.post(`/SocialAuth/disconnect/${provider}`)
+};

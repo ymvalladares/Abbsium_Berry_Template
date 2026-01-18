@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // Layout
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import AdminRoute from './AdminRoute';
 
 // Lazy pages
 
@@ -29,15 +30,39 @@ const MainRoutes = {
   children: [
     { path: '', element: <UserDashboard /> },
     { path: 'dashboard', element: <UserDashboard /> },
+
     //Content Creator routes
     { path: 'color', element: <UtilsColor /> },
     { path: 'content/create-post', element: <Post /> },
     { path: 'content/clippings-agent', element: <ClippingsAgent /> },
     { path: 'content/social-networks', element: <SocialNetwork /> },
-    //Admin routes
-    { path: 'admin/dashboard', element: <AdminDashboard /> },
-    { path: 'admin/earnings', element: <Earnings /> },
-    { path: 'admin/workers', element: <Earnings /> },
+
+    //Admin routes - Protegidas con AdminRoute
+    {
+      path: 'admin/dashboard',
+      element: (
+        <AdminRoute>
+          <AdminDashboard />
+        </AdminRoute>
+      )
+    },
+    {
+      path: 'admin/earnings',
+      element: (
+        <AdminRoute>
+          <Earnings />
+        </AdminRoute>
+      )
+    },
+    {
+      path: 'admin/workers',
+      element: (
+        <AdminRoute>
+          <Earnings />
+        </AdminRoute>
+      )
+    },
+
     //AI routes
     { path: 'chat-ai', element: <Ai /> }
   ]
