@@ -12,6 +12,7 @@ import {
   Bolt,
   ArrowForward
 } from '@mui/icons-material';
+import AbbsiumHero from './AbbsiumHero';
 
 export default function AbbsiumLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -146,101 +147,10 @@ export default function AbbsiumLanding() {
       </AppBar>
 
       {/* ================= HERO ================= */}
-      <Container maxWidth="lg">
-        <Box
-          sx={{
-            pt: { xs: 16, md: 22 },
-            pb: { xs: 14, md: 18 },
-            textAlign: 'center',
-            minHeight: '72vh',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}
-        >
-          {/* Micro label */}
-          <Typography
-            sx={{
-              mb: 4,
-              fontSize: '.75rem',
-              fontWeight: 700,
-              letterSpacing: '.14em',
-              textTransform: 'uppercase',
-              color: '#667eea'
-            }}
-          >
-            AI-Powered Content Platform
-          </Typography>
-
-          {/* Headline */}
-          <Typography
-            sx={{
-              fontSize: { xs: '2.8rem', md: '3.8rem' },
-              fontWeight: 900,
-              lineHeight: 1.05,
-              letterSpacing: '-.03em',
-              mb: 4
-            }}
-          >
-            Build Viral Content
-            <Box component="span" sx={{ display: 'block', color: '#667eea' }}>
-              Faster Than Ever
-            </Box>
-          </Typography>
-
-          {/* Subheadline */}
-          <Typography
-            sx={{
-              maxWidth: 760,
-              mx: 'auto',
-              fontSize: { xs: '1.05rem', md: '1.15rem' },
-              color: '#475569',
-              lineHeight: 1.8,
-              mb: 7
-            }}
-          >
-            Abbsium helps creators, marketers, and teams generate, refine, and publish high-performing content with AI — without adding
-            friction to their workflow.
-          </Typography>
-
-          {/* CTA */}
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button
-              onClick={handleLogin}
-              startIcon={<Bolt />}
-              sx={{
-                px: 5,
-                py: 1.6,
-                fontWeight: 800,
-                fontSize: '.95rem',
-                borderRadius: '999px',
-                background: '#0f172a',
-                color: '#fff',
-                boxShadow: '0 14px 40px rgba(15,23,42,.35)',
-                '&:hover': {
-                  background: '#020617'
-                }
-              }}
-            >
-              Start Free Trial
-            </Button>
-          </Stack>
-
-          {/* Trust micro-copy */}
-          <Typography
-            sx={{
-              mt: 4,
-              fontSize: '.8rem',
-              color: '#64748b'
-            }}
-          >
-            No credit card required · Cancel anytime
-          </Typography>
-        </Box>
-      </Container>
+      <AbbsiumHero />
 
       {/* ================= FEATURE CARDS ================= */}
-      <Container maxWidth="lg">
+      <Container sx={{ mt: 12 }} maxWidth="lg">
         <Grid container spacing={3} justifyContent="center">
           {[
             {
