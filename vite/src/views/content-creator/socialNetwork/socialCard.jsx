@@ -1,6 +1,6 @@
-// SocialCard.jsx
 import { useState } from 'react';
 import { Box, Paper, Typography, Button, Chip, IconButton, Menu, MenuItem, Divider, Stack, alpha } from '@mui/material';
+import { BeatLoader } from 'react-spinners';
 import {
   IconDotsVertical,
   IconSettings,
@@ -49,12 +49,12 @@ const PLATFORM_CONFIG = {
 export default function SocialCard({ platform, connected, expiresAt, onConnect, onDisconnect }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const config = PLATFORM_CONFIG[platform];
   if (!config) return null;
   const Icon = config.icon;
 
-  // Calculate time remaining
   const getTimeRemaining = () => {
     if (!expiresAt) return null;
     const now = new Date();
@@ -66,6 +66,31 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
     if (days > 0) return `${days} day${days > 1 ? 's' : ''} remaining`;
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} remaining`;
     return 'Expires soon';
+  };
+
+  // ✅ wrapper solo para conectar
+  const handleConnect = () => {
+    setIsConnecting(true);
+
+    try {
+      onConnect?.(); // abre popup
+    } catch (err) {
+      console.error(err);
+      setIsConnecting(false);
+      return;
+    }
+
+    const onFocus = () => {
+      setIsConnecting(false);
+      window.removeEventListener('focus', onFocus);
+    };
+
+    window.addEventListener('focus', onFocus);
+
+    // seguridad
+    setTimeout(() => {
+      setIsConnecting(false);
+    }, 8000);
   };
 
   return (
@@ -201,7 +226,7 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
           </Menu>
         </Stack>
 
-        {/* Content - Professional Design */}
+        {/* Content */}
         <Box sx={{ flex: 1, minHeight: 140, mb: 3 }}>
           {connected ? (
             <Stack spacing={1.5}>
@@ -352,9 +377,10 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
         {/* Action Button */}
         <Button
           fullWidth
+          disabled={isConnecting}
           variant={connected ? 'outlined' : 'contained'}
-          startIcon={connected ? <IconUnlink size={18} /> : <IconLink size={18} />}
-          onClick={connected ? onDisconnect : onConnect}
+          startIcon={isConnecting ? null : connected ? <IconUnlink size={18} /> : <IconLink size={18} />}
+          onClick={connected ? onDisconnect : handleConnect}
           sx={{
             borderRadius: 2,
             py: 1.25,
@@ -381,7 +407,15 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
                 })
           }}
         >
-          {connected ? 'Disconnect' : 'Connect Account'}
+          {isConnecting ? (
+            <Box direction="row" spacing={1} alignItems="center">
+              <BeatLoader size={8} color="#fff" />
+            </Box>
+          ) : connected ? (
+            'Disconnect'
+          ) : (
+            'Connect Account'
+          )}
         </Button>
       </Box>
     </Paper>

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { showSnackbar } from '../utils/snackbarNotif';
 
 const baseURL = 'https://abbsium.onrender.com/';
-//const baseURL = 'https://localhost:44328/';
+// const baseURL = 'https://localhost:44328/';
 
 const axiosInstance = axios.create({
   baseURL,
@@ -153,7 +153,12 @@ export const socialAPI = {
       const res = await api.post('/SocialAuth/facebook/connect');
       const url = res.data.url;
 
-      const popup = window.open(url, 'Facebook Connect', 'width=600,height=700');
+      const width = 600;
+      const height = 700;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+
+      const popup = window.open(url, 'Facebook Connect', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
 
       const handleMessage = async (event) => {
         if (event.data.type === 'AUTH_SUCCESS') {
