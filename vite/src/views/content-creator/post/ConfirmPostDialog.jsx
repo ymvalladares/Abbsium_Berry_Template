@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +13,8 @@ import {
   LinearProgress
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { socialAPI } from '../../../services/AxiosService'; // tu API de social
+import { showSnackbar } from '../../../utils/snackbarNotif';
 
 export default function ConfirmPostDialog({ open, data, onClose }) {
   const file = data.files?.[0];
@@ -21,9 +24,60 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const MEDIA_HEIGHT = 280;
 
+  const [isPosting, setIsPosting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState('');
+
+  const handlePublish = async () => {
+    if (isPosting) return;
+    setIsPosting(true);
+    setProgress(0);
+    setStatusText('Publishing...');
+
+    try {
+      const caption = `${data.title}${data.description ? '\n' + data.description : ''}`;
+
+      const payload = {
+        message: caption,
+        photoUrl: file ? await toBase64(file) : '',
+        caption
+      };
+
+      console.log('Calling postFacebook with payload:', payload);
+
+      // Simular progreso mientras llega respuesta
+      const fakeProgress = setInterval(() => {
+        setProgress((old) => (old < 90 ? old + 5 : old));
+      }, 200);
+
+      const response = await socialAPI.postFacebook(payload);
+
+      clearInterval(fakeProgress);
+      setProgress(100);
+      setStatusText('Published');
+      console.log('Facebook response:', response);
+
+      showSnackbar('Post published successfully on Facebook!', 'success');
+    } catch (err) {
+      console.error('Error posting:', err);
+      setStatusText('Failed');
+      showSnackbar('Failed to publish post', 'error');
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  // Helper para convertir file a base64
+  const toBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      {/* HEADER */}
       <DialogTitle sx={{ fontWeight: 700 }}>
         Confirm post
         <Typography variant="body2" color="text.secondary">
@@ -32,7 +86,6 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
       </DialogTitle>
 
       <DialogContent dividers>
-        {/* POST CARD */}
         <Box
           sx={{
             borderRadius: 4,
@@ -51,7 +104,6 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
               gap: 3
             }}
           >
-            {/* MEDIA */}
             {file && (
               <Box
                 sx={{
@@ -66,30 +118,19 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
                     component="img"
                     src={previewUrl}
                     alt="Preview"
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: 3
-                    }}
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }}
                   />
                 ) : (
                   <Box
                     component="video"
                     src={previewUrl}
                     controls
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: 3
-                    }}
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }}
                   />
                 )}
               </Box>
             )}
 
-            {/* INFO BOX */}
             <Box
               sx={{
                 height: isMobile ? 'auto' : MEDIA_HEIGHT,
@@ -99,7 +140,6 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
                 position: 'relative'
               }}
             >
-              {/* BADGES */}
               <Box>
                 <Stack direction="row" spacing={1} alignItems="center" mb={1}>
                   <Chip label="Ready to use" size="small" color="success" sx={{ fontWeight: 'bold', p: 1 }} />
@@ -114,7 +154,6 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
                 </Stack>
               </Box>
 
-              {/* NEW PRO CONTENT */}
               <Box
                 sx={{
                   borderRadius: 3,
@@ -133,14 +172,13 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
                   <Typography fontWeight={600}>Media is optimized and ready for publication</Typography>
                 </Box>
 
-                {/* PROGRESS INDICATOR */}
                 <Box mt={2}>
                   <Typography variant="caption" color="text.secondary">
                     Preparation status
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={100}
+                    value={progress}
                     sx={{
                       height: 8,
                       borderRadius: 2,
@@ -152,6 +190,9 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
                       }
                     }}
                   />
+                  <Typography variant="caption" color="text.secondary">
+                    {statusText}
+                  </Typography>
                 </Box>
 
                 <Stack direction="row" spacing={3} mt={2}>
@@ -171,7 +212,6 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
                 </Stack>
               </Box>
 
-              {/* PLATFORMS & DIVIDER */}
               <Box>
                 <Stack direction="row" spacing={1} flexWrap="wrap">
                   {data.platforms?.map((p) => (
@@ -184,11 +224,12 @@ export default function ConfirmPostDialog({ open, data, onClose }) {
         </Box>
       </DialogContent>
 
-      {/* ACTIONS */}
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose}>Back</Button>
-        <Button variant="contained" size="large">
-          Publish
+        <Button onClick={onClose} disabled={isPosting}>
+          Back
+        </Button>
+        <Button variant="contained" size="large" disabled={isPosting} onClick={handlePublish}>
+          {isPosting ? 'Publishing...' : 'Publish'}
         </Button>
       </DialogActions>
     </Dialog>

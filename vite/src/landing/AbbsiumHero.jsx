@@ -11,7 +11,7 @@ export default function AbbsiumHero() {
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '92vh', md: 'auto' },
+        minHeight: { xs: '100vh', md: 'auto' },
         background:
           'radial-gradient(800px circle at 20% -10%, rgba(102,126,234,0.14), transparent 45%), radial-gradient(700px circle at 90% 10%, rgba(118,75,162,0.14), transparent 45%), linear-gradient(180deg, #FCFCFF 0%, #ffffff 75%)'
       }}

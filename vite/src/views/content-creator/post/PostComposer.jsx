@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography, Divider, Paper, Grid, Stack, Avatar } from '@mui/material';
-import DevicesIcon from '@mui/icons-material/Devices';
-import FlashOnIcon from '@mui/icons-material/FlashOn';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import PlatformSelector from './PlatformSelector';
 import ContentTypeStep from './ContentTypeStep';

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { showSnackbar } from '../utils/snackbarNotif';
 
 const baseURL = 'https://abbsium.onrender.com/';
-// const baseURL = 'https://localhost:44328/';
+//const baseURL = 'https://localhost:44328/';
 
 const axiosInstance = axios.create({
   baseURL,
@@ -103,6 +103,11 @@ axiosInstance.interceptors.response.use(
       }
     }
 
+    if (error.message === 'Network Error') {
+      showSnackbar('Server is not running', 'error');
+      return Promise.reject(error);
+    }
+
     // ---------- OTROS ERRORES ----------
     switch (status) {
       case 400:
@@ -180,6 +185,18 @@ export const socialAPI = {
       }, 1000);
     } catch (err) {
       console.error(err);
+    }
+  },
+
+  facebookProfile: () => axiosInstance.get('/SocialAuth/facebook/test-profile'),
+  postFacebook: async ({ message, photoUrl, caption }) => {
+    try {
+      const res = await api.post('/SocialAuth/facebook/post', { message, photoUrl, caption });
+      console.log('Facebook API response:', res.data);
+      return res.data;
+    } catch (err) {
+      console.error('Error posting to Facebook:', err);
+      throw err;
     }
   },
 

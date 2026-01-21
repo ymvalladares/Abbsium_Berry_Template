@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Container, Typography, Grid, Stack, CircularProgress } from '@mui/material';
 import SocialCard from './socialCard';
 import { socialAPI } from '../../../services/AxiosService';
+import Loader from '../../../ui-component/Loader';
 
 const PLATFORMS = ['Facebook', 'Instagram', 'YouTube', 'TikTok'];
 
@@ -72,34 +73,72 @@ export default function SocialHub() {
   const connectedCount = Object.values(connections).filter((x) => x?.connected).length;
 
   if (loading) {
-    return (
-      <Box sx={{ minHeight: '60vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <Loader />;
   }
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#EEF2F6', py: { xs: 6, md: 8 } }}>
-      <Container maxWidth="lg">
+      <Container>
         {/* Header */}
         <Box
           sx={{
+            minWidth: '90%',
             mb: 4,
-            p: 3,
-            borderRadius: 3,
+            p: { xs: 2, md: 2.5 },
+            borderRadius: 4,
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             position: 'relative',
             overflow: 'hidden',
-            mt: { xs: -4, md: -6 }
+            mt: { xs: -4, md: -6 },
+            boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+
+            // burbuja izquierda (alineada)
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: '50%',
+              left: -60,
+              transform: 'translateY(-50%)',
+              width: 160,
+              height: 160,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)'
+            },
+
+            // burbuja derecha (alineada)
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: '50%',
+              right: -70,
+              transform: 'translateY(-50%)',
+              width: 180,
+              height: 180,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.06)'
+            }
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={3}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ position: 'relative', zIndex: 1 }}>
             <Box>
-              <Typography variant="h4" fontWeight={700} sx={{ color: 'white' }}>
+              <Typography
+                sx={{
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: { xs: '1.05rem', sm: '1.2rem', md: '1.3rem' },
+                  lineHeight: 1.2
+                }}
+              >
                 Social Connections
               </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.9)' }}>
+
+              <Typography
+                sx={{
+                  color: 'rgba(255,255,255,0.85)',
+                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                  mt: 0.5
+                }}
+              >
                 {connectedCount}/{PLATFORMS.length} platforms connected
               </Typography>
             </Box>
@@ -109,7 +148,7 @@ export default function SocialHub() {
         {/* Cards Grid */}
         <Grid container spacing={3}>
           {PLATFORMS.map((platform) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={platform}>
+            <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3, xl: 4 }} key={platform}>
               <SocialCard
                 platform={platform}
                 connected={connections[platform]?.connected}

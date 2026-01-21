@@ -1,5 +1,19 @@
 import { useState } from 'react';
-import { Box, Paper, Typography, Button, Chip, IconButton, Menu, MenuItem, Divider, Stack, alpha } from '@mui/material';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  Chip,
+  IconButton,
+  Menu,
+  MenuItem,
+  Divider,
+  Stack,
+  alpha,
+  Popover,
+  CircularProgress
+} from '@mui/material';
 import { BeatLoader } from 'react-spinners';
 import {
   IconDotsVertical,
@@ -13,10 +27,9 @@ import {
   IconBrandYoutube,
   IconBrandTiktok,
   IconBrandTwitter,
-  IconShieldCheck,
-  IconClock,
-  IconPlugConnected
+  IconShieldCheck
 } from '@tabler/icons-react';
+import { socialAPI } from '../../../services/AxiosService';
 
 const PLATFORM_CONFIG = {
   Facebook: {
@@ -50,6 +63,11 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
   const [anchorEl, setAnchorEl] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  // Popover info Facebook
+  const [infoAnchor, setInfoAnchor] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+  const [loadingInfo, setLoadingInfo] = useState(false);
 
   const config = PLATFORM_CONFIG[platform];
   if (!config) return null;
@@ -92,6 +110,28 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
       setIsConnecting(false);
     }, 8000);
   };
+
+  // Abrir popover info al click en Settings
+  const handleOpenInfo = async (event) => {
+    setInfoAnchor(event.currentTarget);
+
+    if (platform === 'Facebook' && connected && !userInfo) {
+      setLoadingInfo(true);
+      try {
+        const res = await socialAPI.facebookProfile(); // backend /facebook/test-profile
+        console.log('Facebook Profile Info:', res.data);
+        setUserInfo(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingInfo(false);
+      }
+    }
+  };
+
+  const handleCloseInfo = () => setInfoAnchor(null);
+
+  const openInfo = Boolean(infoAnchor);
 
   return (
     <Paper
@@ -210,9 +250,14 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
               sx: { minWidth: 180, borderRadius: 2, mt: 0.5 }
             }}
           >
-            <MenuItem onClick={() => setAnchorEl(null)}>
+            <MenuItem
+              onClick={(e) => {
+                setAnchorEl(null);
+                handleOpenInfo(e);
+              }}
+            >
               <IconSettings size={16} style={{ marginRight: 8 }} />
-              Settings
+              Show Info
             </MenuItem>
             <MenuItem onClick={() => setAnchorEl(null)}>
               <IconRefresh size={16} style={{ marginRight: 8 }} />
@@ -224,6 +269,48 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
               Remove
             </MenuItem>
           </Menu>
+
+          {/* Popover con info Facebook */}
+          <Popover
+            open={openInfo}
+            anchorEl={infoAnchor}
+            onClose={handleCloseInfo}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Paper sx={{ p: 2, minWidth: 250 }}>
+              {loadingInfo ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : userInfo ? (
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Name
+                  </Typography>
+                  <Typography variant="body1">{userInfo.name}</Typography>
+
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ mt: 1 }}>
+                    Email
+                  </Typography>
+                  <Typography variant="body2">{userInfo.email || 'Not available'}</Typography>
+
+                  {userInfo.picture?.data?.url && (
+                    <Box
+                      component="img"
+                      src={userInfo.picture.data.url}
+                      alt="Avatar"
+                      sx={{ width: 80, height: 80, borderRadius: '50%', mt: 1 }}
+                    />
+                  )}
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No info available
+                </Typography>
+              )}
+            </Paper>
+          </Popover>
         </Stack>
 
         {/* Content */}
