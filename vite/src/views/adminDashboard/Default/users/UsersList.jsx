@@ -1,57 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Grid, Card, CardContent, Typography, useTheme, useMediaQuery } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 
 import api from '../../../../services/AxiosService';
+import { showSnackbar } from '../../../../utils/snackbarNotif';
 
 import UsersFilters from './UsersFilters';
 import UsersTable from './UsersTable';
 import UsersUpsertPaper from './UsersUpsertPaper';
 import { useFilters } from '../../../../contexts/FiltersContext';
-
-// 👉 en el futuro esto viene del service
-const MOCK_USERS = [
-  {
-    id: 1,
-    name: 'Galen Slixby',
-    username: 'gslixby0',
-    email: 'gslixby0@abc.net.au',
-    role: 'Editor',
-    plan: 'Enterprise',
-    status: 'Inactive',
-    avatar: 'GS'
-  },
-  {
-    id: 2,
-    name: 'Halsey Redmore',
-    username: 'hredmore1',
-    email: 'hredmore1@imgur.com',
-    role: 'Author',
-    plan: 'Team',
-    status: 'Pending',
-    avatar: null
-  },
-  {
-    id: 3,
-    name: 'Marjory Sicely',
-    username: 'msicely2',
-    email: 'msicely2@who.int',
-    role: 'Maintainer',
-    plan: 'Enterprise',
-    status: 'Active',
-    avatar: null
-  },
-  {
-    id: 4,
-    name: 'Cyrill Risby',
-    username: 'crisby3',
-    email: 'crisby3@wordpress.com',
-    role: 'Maintainer',
-    plan: 'Team',
-    status: 'Inactive',
-    avatar: null
-  }
-];
 
 const UsersList = () => {
   const theme = useTheme();
@@ -63,7 +20,7 @@ const UsersList = () => {
   const [openUpsert, setOpenUpsert] = useState(false);
   const [editUser, setEditUser] = useState(null);
 
-  // 👉 Obtiene filtros del contexto
+  // 👉 filtros desde context
   const { filters } = useFilters();
 
   const filteredUsers = useMemo(() => {
@@ -95,13 +52,6 @@ const UsersList = () => {
     });
   }, [users, filters]);
 
-  const stats = [
-    { title: 'Session', value: '21,459', change: '+29%', subtitle: 'Total User', color: '#9b87f5', isPositive: true },
-    { title: 'Paid Users', value: '4,567', change: '+18%', subtitle: 'Last week analytics', color: '#f87171', isPositive: true },
-    { title: 'Active Users', value: '19,860', change: '-14%', subtitle: 'Last week analytics', color: '#4ade80', isPositive: false },
-    { title: 'Pending Users', value: '237', change: '+42%', subtitle: 'Last week analytics', color: '#fbbf24', isPositive: true }
-  ];
-
   const fetchUsers = async () => {
     try {
       const response = await api.get('/User/All-Users'); // 🔹 filtros como query params
@@ -117,13 +67,38 @@ const UsersList = () => {
     fetchUsers();
   }, [filters]);
 
+  // =============================
+  // SELECT
+  // =============================
   const handleSelectAll = (checked) => {
-    setSelectedUsers(checked ? filteredUsers.map((u) => u.id) : []);
+    setSelectedUsers(checked ? users.map((u) => u.id) : []);
   };
 
   const handleSelectUser = (id) => {
     setSelectedUsers((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
+
+  // =============================
+  // DELETE
+  // =============================
+  const handleDeleteUser = async (id) => {
+    try {
+      await api.delete(`/User/Delete/${id}`);
+      showSnackbar('User deleted successfully', 'success');
+
+      fetchUsers();
+      setSelectedUsers((prev) => prev.filter((x) => x !== id));
+    } catch (err) {
+      console.error('Delete user error:', err);
+    }
+  };
+
+  const stats = [
+    { title: 'Session', value: '21,459', change: '+29%', subtitle: 'Total User', color: '#9b87f5', isPositive: true },
+    { title: 'Paid Users', value: '4,567', change: '+18%', subtitle: 'Last week analytics', color: '#f87171', isPositive: true },
+    { title: 'Active Users', value: '19,860', change: '-14%', subtitle: 'Last week analytics', color: '#4ade80', isPositive: false },
+    { title: 'Pending Users', value: '237', change: '+42%', subtitle: 'Last week analytics', color: '#fbbf24', isPositive: true }
+  ];
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -177,7 +152,7 @@ const UsersList = () => {
 
       {/* ===== TABLE ===== */}
       <UsersTable
-        users={filteredUsers} // ✅ aquí usamos filtrados automáticamente
+        users={filteredUsers}
         selectedUsers={selectedUsers}
         isMobile={isMobile}
         isTablet={isTablet}
@@ -187,6 +162,7 @@ const UsersList = () => {
           setEditUser(user);
           setOpenUpsert(true);
         }}
+        onDeleteUser={handleDeleteUser}
       />
 
       {/* ===== ADD / EDIT ===== */}
@@ -198,20 +174,23 @@ const UsersList = () => {
           setOpenUpsert(false);
           setEditUser(null);
         }}
-        onSubmit={(data) => {
-          if (editUser) {
-            // EDIT
-            setUsers((prev) => prev.map((u) => (u.id === editUser.id ? { ...u, ...data } : u)));
-          } else {
-            // CREATE
-            setUsers((prev) => [...prev, { ...data, id: Date.now(), status: data.active ? 'Active' : 'Inactive' }]);
+        onSubmit={async (data) => {
+          try {
+            await api.post('/User/Upsert', {
+              ...data,
+              id: editUser?.id
+            });
+
+            showSnackbar(editUser ? 'User updated' : 'User created', 'success');
+          } catch (err) {
+            console.error(err);
           }
 
           setOpenUpsert(false);
           setEditUser(null);
         }}
         onSuccess={() => {
-          fetchUsers(); // ✅ Refrescar lista después de crear/editar
+          fetchUsers(); // 🔥 NO SE TOCA
         }}
       />
     </Box>

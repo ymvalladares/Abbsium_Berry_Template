@@ -37,6 +37,9 @@ const inputStyle = {
       bgcolor: '#fff',
       boxShadow: '0 0 0 2px rgba(155,135,245,0.25)'
     }
+  },
+  '& .MuiInputBase-input': {
+    fontSize: 16 // ✅ evita zoom en Safari iOS
   }
 };
 
@@ -56,7 +59,8 @@ const lockedInputStyle = {
     }
   },
   '& .MuiInputBase-input': {
-    cursor: 'not-allowed'
+    cursor: 'not-allowed',
+    fontSize: 16 // ✅ evita zoom en Safari iOS
   }
 };
 
@@ -93,12 +97,19 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
     setErrors({});
   }, [mode, initialData, open]);
 
-  // Validación del formulario
+  // =========================
+  // VALIDACIÓN
+  // =========================
   const validateForm = () => {
     const newErrors = {};
 
+    // ❗ Username requerido
     if (!form.username.trim()) {
       newErrors.username = 'Username is required';
+    }
+    // ❗ Username SIN espacios (una sola palabra)
+    else if (/\s/.test(form.username)) {
+      newErrors.username = 'Username cannot contain spaces';
     }
 
     if (mode === 'create') {
@@ -117,10 +128,12 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
     return Object.keys(newErrors).length === 0;
   };
 
-  // Manejar submit
+  // =========================
+  // SUBMIT
+  // =========================
   const handleSubmit = async () => {
     if (!validateForm()) {
-      showSnackbar('Please fill all required fields', 'error');
+      showSnackbar('Please fix validation errors', 'error');
       return;
     }
 
@@ -128,7 +141,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
 
     try {
       const payload = {
-        ...(form.id && { id: form.id }), // Solo incluir ID si existe (modo edit)
+        ...(form.id && { id: form.id }),
         username: form.username,
         email: form.email,
         emailConfirmed: true,
@@ -136,6 +149,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
       };
 
       const result = await api.post('/User/Upsert', payload);
+
       if (result.status === 200) {
         showSnackbar(
           mode === 'create' ? 'User created successfully. Default password: Abbsium.2020' : 'User updated successfully',
@@ -143,7 +157,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
         );
 
         if (onSuccess) {
-          onSuccess(result); // Callback para refrescar la lista
+          onSuccess(result); // 🔥 NO TOCADO
         }
 
         onClose();
@@ -152,8 +166,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
       const errorMessage = error.response?.data?.errors
         ? error.response.data.errors.join(', ')
         : error.response?.data || 'An error occurred';
-
-      showSnackbar(errorMessage, 'error');
+      console.error('User upsert error:', error);
     } finally {
       setLoading(false);
     }
@@ -226,7 +239,6 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
 
           {/* BODY */}
           <Box sx={{ px: 4, py: 2, flex: 1, overflowY: 'auto' }}>
-            {/* ACCOUNT */}
             <Typography fontWeight={700} sx={{ mb: 1 }}>
               Account info
             </Typography>
