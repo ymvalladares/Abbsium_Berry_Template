@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { setSnackbarRef } from './utils/snackbarNotif';
+import { FiltersProvider } from './contexts/FiltersContext';
 
 function SnackbarInitializer() {
   const { enqueueSnackbar } = useSnackbar();
@@ -22,7 +23,9 @@ export default function App() {
       <ThemeCustomization>
         <NavigationScroll>
           <AuthProvider>
-            <RouterProvider router={router} />
+            <FiltersProvider>
+              <RouterProvider router={router} />
+            </FiltersProvider>
           </AuthProvider>
         </NavigationScroll>
       </ThemeCustomization>

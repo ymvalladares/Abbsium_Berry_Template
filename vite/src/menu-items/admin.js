@@ -35,10 +35,10 @@ const business = {
           breadcrumbs: false
         },
         {
-          id: 'workers',
-          title: 'Workers',
+          id: 'users',
+          title: 'Users',
           type: 'item',
-          url: '/platform/admin/workers',
+          url: '/platform/admin/users',
           breadcrumbs: false
         }
       ]
