@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { showSnackbar } from '../utils/snackbarNotif';
 
-//const baseURL = 'https://abbsium.onrender.com/';
-const baseURL = 'https://localhost:44328/';
+const baseURL = 'https://abbsium.onrender.com/';
+//const baseURL = 'https://localhost:44328/';
 
 const axiosInstance = axios.create({
   baseURL,
