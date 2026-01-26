@@ -27,13 +27,7 @@ const business = {
           url: '/platform/admin/dashboard',
           breadcrumbs: false
         },
-        {
-          id: 'earnings',
-          title: 'Earnings',
-          type: 'item',
-          url: '/platform/admin/earnings',
-          breadcrumbs: false
-        },
+
         {
           id: 'users',
           title: 'Users',

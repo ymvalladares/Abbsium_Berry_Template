@@ -4,7 +4,7 @@ import AdminRoute from './AdminRoute';
 
 // Lazy pages
 const AdminDashboard = Loadable(lazy(() => import('views/adminDashboard/Default')));
-const Earnings = Loadable(lazy(() => import('views/adminDashboard/Default/Earnings')));
+//const Earnings = Loadable(lazy(() => import('views/adminDashboard/Default/Earnings')));
 const Users = Loadable(lazy(() => import('views/adminDashboard/Default/users/UsersList')));
 
 const AdminRoutes = {
@@ -13,10 +13,6 @@ const AdminRoutes = {
     {
       path: 'dashboard',
       element: <AdminDashboard />
-    },
-    {
-      path: 'earnings',
-      element: <Earnings />
     },
     {
       path: 'users',

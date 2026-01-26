@@ -74,6 +74,11 @@ export default function ProfileSection() {
     }
   };
 
+  const settingsOptions = () => {
+    navigate('/platform/settings');
+    setOpen(false);
+  };
+
   // 🔒 Protección total al reload
   if (!isAuthenticated || !user) return null;
 
@@ -171,18 +176,11 @@ export default function ProfileSection() {
                     <Divider />
 
                     <List sx={{ minWidth: 300 }}>
-                      <ListItemButton sx={{ borderRadius }}>
+                      <ListItemButton onClick={settingsOptions} sx={{ borderRadius }}>
                         <ListItemIcon>
                           <IconSettings size={20} />
                         </ListItemIcon>
                         <ListItemText primary="Account Settings" />
-                      </ListItemButton>
-
-                      <ListItemButton sx={{ borderRadius }}>
-                        <ListItemIcon>
-                          <IconUser size={20} />
-                        </ListItemIcon>
-                        <ListItemText primary="Social Profile" />
                       </ListItemButton>
 
                       <ListItemButton onClick={handleLogout} sx={{ borderRadius }}>
