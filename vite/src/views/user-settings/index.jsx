@@ -17,6 +17,7 @@ import { Person, Notifications, Lock, CreditCard, Group, Extension, Settings as 
 import Account from './Account';
 import Security from './Security';
 import { useAuth } from '../../contexts/AuthContext';
+import Billings from './Billings';
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ export default function SettingsPage() {
           {activeSection === 'account' && <Account user={user} />}
           {activeSection === 'notifications' && <Typography variant="h6">Notifications Settings</Typography>}
           {activeSection === 'security' && <Security />}
-          {activeSection === 'billing' && <Typography variant="h6">Billing & Plans</Typography>}
+          {activeSection === 'billing' && <Billings />}
           {activeSection === 'integrations' && <Typography variant="h6">Integrations</Typography>}
         </Paper>
       </Box>
@@ -57,7 +58,6 @@ export default function SettingsPage() {
 }
 
 const Sidebar = ({ activeSection, setActiveSection, user }) => {
-  console.log('User object in Sidebar:', user);
   const personalItems = [
     { id: 'account', label: 'Account', icon: <Person /> },
     { id: 'notifications', label: 'Notifications', icon: <Notifications /> },

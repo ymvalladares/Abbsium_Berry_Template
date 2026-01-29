@@ -52,11 +52,12 @@ export default function Index() {
           width: '100%',
           maxWidth: { xs: '100%', md: '75%' },
           mx: 'auto',
-          px: { xs: 0, md: 2 }
+          px: { xs: 0, md: 2 },
+          mb: -3
         }}
       >
         {/* INTRO */}
-        <Box sx={{ textAlign: 'center', mb: 2, mt: 2 }}>
+        <Box sx={{ textAlign: 'center', mb: 1, mt: 1 }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
             <Box
               sx={{
@@ -98,7 +99,7 @@ export default function Index() {
             backgroundColor: 'transparent'
           }}
         >
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5}>
             {/* STEP 1 */}
             <Grid size={{ xs: 12 }}>
               <Typography fontWeight={700}>Step 1 · Video URL</Typography>
