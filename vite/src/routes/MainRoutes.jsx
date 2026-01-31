@@ -13,6 +13,8 @@ const ClippingsAgent = Loadable(lazy(() => import('views/content-creator/clippin
 //AI
 const Ai = Loadable(lazy(() => import('views/ai/Ai')));
 
+const Chat = Loadable(lazy(() => import('views/chat')));
+
 const Settings = Loadable(lazy(() => import('views/user-settings')));
 
 const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
@@ -30,6 +32,8 @@ const MainRoutes = {
     { path: 'content/social-networks', element: <SocialNetwork /> },
 
     { path: 'chat-ai', element: <Ai /> },
+
+    { path: 'chat', element: <Chat /> },
 
     { path: 'settings', element: <Settings /> }
   ]

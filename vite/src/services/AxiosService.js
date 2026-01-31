@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { showSnackbar } from '../utils/snackbarNotif';
 
-const baseURL = 'https://abbsium.onrender.com/';
-//const baseURL = 'https://localhost:44328/';
+//const baseURL = 'https://abbsium.onrender.com/';
+const baseURL = 'https://localhost:44328/';
 
 const axiosInstance = axios.create({
   baseURL,
@@ -115,8 +115,8 @@ axiosInstance.interceptors.response.use(
         break;
       case 403:
         showSnackbar('Forbidden (403)', 'info');
-        localStorage.clear();
-        window.location.href = '/login';
+        // localStorage.clear();
+        // window.location.href = '/login';
         break;
       case 404:
         showSnackbar('Not found (404)', 'error');

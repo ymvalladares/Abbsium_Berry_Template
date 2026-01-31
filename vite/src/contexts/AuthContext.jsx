@@ -1,25 +1,31 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../services/AxiosService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
-
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    const u = localStorage.getItem('user');
+    return u ? JSON.parse(u) : null;
   });
 
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
-  const [authMessage, setAuthMessage] = useState('');
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // 🔒 Rehidratación segura
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      setUser(JSON.parse(storedUser));
+    }
+
+    setAuthLoading(false);
+  }, []);
 
   const authenticate = useCallback(async (action, payload) => {
-    setAuthLoading(true);
-    setAuthError('');
-    setAuthMessage('');
-
     try {
       const res = await api.post(`account/${action}`, payload);
 
@@ -30,49 +36,40 @@ export const AuthProvider = ({ children }) => {
 
         setToken(res.data.token);
         setUser(res.data);
-
-        return { success: true };
       }
-
-      setAuthMessage(res.data?.message || (action === 'register' ? 'User created successfully' : 'Check your email for instructions'));
 
       return { success: true };
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Something went wrong. Try again.');
-      return { success: false };
-    } finally {
-      setAuthLoading(false);
+      return { success: false, message: err.response?.data?.message };
     }
   }, []);
 
   const logout = useCallback(async () => {
-    await api.post('/account/logout');
+    try {
+      await api.post('/account/logout');
+    } catch {}
 
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-
+    localStorage.clear();
     setToken(null);
     setUser(null);
-
-    return { success: true };
   }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        authenticate,
-        authLoading,
-        authError,
-        authMessage,
-        logout,
-        user,
-        isAuthenticated: !!token
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  // ✅ isAdmin DERIVADO, NO MUTABLE
+  const isAdmin = useMemo(() => {
+    return user?.rol?.includes('Admin') ?? false;
+  }, [user]);
+
+  const value = {
+    user,
+    token,
+    isAdmin,
+    authenticate,
+    logout,
+    isAuthenticated: !!token,
+    authLoading
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);
