@@ -1,5 +1,8 @@
 import * as signalR from '@microsoft/signalr';
 
+//const baseURL = 'https://abbsium.onrender.com/';
+//const baseURL = 'https://localhost:44328';
+
 class SignalRService {
   constructor() {
     this.connection = null;
@@ -8,7 +11,7 @@ class SignalRService {
     this.isInitializing = false;
   }
 
-  async start(token, baseURL = 'https://localhost:44328') {
+  async start(token, baseURL = 'https://abbsium.onrender.com') {
     if (this.isInitializing) {
       console.warn('⚠️ SignalR is already initializing');
       return;
