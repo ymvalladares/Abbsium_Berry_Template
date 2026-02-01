@@ -1,8 +1,5 @@
 import * as signalR from '@microsoft/signalr';
 
-//const baseURL = 'https://abbsium.onrender.com/';
-//const baseURL = 'https://localhost:44328';
-
 class SignalRService {
   constructor() {
     this.connection = null;
@@ -11,7 +8,7 @@ class SignalRService {
     this.isInitializing = false;
   }
 
-  async start(token, baseURL = 'https://abbsium.onrender.com') {
+  async start(token, baseURL = import.meta.env.VITE_API_URL) {
     if (this.isInitializing) {
       console.warn('⚠️ SignalR is already initializing');
       return;
@@ -26,12 +23,24 @@ class SignalRService {
 
     try {
       this.connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${baseURL}/hubs/chat`, {
+        .withUrl(`${baseURL}hubs/chat`, {
           accessTokenFactory: () => token,
           skipNegotiation: false,
-          transport: signalR.HttpTransportType.WebSockets
+          transport: signalR.HttpTransportType.WebSockets,
+          // ⭐ AGREGAR TIMEOUTS
+          timeout: 60000 // 60 segundos (debe coincidir con backend)
         })
-        .withAutomaticReconnect([0, 2000, 5000, 10000])
+        .withAutomaticReconnect({
+          nextRetryDelayInMilliseconds: (retryContext) => {
+            // Backoff exponencial: 0s, 2s, 10s, 30s, luego 30s siempre
+            if (retryContext.elapsedMilliseconds < 60000) {
+              return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 30000);
+            }
+            return null; // Dejar de intentar después de 1 minuto
+          }
+        })
+        .withServerTimeout(60000) // ⭐ NUEVO: Tiempo de espera del servidor
+        .withKeepAliveInterval(15000) // ⭐ NUEVO: Intervalo de keep-alive
         .configureLogging(signalR.LogLevel.Information)
         .build();
 
@@ -45,6 +54,9 @@ class SignalRService {
         console.log('✅ Reconnected:', connectionId);
         this.isConnected = true;
         this.emit('connectionChanged', true);
+
+        // ⭐ SOLICITAR usuarios online después de reconectar
+        this.requestOnlineUsers();
       });
 
       this.connection.onclose((error) => {
@@ -73,29 +85,29 @@ class SignalRService {
   registerServerEvents() {
     if (!this.connection) return;
 
-    // Confirmación de mensaje enviado
+    // Usuario: Confirmación de mensaje enviado
     this.connection.on('messageSent', (message) => {
-      console.log('📤 Message sent:', message);
+      console.log('🔔 SignalR EVENT RECEIVED: messageSent', message);
       this.emit('messageSent', message);
     });
 
-    // Nuevo mensaje de admin
+    // Usuario: Nuevo mensaje de admin
     this.connection.on('newAdminMessage', (message) => {
-      console.log('📨 New admin message:', message);
+      console.log('🔔 SignalR EVENT RECEIVED: newAdminMessage', message);
       this.emit('newAdminMessage', message);
       this.playNotificationSound();
     });
 
-    // Nuevo mensaje de usuario (para admin)
+    // Admin: Nuevo mensaje de usuario
     this.connection.on('newUserMessage', (message) => {
-      console.log('📨 New user message:', message);
+      console.log('🔔 SignalR EVENT RECEIVED: newUserMessage', message);
       this.emit('newUserMessage', message);
       this.playNotificationSound();
     });
 
-    // Confirmación de respuesta de admin
+    // Admin: Confirmación de respuesta
     this.connection.on('adminReplySent', (message) => {
-      console.log('📤 Admin reply sent:', message);
+      console.log('🔔 SignalR EVENT RECEIVED: adminReplySent', message);
       this.emit('adminReplySent', message);
     });
 
@@ -103,6 +115,18 @@ class SignalRService {
     this.connection.on('messagesMarkedAsRead', (conversationId) => {
       console.log('✅ Messages marked as read:', conversationId);
       this.emit('messagesMarkedAsRead', conversationId);
+    });
+
+    // ⭐ NUEVO: Escuchar cambios de estado online/offline
+    this.connection.on('userStatusChanged', (data) => {
+      console.log('👤 User status changed:', data);
+      this.emit('userStatusChanged', data);
+    });
+
+    // ⭐ NUEVO: Lista de usuarios online
+    this.connection.on('onlineUsersList', (userIds) => {
+      console.log('📋 Online users:', userIds);
+      this.emit('onlineUsersList', userIds);
     });
 
     // Errores
@@ -147,6 +171,20 @@ class SignalRService {
       await this.connection.invoke('MarkAsRead', conversationId);
     } catch (error) {
       console.error('Error marking as read:', error);
+    }
+  }
+
+  // ⭐ NUEVO: Solicitar lista de usuarios online
+  async requestOnlineUsers() {
+    if (!this.isConnected || !this.connection) {
+      console.warn('⚠️ Cannot request online users: not connected');
+      return;
+    }
+
+    try {
+      await this.connection.invoke('GetOnlineUsers');
+    } catch (error) {
+      console.error('Error requesting online users:', error);
     }
   }
 

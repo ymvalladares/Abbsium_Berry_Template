@@ -1,8 +1,8 @@
 import React from 'react';
 import { Box, Avatar, Typography, Badge } from '@mui/material';
+import { DoneAll as ReadIcon, Circle as UnreadDotIcon } from '@mui/icons-material';
 
 const ChatListItem = ({ chat, isSelected, onClick }) => {
-  // ⭐ NUEVO: Formatear tiempo relativo
   const formatTime = (dateString) => {
     if (!dateString) return '';
 
@@ -10,16 +10,19 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
     const now = new Date();
     const diff = Math.floor((now - date) / 1000);
 
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 60) return 'now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
 
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric'
     });
   };
+
+  const hasUnread = (chat.unreadCount || 0) > 0;
+  const isOnline = chat.isOnline || chat.status === 'online';
 
   return (
     <Box
@@ -29,43 +32,49 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
         alignItems: 'center',
         gap: 1.5,
         px: 2,
-        py: 1.25,
+        py: 1.5,
         cursor: 'pointer',
-        bgcolor: isSelected ? '#EDE7F6' : 'transparent',
-        borderLeft: isSelected ? '3px solid #5E35B1' : '3px solid transparent',
-        transition: 'background-color 0.2s ease',
+        bgcolor: isSelected ? '#e8f0fe' : 'transparent',
+        borderLeft: isSelected ? '3px solid #1967D2' : '3px solid transparent',
+        transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
         '&:hover': {
-          bgcolor: '#EDE7F6'
+          bgcolor: isSelected ? '#e8f0fe' : '#f1f3f4'
         }
       }}
     >
-      {/* Avatar + online */}
+      {/* Avatar con badge online */}
       <Badge
         overlap="circular"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         variant="dot"
         sx={{
           '& .MuiBadge-badge': {
-            bgcolor: chat.isOnline ? '#4caf50' : 'transparent',
+            bgcolor: isOnline ? '#188038' : 'transparent',
             width: 10,
             height: 10,
             borderRadius: '50%',
-            border: '2px solid #fff'
+            border: isOnline ? '2px solid #fff' : 'none'
           }
         }}
       >
         <Avatar
           src={chat.avatar}
-          alt={chat.userName || chat.name} // ⭐ ACTUALIZADO
+          alt={chat.userName || chat.name}
           sx={{
-            width: 40,
-            height: 40
+            width: 48,
+            height: 48,
+            bgcolor: '#1967D2',
+            fontSize: '1rem',
+            fontWeight: 500
           }}
-        />
+        >
+          {(chat.userName || chat.name || 'U')[0]?.toUpperCase()}
+        </Avatar>
       </Badge>
 
-      {/* Info */}
-      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Información del chat */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
         <Box
           sx={{
             display: 'flex',
@@ -75,65 +84,79 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
           }}
         >
           <Typography
-            variant="subtitle2"
             sx={{
-              fontWeight: chat.unreadCount > 0 ? 700 : 600, // ⭐ ACTUALIZADO
-              color: '#5E35B1',
+              fontWeight: hasUnread ? 500 : 400,
+              color: '#202124',
+              fontSize: '0.9375rem',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              flex: 1
             }}
           >
-            {chat.userName || chat.name} {/* ⭐ ACTUALIZADO */}
+            {chat.userName || chat.name}
           </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: '#9e9e9e',
-                fontSize: '0.65rem'
-              }}
-            >
-              {formatTime(chat.lastMessageAt || chat.timestamp)} {/* ⭐ ACTUALIZADO */}
-            </Typography>
-
-            {/* Unread message indicator */}
-            {chat.unreadCount > 0 && ( // ⭐ ACTUALIZADO
-              <Box
-                sx={{
-                  minWidth: 18,
-                  height: 18,
-                  px: 0.5,
-                  borderRadius: '50%',
-                  bgcolor: '#5E35B1',
-                  color: '#fff',
-                  fontSize: '0.65rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                {chat.unreadCount} {/* ⭐ ACTUALIZADO */}
-              </Box>
-            )}
-          </Box>
+          <Typography
+            variant="caption"
+            sx={{
+              color: hasUnread ? '#1967D2' : '#5f6368',
+              fontSize: '0.75rem',
+              fontWeight: hasUnread ? 500 : 400,
+              ml: 1,
+              flexShrink: 0
+            }}
+          >
+            {formatTime(chat.lastMessageAt || chat.timestamp)}
+          </Typography>
         </Box>
 
-        <Typography
-          variant="body2"
+        <Box
           sx={{
-            fontSize: '0.75rem',
-            color: chat.unreadCount > 0 ? '#111827' : '#6b7280', // ⭐ ACTUALIZADO
-            fontWeight: chat.unreadCount > 0 ? 600 : 400, // ⭐ ACTUALIZADO
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1
           }}
         >
-          {chat.lastMessage}
-        </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.8125rem',
+              color: hasUnread ? '#202124' : '#5f6368',
+              fontWeight: hasUnread ? 500 : 400,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              lineHeight: 1.4
+            }}
+          >
+            {chat.lastMessage || 'No messages yet'}
+          </Typography>
+
+          {/* Badge de mensajes no leídos */}
+          {hasUnread && (
+            <Box
+              sx={{
+                minWidth: 20,
+                height: 20,
+                borderRadius: '10px',
+                bgcolor: '#1967D2',
+                color: '#fff',
+                fontSize: '0.6875rem',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: 0.5,
+                flexShrink: 0
+              }}
+            >
+              {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
+            </Box>
+          )}
+        </Box>
       </Box>
     </Box>
   );

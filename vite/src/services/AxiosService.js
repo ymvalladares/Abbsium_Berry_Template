@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { showSnackbar } from '../utils/snackbarNotif';
 
-const baseURL = 'https://abbsium.onrender.com/';
+//const baseURL = 'https://abbsium.onrender.com/';
 //const baseURL = 'https://localhost:44328/';
 
 const axiosInstance = axios.create({
-  baseURL,
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' }
 });
 
