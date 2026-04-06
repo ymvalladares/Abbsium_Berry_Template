@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const authenticate = useCallback(async (action, payload) => {
+    setAuthLoading(true);
     try {
       const res = await api.post(`account/${action}`, payload);
 
@@ -41,6 +42,8 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       return { success: false, message: err.response?.data?.message };
+    } finally {
+      setAuthLoading(false);
     }
   }, []);
 

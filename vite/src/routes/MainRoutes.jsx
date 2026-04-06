@@ -1,6 +1,8 @@
 import { lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import PricingComponent from '../landing/PricingComponent';
+import PaymentResult from '../views/utilities/PaymentResult';
 
 //User
 const UserDashboard = Loadable(lazy(() => import('views/userDashboard/Dashboard')));
@@ -35,7 +37,13 @@ const MainRoutes = {
 
     { path: 'chat', element: <Chat /> },
 
-    { path: 'settings', element: <Settings /> }
+    { path: 'settings', element: <Settings /> },
+
+    { path: 'pricing', element: <PricingComponent /> },
+
+    { path: 'success-payment', element: <PaymentResult /> },
+
+    { path: 'payment-denied', element: <PaymentResult /> }
   ]
 };
 

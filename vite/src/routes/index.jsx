@@ -4,11 +4,13 @@ import Authentication from '../authentication/Authentication.jsx';
 import ProtectedRoute from './ProtectedRoute';
 import MainRoutes from './MainRoutes';
 import AdminRoutes from './AdminRoutes';
+import PricingComponent from '../landing/PricingComponent.jsx';
 
 const router = createBrowserRouter(
   [
     { path: '/', element: <LandingPage /> },
     { path: '/authenticate', element: <Authentication /> },
+    { path: '/website-pricing', element: <PricingComponent /> },
 
     {
       path: '/platform',

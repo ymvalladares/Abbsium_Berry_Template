@@ -5,6 +5,7 @@ import CardContent from '@mui/material/CardContent';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useNavigate } from 'react-router-dom';
 
 // project imports
 import AnimateButton from 'ui-component/extended/AnimateButton';
@@ -12,6 +13,7 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 // ==============================|| PROFILE MENU - UPGRADE PLAN CARD ||============================== //
 
 export default function UpgradePlanCard() {
+  const navigate = useNavigate();
   const cardSX = {
     content: '""',
     position: 'absolute',
@@ -57,7 +59,7 @@ export default function UpgradePlanCard() {
             subscriptions.
           </Typography>
           <Stack direction="row">
-            <Link sx={{ textDecoration: 'none' }} href="https://links.codedthemes.com/hsqll" target="_blank">
+            <Link sx={{ textDecoration: 'none' }} onClick={() => navigate('/platform/pricing')} target="_blank">
               <AnimateButton>
                 <Button variant="contained" color="warning" sx={{ boxShadow: 'none' }}>
                   Go Premium

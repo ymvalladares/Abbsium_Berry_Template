@@ -15,20 +15,19 @@ const FORM_FIELDS = [
 
 const Auth_Form = ({ onSuccess }) => {
   const [userAction, setUserAction] = useState('login');
+  const [authError, setAuthError] = useState(null);
 
-  const { authenticate, authLoading, authError, authMessage } = useAuth();
+  const { authenticate, authLoading, authMessage } = useAuth();
 
   const filteredInputs = useMemo(() => FORM_FIELDS.filter((f) => f.action.includes(userAction)), [userAction]);
 
   const handleSubmit = async (values) => {
     const result = await authenticate(userAction, values);
 
-    console.log('🔍 Authentication result:', result); // Debug
-
-    // ✅ Cambiado: Si es login exitoso, pasar al código de verificación
     if (userAction === 'login' && result?.success) {
-      console.log('✅ Login exitoso, mostrando verificación para:', values.email);
       onSuccess?.(values.email);
+    } else {
+      setAuthError(result?.message || 'An error occurred. Please try again.');
     }
   };
 
