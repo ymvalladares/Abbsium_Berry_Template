@@ -1,6 +1,9 @@
 import React from 'react';
 import { Container, Box, Typography, Link, Grid, Stack } from '@mui/material';
-import { Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import LinkedinIcon from '@mui/icons-material/LinkedIn';
 
 const Footer = ({
   brandName = 'Abbsium',
@@ -11,7 +14,6 @@ const Footer = ({
 
   const colors = abbsiumMode
     ? {
-        bg: 'linear-gradient(180deg, #f8fafc, #eef2ff)',
         logoGradient: 'linear-gradient(135deg, #667eea, #764ba2)',
         borderColor: 'rgba(102,126,234,.2)',
         textPrimary: '#334155',
@@ -21,7 +23,6 @@ const Footer = ({
         boxShadow: 'rgba(102,126,234,.45)'
       }
     : {
-        bg: 'linear-gradient(180deg, #f8fafc, #eef2ff)',
         logoGradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
         borderColor: 'rgba(99,102,241,.1)',
         textPrimary: '#334155',
@@ -96,7 +97,7 @@ const Footer = ({
               </Typography>
 
               <Stack direction="row" spacing={1.5}>
-                {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
+                {[FacebookIcon, TwitterIcon, LinkedinIcon, InstagramIcon].map((Icon, i) => (
                   <Link
                     key={i}
                     href="#"

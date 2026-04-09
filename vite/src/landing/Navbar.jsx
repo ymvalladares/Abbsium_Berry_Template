@@ -1,79 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Stack, Button, Box, Typography, Container, useMediaQuery, useTheme } from '@mui/material';
-import { ArrowForward } from '@mui/icons-material';
+import { AppBar, Stack, Button, Box, Typography, Container, useMediaQuery } from '@mui/material';
+import { Bolt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const isMobile = useMediaQuery('(max-width:900px)');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const currentScroll = window.scrollY;
+      setScrollProgress((currentScroll / totalScroll) * 100);
+      setScrolled(currentScroll > 40);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogin = () => {
-    navigate('/authenticate');
-  };
-
-  const navItems = ['Features', 'Solutions', 'Docs', 'Pricing', 'Contact'];
+  const navItems = ['Features', 'Solutions', 'Architecture', 'Pricing'];
 
   return (
     <AppBar
       elevation={0}
       sx={{
         position: 'fixed',
-        top: 18,
+        top: scrolled ? 15 : 0,
         left: '50%',
         transform: 'translateX(-50%)',
-        width: { xs: '90%', md: '70%' },
-        maxWidth: 1250,
-        height: 64,
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '999px',
-        border: '1px solid rgba(99,102,241,.2)',
-        boxShadow: scrolled ? '0 12px 32px rgba(99,102,241,.25)' : '0 6px 18px rgba(0,0,0,.08)',
-        transition: 'all .3s ease',
-        zIndex: 1000
+        width: scrolled ? { xs: '95%', md: '65%' } : '100%',
+        maxWidth: scrolled ? 1100 : '100%',
+        height: scrolled ? 64 : 80,
+        // CORRECCIÓN: Fondo transparente cuando no hay scroll
+        background: scrolled ? 'rgba(15, 23, 42, 0.95)' : 'transparent',
+        backgroundImage: 'none',
+        backdropFilter: scrolled ? 'blur(16px)' : 'none',
+        border: scrolled ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+        borderRadius: scrolled ? '20px' : '0px',
+        boxShadow: scrolled ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : 'none',
+        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        zIndex: 2000,
+        overflow: 'hidden'
       }}
     >
-      <Container maxWidth="xl">
-        <Box display="flex" alignItems="center" justifyContent="space-between" height="64px">
-          {/* Logo */}
+      {scrolled && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: `${scrollProgress}%`,
+            height: '3px',
+            background: 'linear-gradient(90deg, #6366f1, #a855f7)',
+            zIndex: 100,
+            transition: 'width 0.2s ease-out'
+          }}
+        />
+      )}
+
+      <Container maxWidth={scrolled ? 'lg' : 'xl'} sx={{ height: '100%' }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" height="100%">
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box
               sx={{
                 width: 38,
                 height: 38,
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                borderRadius: '10px',
+                background: scrolled ? '#6366f1' : '#1E143C',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 6px 16px rgba(99,102,241,.45)'
+                justifyContent: 'center'
               }}
             >
-              <Typography sx={{ color: 'white', fontWeight: 900, fontSize: '1.1rem' }}>A</Typography>
+              <Bolt sx={{ color: '#fff', fontSize: '1.3rem' }} />
             </Box>
-
             <Typography
               sx={{
                 fontWeight: 900,
-                fontSize: '1.1rem',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                fontSize: '1.3rem',
+                color: scrolled ? '#fff' : '#1E143C',
+                letterSpacing: '-1px'
               }}
             >
               Abbisum
             </Typography>
           </Stack>
 
-          {/* Navigation */}
           {!isMobile && (
             <Stack direction="row" spacing={1}>
               {navItems.map((item) => (
@@ -81,15 +95,10 @@ const Navbar = () => {
                   key={item}
                   sx={{
                     textTransform: 'none',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: '.9rem',
-                    px: 2.5,
-                    borderRadius: '999px',
-                    color: '#64748b',
-                    '&:hover': {
-                      background: 'rgba(99,102,241,.1)',
-                      color: '#6366f1'
-                    }
+                    color: scrolled ? 'rgba(255,255,255,0.7)' : '#5F6368',
+                    '&:hover': { color: scrolled ? '#fff' : '#6366f1' }
                   }}
                 >
                   {item}
@@ -98,41 +107,35 @@ const Navbar = () => {
             </Stack>
           )}
 
-          {/* Actions */}
-          <Stack direction="row" spacing={1.5}>
+          <Stack direction="row" spacing={2} alignItems="center">
             <Button
-              onClick={handleLogin}
+              onClick={() => navigate('/authenticate')}
               sx={{
                 fontWeight: 700,
                 fontSize: '.9rem',
                 textTransform: 'none',
-                color: '#6366f1'
+                color: scrolled ? '#cbd5e1' : '#1E143C'
               }}
             >
-              Sign in
+              Log in
             </Button>
-
-            {!isMobile && (
-              <Button
-                onClick={handleLogin}
-                variant="contained"
-                endIcon={<ArrowForward />}
-                sx={{
-                  fontWeight: 800,
-                  fontSize: '.9rem',
-                  px: 3,
-                  borderRadius: '999px',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 8px 22px rgba(99,102,241,.45)',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 12px 28px rgba(99,102,241,.55)'
-                  }
-                }}
-              >
-                Get started
-              </Button>
-            )}
+            <Button
+              onClick={() => navigate('/authenticate')}
+              variant="contained"
+              disableElevation
+              sx={{
+                fontWeight: 800,
+                fontSize: '.9rem',
+                px: 3,
+                borderRadius: scrolled ? '12px' : '8px',
+                bgcolor: scrolled ? '#6366f1' : '#1E143C',
+                color: '#fff',
+                textTransform: 'none',
+                '&:hover': { bgcolor: scrolled ? '#4f46e5' : '#000' }
+              }}
+            >
+              Get Started{' '}
+            </Button>
           </Stack>
         </Box>
       </Container>

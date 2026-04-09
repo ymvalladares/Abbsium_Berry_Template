@@ -1,10 +1,10 @@
-import React, { useState, useContext } from 'react';
-import { Container, Grid, Card, CardContent, Typography, Button, Box, CircularProgress } from '@mui/material';
+import React, { useState } from 'react';
+import { Container, Grid, Card, CardContent, Typography, Button, Box, CircularProgress, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/AxiosService';
-import { useAuth } from '../contexts/AuthContext'; // ajusta el path
+import { useAuth } from '../contexts/AuthContext';
 
 const PriceCardsComp = () => {
   const [loadingPlanId, setLoadingPlanId] = useState(null);
@@ -16,38 +16,28 @@ const PriceCardsComp = () => {
     {
       id: 1,
       name: 'Starter',
-      price: 150,
+      price: annual ? 150 : Number((150 / 0.9).toFixed(2)),
       mode: 'payment',
-      badge: null,
-      description: 'Perfect for entrepreneurs and small businesses launching their first professional website.',
+      description: 'Perfect for entrepreneurs launching their first professional website.',
       buttonLabel: 'Get started',
-      buttonColor: 'outlined',
-      features: [
-        '1 custom website (up to 5 pages)',
-        'Mobile responsive design',
-        'Basic SEO setup',
-        'Contact form integration',
-        '1 round of revisions',
-        '30-day post-launch support'
-      ],
+      buttonVariant: 'outlined',
+      features: ['1 custom website (5 pages)', 'Mobile responsive design', 'Basic SEO setup', '30-day support'],
       isHighlighted: false
     },
     {
       id: 2,
       name: 'Professional',
-      price: 24.99,
+      price: annual ? 24.99 : Number((24.99 / 0.9).toFixed(2)),
       mode: 'subscription',
       badge: 'Most Popular',
-      description: 'Ideal for growing businesses that need a powerful online presence with ongoing support.',
-      buttonLabel: 'Start free 14-day trial',
-      buttonColor: 'primary',
+      description: 'Ideal for growing businesses that need a powerful online presence.',
+      buttonLabel: 'Start free trial',
+      buttonVariant: 'contained',
       features: [
-        'Up to 15-page custom website',
+        'Up to 5 page custom website',
         'Advanced UI/UX design',
         'Full SEO optimization',
-        'CMS integration (blog, portfolio)',
-        'Google Analytics setup',
-        'Monthly performance reports',
+        'Monthly reports',
         '24/7 priority support'
       ],
       isHighlighted: true
@@ -55,21 +45,12 @@ const PriceCardsComp = () => {
     {
       id: 3,
       name: 'Enterprise',
-      price: 49.99,
+      price: annual ? 39.99 : Number((39.99 / 0.9).toFixed(2)),
       mode: 'subscription',
-      badge: null,
-      description: 'Full-scale solution for companies that demand custom development and dedicated expertise.',
+      description: 'Full-scale solution for companies that demand custom development.',
       buttonLabel: 'Contact sales',
-      buttonColor: 'dark',
-      features: [
-        'Everything in Professional',
-        'Unlimited pages & revisions',
-        'Custom web app development',
-        'E-commerce integration',
-        'API & third-party integrations',
-        'Dedicated project manager',
-        'Automatic backups & uptime monitoring'
-      ],
+      buttonVariant: 'dark',
+      features: ['Everything in Professional', 'Unlimited pages', 'Custom web app dev', 'E-commerce integration', 'Dedicated manager'],
       isHighlighted: false
     }
   ];
@@ -79,7 +60,6 @@ const PriceCardsComp = () => {
       navigate('/authenticate');
       return;
     }
-
     setLoadingPlanId(plan.id);
     try {
       const { data } = await api.post('order/create-checkout-session', {
@@ -89,322 +69,256 @@ const PriceCardsComp = () => {
       });
       window.location.href = data.sessionUrl;
     } catch (err) {
-      console.error('Error creating checkout session:', err);
+      console.error('Error:', err);
     } finally {
       setLoadingPlanId(null);
     }
   };
 
   return (
-    <Box sx={{ py: 8 }}>
+    <Box sx={{ py: 10 }}>
       <Container maxWidth="lg">
-        {/* ── Header ─────────────────────────────────────────────────── */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 6, sm: 8 } }}>
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              px: '14px',
-              py: '6px',
-              borderRadius: '100px',
-              bgcolor: '#eef2ff',
-              border: '1px solid #c7d2fe',
-              mb: 3
-            }}
-          >
-            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#6366f1' }} />
-            <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#6366f1', letterSpacing: '.08em', textTransform: 'uppercase' }}>
-              Transparent pricing
-            </Typography>
-          </Box>
-
+        {/* --- HEADER --- */}
+        <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 10 } }}>
+          {/* 1. EYEBROW: Contexto rápido */}
           <Typography
-            variant="h2"
             sx={{
-              fontSize: { xs: '2rem', sm: '2.6rem', md: '3.2rem' },
+              color: '#6366f1',
               fontWeight: 800,
-              color: '#0f172a',
-              letterSpacing: '-1.5px',
-              lineHeight: 1.1,
+              textTransform: 'uppercase',
+              letterSpacing: '1.5px',
+              fontSize: '12px',
               mb: 2
             }}
           >
-            Websites that grow{' '}
-            <Box
-              component="span"
-              sx={{
-                position: 'relative',
-                display: 'inline-block',
-                color: '#6366f1',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: '-4px',
-                  left: 0,
-                  width: '100%',
-                  height: '3px',
-                  bgcolor: '#c7d2fe',
-                  borderRadius: '2px'
-                }
-              }}
-            >
-              your business
+            Transparent Pricing
+          </Typography>
+
+          {/* 2. MAIN TITLE */}
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 900,
+              fontSize: { xs: '2.5rem', md: '3.8rem' },
+              color: '#0f172a',
+              mb: 2,
+              letterSpacing: '-2.5px',
+              lineHeight: 1
+            }}
+          >
+            Ready to{' '}
+            <Box component="span" sx={{ color: '#6366f1' }}>
+              scale?
             </Box>
           </Typography>
 
+          {/* 3. SUBTITLE: Valor añadido */}
           <Typography
             sx={{
-              fontSize: { xs: '1rem', sm: '1.1rem' },
+              fontSize: '1.1rem',
               color: '#64748b',
-              maxWidth: 520,
+              //maxWidth: '600px',
               mx: 'auto',
-              lineHeight: 1.7,
-              mb: 5
+              mb: 5,
+              lineHeight: 1.6
             }}
           >
-            From launch-ready landing pages to fully custom web applications — pick the plan that fits where you are today.
+            Choose the perfect plan for your team. From early-stage startups to global enterprises, we provide the infrastructure to power
+            your growth.
           </Typography>
 
-          {/* Billing toggle */}
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '12px',
-              p: '6px',
-              borderRadius: '12px',
-              bgcolor: '#f1f5f9',
-              border: '1px solid #e2e8f0'
-            }}
-          >
-            <Box
-              onClick={() => setAnnual(false)}
-              sx={{
-                px: '16px',
-                py: '7px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                bgcolor: !annual ? '#fff' : 'transparent',
-                boxShadow: !annual ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all .2s'
-              }}
-            >
-              <Typography sx={{ fontSize: '13px', fontWeight: 600, color: !annual ? '#0f172a' : '#94a3b8' }}>Monthly</Typography>
-            </Box>
-            <Box
-              onClick={() => setAnnual(true)}
-              sx={{
-                px: '16px',
-                py: '7px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                bgcolor: annual ? '#fff' : 'transparent',
-                boxShadow: annual ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all .2s'
-              }}
-            >
-              <Typography sx={{ fontSize: '13px', fontWeight: 600, color: annual ? '#0f172a' : '#94a3b8' }}>Annually</Typography>
-              <Box sx={{ px: '7px', py: '2px', borderRadius: '6px', bgcolor: '#dcfce7', border: '1px solid #bbf7d0' }}>
-                <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#16a34a' }}>25% OFF</Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Auth notice — only shown when not authenticated */}
-          {!isAuthenticated && (
+          {/* 4. BILLING SWITCH - Estilo Consola Pro */}
+          <Stack alignItems="center" spacing={2}>
             <Box
               sx={{
                 display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                mt: 3,
-                px: '14px',
-                py: '8px',
-                borderRadius: '10px',
-                bgcolor: '#fffbeb',
-                border: '1px solid #fde68a',
-                ml: 1
+                p: '5px',
+                bgcolor: '#0f172a',
+                borderRadius: '16px',
+                boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.15)'
               }}
             >
-              <LockOutlinedIcon sx={{ fontSize: '14px', color: '#d97706' }} />
-              <Typography sx={{ fontSize: '12.5px', color: '#92400e', fontWeight: 500 }}>
-                You need to{' '}
+              <Button
+                onClick={() => setAnnual(false)}
+                sx={{
+                  borderRadius: '12px',
+                  px: 4,
+                  py: 1,
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  color: !annual ? '#fff' : '#94a3b8',
+                  bgcolor: !annual ? '#6366f1' : 'transparent',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': { bgcolor: !annual ? '#6366f1' : 'rgba(255,255,255,0.08)' }
+                }}
+              >
+                Monthly
+              </Button>
+              <Button
+                onClick={() => setAnnual(true)}
+                sx={{
+                  borderRadius: '12px',
+                  px: 4,
+                  py: 1,
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  color: annual ? '#fff' : '#94a3b8',
+                  bgcolor: annual ? '#6366f1' : 'transparent',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': { bgcolor: annual ? '#6366f1' : 'rgba(255,255,255,0.08)' }
+                }}
+              >
+                Annually
                 <Box
                   component="span"
-                  onClick={() => navigate('/authenticate')}
                   sx={{
-                    fontWeight: 700,
-                    color: '#d97706',
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    textUnderlineOffset: '2px'
+                    ml: 1.5,
+                    fontSize: '10px',
+                    fontWeight: 900,
+                    bgcolor: '#22c55e',
+                    color: '#fff',
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: '6px',
+                    boxShadow: '0 0 10px rgba(34, 197, 94, 0.3)'
                   }}
                 >
-                  sign in
-                </Box>{' '}
-                to purchase a plan.
-              </Typography>
+                  SAVE 20%
+                </Box>
+              </Button>
             </Box>
-          )}
+
+            {/* 5. TRUST FOOTER: Para reducir la fricción de compra */}
+            <Typography sx={{ fontSize: '13px', color: '#94a3b8', fontWeight: 500 }}>
+              No hidden fees. Change or cancel your plan at any time.
+            </Typography>
+          </Stack>
         </Box>
-
-        {/* ── Cards ──────────────────────────────────────────────────── */}
-        <Grid container spacing={{ xs: 3, md: 3 }} alignItems="stretch">
-          {pricingPlans.map((plan) => {
-            const isLoading = loadingPlanId === plan.id;
-            const isLocked = !isAuthenticated;
-
-            return (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={plan.id}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    border: plan.isHighlighted ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                    borderRadius: '16px',
-                    boxShadow: plan.isHighlighted ? '0 12px 40px rgba(99,102,241,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
-                    transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-                    bgcolor: '#fff',
-                    position: 'relative',
-                    overflow: 'visible',
-                    opacity: isLocked ? 0.82 : 1,
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: plan.isHighlighted ? '0 24px 48px rgba(99,102,241,0.22)' : '0 10px 24px rgba(0,0,0,0.1)'
-                    }
-                  }}
-                >
-                  {plan.badge && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: '-13px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        px: '14px',
-                        py: '4px',
-                        bgcolor: '#6366f1',
-                        borderRadius: '100px',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      <Typography
-                        sx={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '.06em', textTransform: 'uppercase' }}
-                      >
-                        {plan.badge}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  <CardContent
+        {/* --- CARDS --- */}
+        <Grid container spacing={4} alignItems="center">
+          {pricingPlans.map((plan) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={plan.id}>
+              <Card
+                sx={{
+                  borderRadius: '24px',
+                  border: plan.isHighlighted ? '2px solid #6366f1' : '1px solid rgba(15, 23, 42, 0.1)',
+                  bgcolor: plan.isHighlighted ? '#0f172a' : '#fff',
+                  color: plan.isHighlighted ? '#fff' : '#0f172a',
+                  boxShadow: plan.isHighlighted ? '0 30px 60px -12px rgba(99,102,241,0.3)' : '0 10px 30px rgba(0,0,0,0.04)',
+                  position: 'relative',
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  overflow: 'visible',
+                  '&:hover': { transform: 'translateY(-12px)' }
+                }}
+              >
+                {plan.badge && (
+                  <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      p: '28px',
-                      '&:last-child': { pb: '28px' }
+                      position: 'absolute',
+                      top: -15,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bgcolor: '#6366f1',
+                      color: '#fff',
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      zIndex: 10
                     }}
                   >
-                    <Typography
-                      sx={{
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        color: '#6366f1',
-                        letterSpacing: '.08em',
-                        textTransform: 'uppercase',
-                        mb: '10px'
-                      }}
-                    >
-                      {plan.name}
-                    </Typography>
+                    {plan.badge}
+                  </Box>
+                )}
 
-                    <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '4px', mb: '6px' }}>
-                      <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#64748b', mb: '6px' }}>$</Typography>
-                      <Typography sx={{ fontSize: '3rem', fontWeight: 800, color: '#0f172a', lineHeight: 1, letterSpacing: '-2px' }}>
-                        {plan.price % 1 === 0 ? plan.price : plan.price.toFixed(2)}
-                      </Typography>
-                      <Typography sx={{ fontSize: '13px', color: '#94a3b8', mb: '6px', fontWeight: 400 }}>
-                        {plan.mode === 'payment' ? 'one-time' : '/ mo'}
-                      </Typography>
-                    </Box>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 800,
+                      color: plan.isHighlighted ? '#818cf8' : '#6366f1',
+                      mb: 2,
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    {plan.name}
+                  </Typography>
 
-                    <Typography sx={{ fontSize: '13.5px', color: '#64748b', lineHeight: 1.6, mb: '20px', minHeight: '52px' }}>
-                      {plan.description}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 2 }}>
+                    <Typography sx={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-2px' }}>${plan.price}</Typography>
+                    <Typography sx={{ ml: 1, opacity: 0.6, fontSize: '1rem' }}>{plan.mode === 'subscription' ? '/mo' : '/once'}</Typography>
+                  </Box>
 
-                    <Box sx={{ height: '1px', bgcolor: '#f1f5f9', mb: '20px' }} />
+                  <Typography sx={{ fontSize: '15px', mb: 4, opacity: 0.8, minHeight: '45px' }}>{plan.description}</Typography>
 
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', mb: '24px' }}>
-                      {plan.features.map((feature, index) => (
-                        <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 18,
-                              borderRadius: '50%',
-                              flexShrink: 0,
-                              mt: '1px',
-                              bgcolor: plan.isHighlighted ? '#eef2ff' : '#f0fdf4',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <CheckIcon sx={{ fontSize: '11px', color: plan.isHighlighted ? '#6366f1' : '#16a34a' }} />
-                          </Box>
-                          <Typography sx={{ fontSize: '13.5px', color: '#374151', fontWeight: 400, lineHeight: 1.5 }}>{feature}</Typography>
+                  <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {plan.features.map((feat, i) => (
+                      <Stack key={i} direction="row" spacing={1.5} alignItems="center">
+                        <Box
+                          sx={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: '50%',
+                            bgcolor: plan.isHighlighted ? 'rgba(99,102,241,0.2)' : 'rgba(34,197,94,0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <CheckIcon sx={{ fontSize: 14, color: plan.isHighlighted ? '#818cf8' : '#22c55e' }} />
                         </Box>
-                      ))}
-                    </Box>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{feat}</Typography>
+                      </Stack>
+                    ))}
+                  </Box>
 
-                    <Button
-                      fullWidth
-                      disabled={isLoading}
-                      onClick={() => handlePlanClick(plan)}
-                      sx={{
-                        py: '13px',
-                        fontSize: '13.5px',
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        borderRadius: '10px',
-                        gap: '6px',
-                        border: plan.buttonColor === 'outlined' ? '1.5px solid #cbd5e0' : 'none',
-                        color: plan.buttonColor === 'outlined' ? '#6366f1' : '#fff',
-                        bgcolor: plan.buttonColor === 'outlined' ? 'transparent' : plan.buttonColor === 'primary' ? '#6366f1' : '#0f172a',
-                        '&:hover': {
-                          bgcolor: plan.buttonColor === 'outlined' ? '#f5f3ff' : plan.buttonColor === 'primary' ? '#4f46e5' : '#1e293b',
-                          borderColor: plan.buttonColor === 'outlined' ? '#6366f1' : 'transparent'
-                        },
-                        '&:disabled': { opacity: 0.65 },
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      {isLoading ? (
-                        <CircularProgress size={20} sx={{ color: plan.buttonColor === 'outlined' ? '#6366f1' : '#fff' }} />
-                      ) : (
-                        <>
-                          {isLocked && <LockOutlinedIcon sx={{ fontSize: '15px' }} />}
-                          {isLocked ? 'Sign in to purchase' : plan.buttonLabel}
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
+                  <Button
+                    fullWidth
+                    onClick={() => handlePlanClick(plan)}
+                    disabled={loadingPlanId === plan.id}
+                    variant="contained"
+                    endIcon={
+                      loadingPlanId === plan.id ? <CircularProgress size={18} /> : isAuthenticated ? <ArrowForward /> : <LockOutlinedIcon />
+                    }
+                    sx={{
+                      py: 2,
+                      borderRadius: '14px',
+                      textTransform: 'none',
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      transition: '0.3s',
+                      bgcolor: plan.isHighlighted ? '#fff' : '#0f172a',
+                      color: plan.isHighlighted ? '#0f172a' : '#fff',
+                      '&:hover': {
+                        bgcolor: plan.isHighlighted ? '#e2e8f0' : '#1e293b',
+                        transform: 'scale(1.02)'
+                      }
+                    }}
+                  >
+                    {!isAuthenticated ? 'Sign in to buy' : plan.buttonLabel}
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
-
-        <Box sx={{ textAlign: 'center', mt: 5 }}>
-          <Typography sx={{ fontSize: '13px', color: '#94a3b8' }}>
-            All plans include SSL certificate, hosting setup assistance, and a 7-day money-back guarantee.
-          </Typography>
-        </Box>
+        '{/* --- TYPOGRAPHY AÑADIDA ABAJO DE LAS CARDS --- */}
+        <Typography
+          align="center"
+          sx={{
+            mt: 8,
+            fontSize: '14px',
+            color: '#64748b',
+            fontWeight: 500,
+            letterSpacing: '0.2px',
+            fontStyle: 'italic'
+          }}
+        >
+          All plans include SSL certificate, hosting setup assistance, and a 7-day money-back guarantee.
+        </Typography>
       </Container>
     </Box>
   );

@@ -1,211 +1,137 @@
 import React from 'react';
-import { Box, Button, Container, Typography, Grid, Card, Stack, useTheme, useMediaQuery } from '@mui/material';
-import { Psychology, VideoLibrary, CloudUpload, Speed, ArrowForward } from '@mui/icons-material';
-import AbbsiumHero from './AbbsiumHero';
+import { Box } from '@mui/material';
 import Navbar from './Navbar';
-import Footer from './Footer';
-import { useNavigate } from 'react-router-dom';
+import AbbsiumHero from './AbbsiumHero';
+import FeaturesSection from './FeaturesSection';
 import PricingComponent from './PricingComponent';
+import BrandSection from './BrandSection';
+import Footer from './Footer';
+import { FloatingWhatsApp } from 'react-floating-whatsapp';
 
-export default function AbbsiumLanding() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const navigate = useNavigate();
-
+const LandingPage = () => {
   return (
-    <Box sx={{ background: 'linear-gradient(180deg,#ffffff,#f7f8ff)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* ================= NAVBAR ================= */}
-      <Navbar />
+    <Box
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#ffffff',
+        overflow: 'hidden'
+      }}
+    >
+      {/* ── Capa de gradiente principal ── */}
+      <Box
+        sx={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          background: `
+            radial-gradient(ellipse 80% 50% at 10% -10%, rgba(139, 92, 246, 0.09) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 95% 5%,  rgba(99, 102, 241, 0.08) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 50% at 50% 100%, rgba(147, 197, 253, 0.07) 0%, transparent 60%),
+            linear-gradient(160deg, #f8f7ff 0%, #f0f4ff 35%, #f5f8ff 65%, #ffffff 100%)
+          `
+        }}
+      />
 
-      {/* ================= MAIN CONTENT ================= */}
-      <Box sx={{ flex: 1, pt: { xs: 10, md: 12 } }}>
-        {/* ================= HERO ================= */}
-        <AbbsiumHero />
+      {/* ── Textura de ruido muy sutil (SVG inline) ── */}
+      <Box
+        sx={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          opacity: 0.018,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '200px 200px'
+        }}
+      />
 
-        <Container sx={{ mt: 12 }} maxWidth="lg">
-          <Grid container spacing={3} justifyContent="center">
-            {[
-              {
-                icon: <Psychology />,
-                title: 'AI Content Engine',
-                text: 'Generate high-converting captions, hooks and scripts instantly.'
-              },
-              {
-                icon: <VideoLibrary />,
-                title: 'Video Automation',
-                text: 'Turn long videos into short-form content optimized for virality.'
-              },
-              {
-                icon: <CloudUpload />,
-                title: 'Auto Publishing',
-                text: 'Publish content to all major platforms with one click.'
-              },
-              {
-                icon: <Speed />,
-                title: 'High Performance',
-                text: 'Fast processing powered by scalable cloud infrastructure.'
-              }
-            ].map((item, i) => (
-              <Grid key={i} size={{ xs: 6, sm: 6, md: 3 }}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    borderRadius: 4,
-                    p: 3,
-                    textAlign: 'left',
-                    boxShadow: '0 8px 24px rgba(102,126,234,.15)',
-                    transition: 'all .3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-6px)',
-                      boxShadow: '0 14px 40px rgba(102,126,234,.3)'
-                    }
-                  }}
-                >
-                  <Stack spacing={2}>
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 2,
-                        background: 'rgba(102,126,234,.15)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#667eea'
-                      }}
-                    >
-                      {item.icon}
-                    </Box>
+      {/* ── Orb decorativo top-left ── */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: '-120px',
+          left: '-80px',
+          width: '480px',
+          height: '480px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+          filter: 'blur(40px)'
+        }}
+      />
 
-                    <Typography fontWeight={800} fontSize="1rem">
-                      {item.title}
-                    </Typography>
+      {/* ── Orb decorativo top-right ── */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: '-60px',
+          right: '-100px',
+          width: '420px',
+          height: '420px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+          filter: 'blur(48px)'
+        }}
+      />
 
-                    <Typography fontSize=".9rem" color="#64748b" lineHeight={1.6}>
-                      {item.text}
-                    </Typography>
-                  </Stack>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
+      {/* ── Orb decorativo bottom-center ── */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: '-100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '600px',
+          height: '300px',
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse, rgba(147,197,253,0.08) 0%, transparent 70%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+          filter: 'blur(40px)'
+        }}
+      />
 
-        <PricingComponent />
-
-        {/* ================= BRAND SECTION ================= */}
-        <Box sx={{ mt: { xs: 9 }, mb: { xs: 9, md: 20 } }}>
-          <Container maxWidth="lg">
-            <Grid container spacing={8} alignItems="center" justifyContent="space-between">
-              {/* LEFT TEXT */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: { xs: '2rem', md: '2.6rem' },
-                    lineHeight: 1.15,
-                    mb: 1
-                  }}
-                >
-                  Built for creators
-                  <Box component="span" sx={{ color: '#667eea' }}>
-                    {' '}
-                    who think bigger
-                  </Box>
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: '#64748b',
-                    fontSize: '1.05rem',
-                    lineHeight: 1.8,
-                    mb: 4,
-                    maxWidth: 520
-                  }}
-                >
-                  Abbsium is being designed as a modern content platform focused on speed, simplicity and creative freedom.
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: '#64748b',
-                    fontSize: '1.05rem',
-                    lineHeight: 1.8,
-                    maxWidth: 520
-                  }}
-                >
-                  No noise. No complexity. Just tools that help creators move faster and stay focused on what matters.
-                </Typography>
-              </Grid>
-
-              {/* RIGHT VISUAL */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    height: { xs: 280, md: 380 },
-                    borderRadius: 6,
-                    background: 'linear-gradient(135deg, rgba(102,126,234,.12), rgba(118,75,162,.12))',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {/* Abstract layers */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 40,
-                      left: 40,
-                      right: 80,
-                      height: { xs: 50, md: 80 },
-                      borderRadius: 3,
-                      background: '#ffffff',
-                      boxShadow: '0 10px 30px rgba(0,0,0,.08)'
-                    }}
-                  />
-
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: { xs: 120, md: 140 },
-                      left: 80,
-                      right: 40,
-                      height: { xs: 50, md: 80 },
-                      borderRadius: 3,
-                      background: '#ffffff',
-                      boxShadow: '0 10px 30px rgba(0,0,0,.08)'
-                    }}
-                  />
-
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: { xs: 200, md: 240 },
-                      left: 60,
-                      right: 120,
-                      height: { xs: 50, md: 80 },
-                      borderRadius: 3,
-                      background: '#ffffff',
-                      boxShadow: '0 10px 30px rgba(0,0,0,.08)'
-                    }}
-                  />
-
-                  {/* Accent glow */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'radial-gradient(circle at top right, rgba(102,126,234,.25), transparent 60%)'
-                    }}
-                  />
-                </Box>
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
+      {/* ── Navbar ── */}
+      <Box sx={{ position: 'relative', zIndex: 10 }}>
+        <Navbar sx={{ bgcolor: 'transparent', backgroundImage: 'none', boxShadow: 'none' }} />
       </Box>
 
-      {/* ================= FOOTER ================= */}
-      <Footer />
+      {/* ── Contenido principal ── */}
+      <Box component="main" sx={{ position: 'relative', zIndex: 1, bgcolor: 'transparent' }}>
+        <AbbsiumHero />
+        <FeaturesSection />
+        <PricingComponent />
+        <BrandSection />
+      </Box>
+
+      {/* ── Footer ── */}
+      <Box sx={{ mt: 'auto', position: 'relative', zIndex: 1, bgcolor: 'transparent' }}>
+        <Footer />
+      </Box>
+      {/* WhatsApp flotante */}
+      <FloatingWhatsApp
+        phoneNumber="+19048523178"
+        accountName="Yordan Jesus"
+        statusMessage="Typically replies within minutes"
+        chatMessage="Hey! 👋 How can I help you today?"
+        placeholder="Type a message..."
+        allowClickAway={true}
+        avatar="https://avatars.githubusercontent.com/u/103406224"
+        notificationSound={true}
+        chatboxHeight={400}
+        chatboxWidth={350}
+        styles={{ zIndex: 9999 }}
+      />
     </Box>
   );
-}
+};
+
+export default LandingPage;
