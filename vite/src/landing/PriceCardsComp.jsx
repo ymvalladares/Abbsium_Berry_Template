@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Grid, Card, CardContent, Typography, Button, Box, CircularProgress, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import JoinRightIcon from '@mui/icons-material/JoinRight';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/AxiosService';
 import { useAuth } from '../contexts/AuthContext';
@@ -281,7 +282,13 @@ const PriceCardsComp = () => {
                     disabled={loadingPlanId === plan.id}
                     variant="contained"
                     endIcon={
-                      loadingPlanId === plan.id ? <CircularProgress size={18} /> : isAuthenticated ? <ArrowForward /> : <LockOutlinedIcon />
+                      loadingPlanId === plan.id ? (
+                        <CircularProgress size={18} />
+                      ) : isAuthenticated ? (
+                        <JoinRightIcon />
+                      ) : (
+                        <LockOutlinedIcon />
+                      )
                     }
                     sx={{
                       py: 2,
