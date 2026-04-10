@@ -6,6 +6,7 @@ import AdminRoute from './AdminRoute';
 const AdminDashboard = Loadable(lazy(() => import('views/adminDashboard/Default')));
 //const Earnings = Loadable(lazy(() => import('views/adminDashboard/Default/Earnings')));
 const Users = Loadable(lazy(() => import('views/adminDashboard/Default/users/UsersList')));
+const Orders = Loadable(lazy(() => import('views/adminDashboard/Default/orders/Orders')));
 
 const AdminRoutes = {
   path: 'admin',
@@ -17,6 +18,10 @@ const AdminRoutes = {
     {
       path: 'users',
       element: <Users />
+    },
+    {
+      path: 'orders',
+      element: <Orders />
     }
   ]
 };

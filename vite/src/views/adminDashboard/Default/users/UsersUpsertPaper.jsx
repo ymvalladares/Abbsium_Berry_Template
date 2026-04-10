@@ -11,70 +11,41 @@ import {
   Fade,
   useTheme,
   useMediaQuery,
-  InputAdornment,
-  CircularProgress
+  CircularProgress,
+  Stack,
+  alpha,
+  Divider
 } from '@mui/material';
 
-import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
 import LockIcon from '@mui/icons-material/Lock';
+import BadgeIcon from '@mui/icons-material/Badge';
+import ShieldIcon from '@mui/icons-material/Shield';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import api from '../../../../services/AxiosService';
 import { showSnackbar } from '../../../../utils/snackbarNotif';
 
 const ROLES = [
-  { id: 'Admin', label: 'Admin', desc: 'Full access to system' },
-  { id: 'User', label: 'Individual', desc: 'Manage data & settings' }
+  { id: 'Admin', label: 'Administrator', desc: 'Full access to all system modules and settings.' },
+  { id: 'User', label: 'Standard User', desc: 'Limited access to personal data and basic tools.' }
 ];
 
 const inputStyle = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: 2,
-    bgcolor: '#fafafa',
+    borderRadius: '10px',
+    bgcolor: '#fff',
+    fontSize: '14px',
     transition: '0.2s',
-    '&:hover': { bgcolor: '#fff' },
-    '&.Mui-focused': {
-      bgcolor: '#fff',
-      boxShadow: '0 0 0 2px rgba(155,135,245,0.25)'
-    }
+    '& fieldset': { borderColor: '#e2e8f0' },
+    '&:hover fieldset': { borderColor: '#cbd5e1' },
+    '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: '1.5px' }
   },
-  '& .MuiInputBase-input': {
-    fontSize: 16 // ✅ evita zoom en Safari iOS
-  }
-};
-
-const lockedInputStyle = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: 2,
-    bgcolor: '#f5f5f5',
-    cursor: 'not-allowed',
-    '& fieldset': {
-      borderColor: '#e0e0e0'
-    },
-    '&:hover fieldset': {
-      borderColor: '#e0e0e0'
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#e0e0e0'
-    }
-  },
-  '& .MuiInputBase-input': {
-    cursor: 'not-allowed',
-    fontSize: 16 // ✅ evita zoom en Safari iOS
-  }
+  '& .MuiInputLabel-root': { fontSize: '13px', fontWeight: 600, color: '#64748b' }
 };
 
 const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSuccess }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const [form, setForm] = useState({
-    id: '',
-    username: '',
-    email: '',
-    role: null
-  });
-
+  const [form, setForm] = useState({ id: '', username: '', email: '', role: null });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -87,86 +58,35 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
         role: initialData.role || null
       });
     } else if (mode === 'create') {
-      setForm({
-        id: '',
-        username: '',
-        email: '',
-        role: null
-      });
+      setForm({ id: '', username: '', email: '', role: null });
     }
     setErrors({});
   }, [mode, initialData, open]);
 
-  // =========================
-  // VALIDACIÓN
-  // =========================
   const validateForm = () => {
     const newErrors = {};
-
-    // ❗ Username requerido
-    if (!form.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
-    // ❗ Username SIN espacios (una sola palabra)
-    else if (/\s/.test(form.username)) {
-      newErrors.username = 'Username cannot contain spaces';
-    }
-
+    if (!form.username.trim()) newErrors.username = 'Username is required';
     if (mode === 'create') {
-      if (!form.email.trim()) {
-        newErrors.email = 'Email is required';
-      } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-        newErrors.email = 'Email is invalid';
-      }
-
-      if (!form.role) {
-        newErrors.role = 'Role is required';
-      }
+      if (!form.email.trim()) newErrors.email = 'Valid email is required';
+      if (!form.role) newErrors.role = 'Security role is required';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // =========================
-  // SUBMIT
-  // =========================
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      showSnackbar('Please fix validation errors', 'error');
-      return;
-    }
-
+    if (!validateForm()) return;
     setLoading(true);
-
     try {
-      const payload = {
-        ...(form.id && { id: form.id }),
-        username: form.username,
-        email: form.email,
-        emailConfirmed: true,
-        role: form.role
-      };
-
+      const payload = { ...form, emailConfirmed: true };
       const result = await api.post('/User/Upsert', payload);
-
       if (result.status === 200) {
-        showSnackbar(
-          mode === 'create' ? 'User created successfully. Default password: Abbsium.2020' : 'User updated successfully',
-          'success'
-        );
-
-        if (onSuccess) {
-          onSuccess(result); // 🔥 NO TOCADO
-        }
-
+        showSnackbar(mode === 'create' ? 'Member successfully added' : 'Profile updated', 'success');
+        if (onSuccess) onSuccess(result);
         onClose();
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.errors
-        ? error.response.data.errors.join(', ')
-        : error.response?.data || 'An error occurred';
-      console.error('User upsert error:', error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -180,212 +100,170 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
         sx={{
           position: 'fixed',
           inset: 0,
-          bgcolor: 'rgba(15,15,25,0.55)',
+          zIndex: 2000,
           display: 'flex',
-          alignItems: { xs: 'flex-end', sm: 'center' },
+          alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1400
+          p: 2,
+          bgcolor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(5px)'
         }}
       >
         <Paper
-          elevation={24}
+          elevation={0}
           sx={{
             width: '100%',
-            maxWidth: 760,
-            height: { xs: '96vh', sm: 'auto' },
-            borderRadius: '8px',
+            maxWidth: 480,
+            bgcolor: '#fff',
+            borderRadius: '20px',
+            border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
           }}
         >
-          {/* HEADER */}
-          <Box sx={{ p: 4, pb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Box>
-                <Typography variant="h5" fontWeight={800}>
-                  {mode === 'create' ? 'New user' : 'Edit user'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Manage account and permissions
-                </Typography>
-              </Box>
-
-              <IconButton onClick={onClose} disabled={loading}>
-                <CloseIcon />
-              </IconButton>
-            </Box>
-
-            <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar
-                sx={{
-                  width: 64,
-                  height: 64,
-                  bgcolor: '#9b87f5',
-                  boxShadow: '0 0 0 6px rgba(155,135,245,0.15)'
-                }}
-              >
-                <PersonIcon fontSize="large" />
-              </Avatar>
-
-              <Box>
-                <Typography fontWeight={700}>{form.username || 'User profile'}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Account preview
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* BODY */}
-          <Box sx={{ px: 4, py: 2, flex: 1, overflowY: 'auto' }}>
-            <Typography fontWeight={700} sx={{ mb: 1 }}>
-              Account info
-            </Typography>
-
-            <Grid container spacing={2.5} sx={{ mb: 4 }}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Username"
-                  value={form.username}
-                  onChange={(e) => setForm({ ...form, username: e.target.value })}
-                  fullWidth
-                  disabled={loading}
-                  error={!!errors.username}
-                  helperText={errors.username}
-                  sx={inputStyle}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => mode === 'create' && setForm({ ...form, email: e.target.value })}
-                  fullWidth
-                  disabled={mode === 'edit' || loading}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  sx={mode === 'edit' ? lockedInputStyle : inputStyle}
-                  InputProps={{
-                    endAdornment:
-                      mode === 'edit' ? (
-                        <InputAdornment position="end">
-                          <Box
-                            sx={{
-                              bgcolor: '#10b981',
-                              borderRadius: '50%',
-                              width: 28,
-                              height: 28,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <LockIcon sx={{ fontSize: 16, color: '#fff' }} />
-                          </Box>
-                        </InputAdornment>
-                      ) : null
-                  }}
-                />
-              </Grid>
-            </Grid>
-
-            {/* ROLE */}
-            <Typography fontWeight={700} sx={{ mb: 1 }}>
-              Access level {mode === 'create' && <span style={{ color: 'red' }}>*</span>}
-            </Typography>
-
-            {errors.role && (
-              <Typography variant="caption" color="error" sx={{ display: 'block', mb: 1 }}>
-                {errors.role}
+          {/* Header con Título y Descripción */}
+          <Box sx={{ p: 3, borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
+                {mode === 'create' ? 'Add new member' : 'Edit profile'}
               </Typography>
-            )}
-
-            <Grid container spacing={2} sx={{ mb: 4 }}>
-              {ROLES.map((r) => {
-                const isSelected = form.role === r.id;
-                const isDisabled = mode === 'edit' || loading;
-
-                return (
-                  <Grid size={{ xs: 12, sm: 6 }} key={r.id}>
-                    <Box
-                      onClick={() => !isDisabled && setForm({ ...form, role: r.id })}
-                      sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        border: '2px solid',
-                        borderColor: isSelected ? '#9b87f5' : errors.role ? '#f87171' : 'divider',
-                        bgcolor: isSelected ? 'rgba(155,135,245,0.18)' : '#fafafa',
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                        opacity: isDisabled && !isSelected ? 0.5 : 1,
-                        transition: '0.2s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        position: 'relative'
-                      }}
-                    >
-                      {isDisabled && isSelected && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            bgcolor: '#10b981',
-                            borderRadius: '50%',
-                            width: 28,
-                            height: 28,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <LockIcon sx={{ fontSize: 16, color: '#fff' }} />
-                        </Box>
-                      )}
-
-                      <Typography fontWeight={600}>{r.label}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {r.desc}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                );
-              })}
-            </Grid>
+              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>
+                Set up identity and system permissions
+              </Typography>
+            </Box>
+            <IconButton onClick={onClose} size="small" sx={{ height: 32, width: 32, border: '1px solid #f1f5f9' }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
           </Box>
 
-          {/* FOOTER */}
-          <Box
-            sx={{
-              px: 4,
-              py: 3,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-              display: 'flex',
-              gap: 2,
-              justifyContent: 'flex-end',
-              flexDirection: { xs: 'column-reverse', sm: 'row' }
-            }}
-          >
-            <Button onClick={onClose} variant="outlined" fullWidth={isMobile} disabled={loading}>
-              Cancel
-            </Button>
+          <Box sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              {/* Sección 1: Identidad */}
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                  <BadgeIcon sx={{ fontSize: 16, color: '#6366f1' }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#0f172a', textTransform: 'uppercase' }}
+                  >
+                    Identity Details
+                  </Typography>
+                </Stack>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Username"
+                    placeholder="e.g. alex.dev"
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    fullWidth
+                    error={!!errors.username}
+                    helperText={errors.username}
+                    sx={inputStyle}
+                    size="small"
+                  />
+                  <TextField
+                    label="Email Address"
+                    placeholder="alex@company.com"
+                    value={form.email}
+                    onChange={(e) => mode === 'create' && setForm({ ...form, email: e.target.value })}
+                    fullWidth
+                    disabled={mode === 'edit'}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    sx={mode === 'edit' ? { ...inputStyle, '& .MuiOutlinedInput-root': { bgcolor: '#f8fafc' } } : inputStyle}
+                    size="small"
+                    InputProps={{ endAdornment: mode === 'edit' && <LockIcon sx={{ fontSize: 14, color: '#94a3b8' }} /> }}
+                  />
+                </Stack>
+              </Box>
 
-            <Button
-              variant="contained"
-              fullWidth={isMobile}
-              onClick={handleSubmit}
-              disabled={loading}
-              sx={{
-                bgcolor: '#9b87f5',
-                '&:hover': { bgcolor: '#8b77e5' },
-                boxShadow: '0 10px 24px rgba(155,135,245,0.45)'
-              }}
-            >
-              {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : mode === 'create' ? 'Create user' : 'Save changes'}
-            </Button>
+              <Divider sx={{ borderColor: '#f1f5f9' }} />
+
+              {/* Sección 2: Permisos */}
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                  <ShieldIcon sx={{ fontSize: 16, color: '#6366f1' }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#0f172a', textTransform: 'uppercase' }}
+                  >
+                    Access Control
+                  </Typography>
+                </Stack>
+                <Typography variant="caption" sx={{ color: '#64748b', mb: 2, display: 'block' }}>
+                  Select the level of authority this user will have.
+                </Typography>
+
+                <Stack spacing={1.5}>
+                  {ROLES.map((r) => {
+                    const isSelected = form.role === r.id;
+                    return (
+                      <Box
+                        key={r.id}
+                        onClick={() => mode === 'create' && setForm({ ...form, role: r.id })}
+                        sx={{
+                          p: 2,
+                          borderRadius: '12px',
+                          border: '1.5px solid',
+                          borderColor: isSelected ? '#6366f1' : '#f1f5f9',
+                          bgcolor: isSelected ? alpha('#6366f1', 0.02) : '#fff',
+                          cursor: mode === 'create' ? 'pointer' : 'default',
+                          transition: '0.2s',
+                          position: 'relative',
+                          '&:hover': mode === 'create' ? { borderColor: isSelected ? '#6366f1' : '#cbd5e1' } : {}
+                        }}
+                      >
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: isSelected ? '#6366f1' : '#0f172a' }}>
+                          {r.label}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', lineHeight: 1.2 }}>
+                          {r.desc}
+                        </Typography>
+                        {isSelected && (
+                          <Box
+                            sx={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: '50%', bgcolor: '#6366f1' }}
+                          />
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
+
+              {/* Tips Informativos */}
+              <Box sx={{ p: 1.5, bgcolor: '#f0f9ff', borderRadius: '10px', display: 'flex', gap: 1.5 }}>
+                <InfoOutlinedIcon sx={{ color: '#0369a1', fontSize: 18, mt: 0.2 }} />
+                <Typography variant="caption" sx={{ color: '#0369a1', lineHeight: 1.4 }}>
+                  {mode === 'create'
+                    ? "New users receive a temporary password 'Abbsium.2020' which they should change on first login."
+                    : "Modifying security roles might affect the user's current session permissions immediately."}
+                </Typography>
+              </Box>
+
+              <Stack spacing={1} sx={{ pt: 1 }}>
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  fullWidth
+                  disableElevation
+                  sx={{
+                    bgcolor: '#0f172a',
+                    color: '#fff',
+                    borderRadius: '10px',
+                    py: 1.5,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#1e293b' }
+                  }}
+                >
+                  {loading ? <CircularProgress size={20} color="inherit" /> : mode === 'create' ? 'Add to organization' : 'Save changes'}
+                </Button>
+                <Button onClick={onClose} fullWidth sx={{ color: '#64748b', textTransform: 'none', fontWeight: 600, fontSize: '0.85rem' }}>
+                  Discard and exit
+                </Button>
+              </Stack>
+            </Stack>
           </Box>
         </Paper>
       </Box>

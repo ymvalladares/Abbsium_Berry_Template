@@ -1,9 +1,10 @@
+// ordersFilterSchema.js
 export const ordersFilterSchema = [
   {
     key: 'search',
     label: 'Search',
     type: 'text',
-    placeholder: 'Filter by ID, Customer or SKU...',
+    placeholder: 'ID, Customer, SKU...',
     grid: { xs: 12, sm: 5 }
   },
   {

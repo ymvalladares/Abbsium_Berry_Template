@@ -34,6 +34,14 @@ const business = {
           type: 'item',
           url: '/platform/admin/users',
           breadcrumbs: false
+        },
+
+        {
+          id: 'orders',
+          title: 'Orders',
+          type: 'item',
+          url: '/platform/admin/orders',
+          breadcrumbs: false
         }
       ]
     }
