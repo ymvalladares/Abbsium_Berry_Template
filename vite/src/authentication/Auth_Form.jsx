@@ -16,16 +16,23 @@ const FORM_FIELDS = [
 const Auth_Form = ({ onSuccess }) => {
   const [userAction, setUserAction] = useState('login');
   const [authError, setAuthError] = useState(null);
+  const [authMessage, setAuthMessage] = useState(null);
 
-  const { authenticate, authLoading, authMessage } = useAuth();
+  const { authenticate, authLoading } = useAuth();
 
   const filteredInputs = useMemo(() => FORM_FIELDS.filter((f) => f.action.includes(userAction)), [userAction]);
 
   const handleSubmit = async (values) => {
     const result = await authenticate(userAction, values);
 
-    if (userAction === 'login' && result?.success) {
-      onSuccess?.(values.email);
+    if (result?.success) {
+      if (userAction === 'login') {
+        onSuccess?.(values.email);
+      } else if (userAction === 'register') {
+        setAuthMessage(result?.message || 'Registration successful! Please check your email to confirm your account.');
+      } else if (userAction === 'forgetPassword') {
+        setAuthMessage('Password reset link sent! Check your inbox.');
+      }
     } else {
       setAuthError(result?.message || 'An error occurred. Please try again.');
     }

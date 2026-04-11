@@ -5,12 +5,15 @@ import ProtectedRoute from './ProtectedRoute';
 import MainRoutes from './MainRoutes';
 import AdminRoutes from './AdminRoutes';
 import PricingComponent from '../landing/PricingComponent.jsx';
+import EmailConfirmed from '../authentication/EmailConfirmed.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 const router = createBrowserRouter(
   [
     { path: '/', element: <LandingPage /> },
     { path: '/authenticate', element: <Authentication /> },
     { path: '/website-pricing', element: <PricingComponent /> },
+    { path: '/email-confirmed', element: <EmailConfirmed /> },
 
     {
       path: '/platform',

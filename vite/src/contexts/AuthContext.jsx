@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     authenticate,
     logout,
+    setUser,
     isAuthenticated: !!token,
     authLoading
   };
