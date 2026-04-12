@@ -23,7 +23,7 @@ export default function App() {
       <SnackbarInitializer />
       <ThemeCustomization>
         <NavigationScroll>
-          <GoogleOAuthProvider clientId={import.meta.env.GOOGLE_CLIENT_ID}>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
             <AuthProvider>
               <FiltersProvider>
                 <RouterProvider router={router} />

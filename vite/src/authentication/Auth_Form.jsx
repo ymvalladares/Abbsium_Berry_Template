@@ -20,7 +20,7 @@ const Auth_Form = ({ onSuccess }) => {
   const [authError, setAuthError] = useState(null);
   const [authMessage, setAuthMessage] = useState(null);
 
-  const { authenticate, authLoading } = useAuth();
+  const { authenticate, authLoading, googleLogin } = useAuth();
 
   const filteredInputs = useMemo(() => FORM_FIELDS.filter((f) => f.action.includes(userAction)), [userAction]);
 
@@ -40,19 +40,14 @@ const Auth_Form = ({ onSuccess }) => {
     }
   };
 
-  // 2. Agrega la función handleGoogleSuccess dentro del componente
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const res = await api.post('/account/google-login', JSON.stringify(credentialResponse.credential), {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      const data = res.data;
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data));
-
-      onSuccess?.(data.email);
+      googleLogin(res.data); // <- actualiza contexto y localStorage
+      onSuccess?.(res.data.email);
     } catch (err) {
       setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     }

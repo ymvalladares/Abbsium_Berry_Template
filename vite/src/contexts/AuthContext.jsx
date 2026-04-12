@@ -47,6 +47,14 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const googleLogin = useCallback((data) => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data));
+    setToken(data.token);
+    setUser(data);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.post('/account/logout');
@@ -69,6 +77,7 @@ export const AuthProvider = ({ children }) => {
     authenticate,
     logout,
     setUser,
+    googleLogin,
     isAuthenticated: !!token,
     authLoading
   };
