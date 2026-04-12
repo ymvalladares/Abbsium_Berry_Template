@@ -4,6 +4,7 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import LinkedinIcon from '@mui/icons-material/LinkedIn';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = ({
   brandName = 'Abbsium',
@@ -11,6 +12,7 @@ const Footer = ({
   abbsiumMode = false
 }) => {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
 
   const colors = abbsiumMode
     ? {
@@ -86,15 +88,7 @@ const Footer = ({
                 </Typography>
               </Stack>
 
-              <Typography
-                sx={{
-                  color: colors.textSecondary,
-                  fontSize: '0.95rem',
-                  lineHeight: 1.8
-                }}
-              >
-                {description}
-              </Typography>
+              <Typography sx={{ color: colors.textSecondary, fontSize: '0.95rem', lineHeight: 1.8 }}>{description}</Typography>
 
               <Stack direction="row" spacing={1.5}>
                 {[FacebookIcon, TwitterIcon, LinkedinIcon, InstagramIcon].map((Icon, i) => (
@@ -178,12 +172,28 @@ const Footer = ({
           </Typography>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 3 }}>
-            <Link href="#" sx={{ color: colors.textTertiary, fontSize: '0.85rem', '&:hover': { color: colors.hoverColor } }}>
-              Privacy
-            </Link>
-            <Link href="#" sx={{ color: colors.textTertiary, fontSize: '0.85rem', '&:hover': { color: colors.hoverColor } }}>
+            <Typography
+              onClick={() => navigate('/privacy-policy')}
+              sx={{
+                color: colors.textTertiary,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                '&:hover': { color: colors.hoverColor }
+              }}
+            >
+              Privacy Policy
+            </Typography>
+            <Typography
+              onClick={() => navigate('/terms')}
+              sx={{
+                color: colors.textTertiary,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                '&:hover': { color: colors.hoverColor }
+              }}
+            >
               Terms
-            </Link>
+            </Typography>
           </Stack>
         </Box>
       </Container>

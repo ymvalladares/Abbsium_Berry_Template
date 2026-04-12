@@ -6,6 +6,8 @@ import CustomCheckbox from './Helpers/CustomCheckbox';
 import { Box, Button, Chip, Divider, Stack, Typography, Alert } from '@mui/material';
 import { BeatLoader } from 'react-spinners';
 import { useAuth } from '../contexts/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
+import api from '../services/AxiosService';
 
 const FORM_FIELDS = [
   { name: 'email', label: 'E-mail', type: 'email', action: ['login', 'register', 'forgetPassword'] },
@@ -35,6 +37,24 @@ const Auth_Form = ({ onSuccess }) => {
       }
     } else {
       setAuthError(result?.message || 'An error occurred. Please try again.');
+    }
+  };
+
+  // 2. Agrega la función handleGoogleSuccess dentro del componente
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await api.post('/account/google-login', JSON.stringify(credentialResponse.credential), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = res.data;
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data));
+
+      onSuccess?.(data.email);
+    } catch (err) {
+      setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     }
   };
 
@@ -99,7 +119,23 @@ const Auth_Form = ({ onSuccess }) => {
           </Typography>
         </Stack>
 
-        <Divider sx={{ my: 3 }}>
+        {(userAction === 'login' || userAction === 'register') && (
+          <>
+            <Box sx={{ width: '100%', mt: 2, mb: 1 }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setAuthError('Google sign-in failed. Please try again.')}
+                width="100%"
+                theme="outline"
+                size="large"
+                text={userAction === 'login' ? 'signin_with' : 'signup_with'}
+                shape="rectangular"
+              />
+            </Box>
+          </>
+        )}
+
+        <Divider sx={{ my: 2 }}>
           <Chip
             label="OR"
             sx={{

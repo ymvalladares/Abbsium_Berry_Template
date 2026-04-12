@@ -6,7 +6,9 @@ import MainRoutes from './MainRoutes';
 import AdminRoutes from './AdminRoutes';
 import PricingComponent from '../landing/PricingComponent.jsx';
 import EmailConfirmed from '../authentication/EmailConfirmed.jsx';
-import { useAuth } from '../contexts/AuthContext.jsx';
+import ResetPassword from '../authentication/ResetPassword.jsx';
+import { PrivacyPolicy } from '../utils/PrivacyPolicy.jsx';
+import { TermsOfService } from '../utils/TermsOfService.jsx';
 
 const router = createBrowserRouter(
   [
@@ -14,6 +16,9 @@ const router = createBrowserRouter(
     { path: '/authenticate', element: <Authentication /> },
     { path: '/website-pricing', element: <PricingComponent /> },
     { path: '/email-confirmed', element: <EmailConfirmed /> },
+    { path: '/reset-password', element: <ResetPassword /> },
+    { path: '/privacy-policy', element: <PrivacyPolicy /> },
+    { path: '/terms', element: <TermsOfService /> },
 
     {
       path: '/platform',

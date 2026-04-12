@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { setSnackbarRef } from './utils/snackbarNotif';
 import { FiltersProvider } from './contexts/FiltersContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function SnackbarInitializer() {
   const { enqueueSnackbar } = useSnackbar();
@@ -22,11 +23,13 @@ export default function App() {
       <SnackbarInitializer />
       <ThemeCustomization>
         <NavigationScroll>
-          <AuthProvider>
-            <FiltersProvider>
-              <RouterProvider router={router} />
-            </FiltersProvider>
-          </AuthProvider>
+          <GoogleOAuthProvider clientId={import.meta.env.GOOGLE_CLIENT_ID}>
+            <AuthProvider>
+              <FiltersProvider>
+                <RouterProvider router={router} />
+              </FiltersProvider>
+            </AuthProvider>
+          </GoogleOAuthProvider>
         </NavigationScroll>
       </ThemeCustomization>
     </SnackbarProvider>
