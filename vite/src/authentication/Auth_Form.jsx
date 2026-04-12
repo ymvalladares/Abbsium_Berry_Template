@@ -6,7 +6,7 @@ import CustomCheckbox from './Helpers/CustomCheckbox';
 import { Box, Button, Chip, Divider, Stack, Typography, Alert } from '@mui/material';
 import { BeatLoader } from 'react-spinners';
 import { useAuth } from '../contexts/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 import api from '../services/AxiosService';
 
 const FORM_FIELDS = [
@@ -52,6 +52,12 @@ const Auth_Form = ({ onSuccess }) => {
       setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     }
   };
+
+  // 2. Luego el hook
+  useGoogleOneTapLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => setAuthError('Google sign-in failed. Please try again.')
+  });
 
   const switchMode = (mode) => {
     setUserAction(mode);
