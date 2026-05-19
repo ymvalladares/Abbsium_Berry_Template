@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Button, Container, Typography, Stack, Chip, LinearProgress, Grid, Paper } from '@mui/material';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -16,7 +16,6 @@ const KEYFRAMES = `
 `;
 
 const VisualDashboard = () => {
-  const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => setProgress((prev) => (prev >= 100 ? 0 : prev + 1)), 100);
@@ -185,6 +184,7 @@ const VisualDashboard = () => {
 };
 
 export default function AdvancedHero() {
+  const navigate = useNavigate();
   return (
     <>
       <style>{KEYFRAMES}</style>

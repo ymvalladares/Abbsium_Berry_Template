@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Container, Typography, Stack, Chip, Button } from '@mui/material';
 import { keyframes, styled } from '@mui/system';
-import { Zap, BarChart2, ShieldCheck, Plug, GitBranch, MessageCircle, ArrowRight } from 'lucide-react';
+import { IconBolt, IconChartLine, IconShieldLock, IconPlugConnected, IconGitMerge, IconHeadset, IconArrowRight } from '@tabler/icons-react';
 
 // ─── Animations ──────────────────────────────────────────────────────────────
 const fadeUp = keyframes`
@@ -29,23 +29,34 @@ const FeatureCard = styled(Box)(({ bordercolor }) => ({
     boxShadow: `0 24px 48px -12px rgba(0,0,0,0.09), 0 12px 28px -12px ${bordercolor}33`,
     '& .icon-box': {
       backgroundColor: bordercolor,
-      color: '#fff'
+      color: '#fff',
+      transform: 'scale(1.06)'
     },
+    '& .icon-box svg': {
+      transform: 'scale(1.1)'
+    },
+    '& .icon-glow': { opacity: 1 },
     '& .top-line': { opacity: 1 },
     '& .arrow-btn': { opacity: 1, transform: 'translateX(0)' }
   }
 }));
 
 const IconBox = styled(Box)(({ iconbg }) => ({
-  width: 48,
-  height: 48,
-  borderRadius: '14px',
+  width: 50,
+  height: 50,
+  borderRadius: '16px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   marginBottom: '20px',
-  backgroundColor: iconbg,
-  transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)'
+  background: `linear-gradient(135deg, ${iconbg}, ${iconbg}cc)`,
+  position: 'relative',
+  transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+  '& svg': {
+    position: 'relative',
+    zIndex: 1,
+    transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)'
+  }
 }));
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -54,7 +65,7 @@ const features = [
     id: 0,
     title: 'Smart Automation',
     desc: 'Trigger intelligent workflows based on real events. Let the system handle the routine so your team focuses on what matters.',
-    icon: Zap,
+    icon: IconBolt,
     color: '#6366f1',
     bg: '#ede9fe',
     tags: ['Triggers', 'Flows']
@@ -63,7 +74,7 @@ const features = [
     id: 1,
     title: 'Real-time Analytics',
     desc: "Live dashboards, cohort analysis, and anomaly detection. See what's happening the moment it happens — no SQL required.",
-    icon: BarChart2,
+    icon: IconChartLine,
     color: '#0ea5e9',
     bg: '#e0f2fe',
     tags: ['Dashboards', 'Cohorts']
@@ -72,7 +83,7 @@ const features = [
     id: 2,
     title: 'Secure Infrastructure',
     desc: 'SOC 2 Type II certified. End-to-end encryption at rest and in transit. Your data never leaves your defined boundaries.',
-    icon: ShieldCheck,
+    icon: IconShieldLock,
     color: '#10b981',
     bg: '#d1fae5',
     tags: ['SOC 2', 'E2E']
@@ -81,7 +92,7 @@ const features = [
     id: 3,
     title: 'Easy Integration',
     desc: 'Connect in minutes, not months. 200+ native connectors plus a REST API and webhooks for everything else.',
-    icon: Plug,
+    icon: IconPlugConnected,
     color: '#f59e0b',
     bg: '#fef3c7',
     tags: ['REST API', '200+ Apps']
@@ -90,7 +101,7 @@ const features = [
     id: 4,
     title: 'Custom Workflows',
     desc: 'Build processes that fit your team. Visual editor, version history, and branch-based testing before you ship.',
-    icon: GitBranch,
+    icon: IconGitMerge,
     color: '#ec4899',
     bg: '#fce7f3',
     tags: ['Visual', 'Version Control']
@@ -99,7 +110,7 @@ const features = [
     id: 5,
     title: '24/7 Support',
     desc: 'Engineers on call around the clock. Median first response under 4 minutes. Dedicated Slack channel for Pro teams.',
-    icon: MessageCircle,
+    icon: IconHeadset,
     color: '#8b5cf6',
     bg: '#ede9fe',
     tags: ['< 4 min', 'Slack']
@@ -302,7 +313,7 @@ export default function FeaturesSection() {
                   />
 
                   <IconBox className="icon-box" iconbg={f.bg}>
-                    <Icon size={22} color={f.color} strokeWidth={1.8} />
+                    <Icon size={22} color={f.color} stroke={1.5} />
                   </IconBox>
 
                   {/* Number */}
@@ -365,7 +376,7 @@ export default function FeaturesSection() {
                       ))}
                     </Stack>
                     <Box className="arrow-btn" sx={{ opacity: 0, transform: 'translateX(-8px)', transition: 'all 0.25s ease' }}>
-                      <ArrowRight size={18} color={f.color} />
+                      <IconArrowRight size={18} color={f.color} stroke={1.5} />
                     </Box>
                   </Box>
                 </FeatureCard>
@@ -413,7 +424,7 @@ export default function FeaturesSection() {
           <Button
             variant="contained"
             size="large"
-            endIcon={<ArrowRight size={18} />}
+            endIcon={<IconArrowRight size={18} stroke={1.5} />}
             sx={{
               bgcolor: '#0d1117',
               color: '#fff',

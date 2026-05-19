@@ -88,13 +88,14 @@ const VerificationCode = ({ email, onResendCode }) => {
         setSuccess('Verification successful! Redirecting...');
         setTimeout(() => {
           navigate('/platform/dashboard');
+          setLoading(false);
         }, 1500);
       } else {
         setError('Invalid verification code. Please try again.');
         setCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
+        setLoading(false);
       }
-      setLoading(false);
     }, 1000);
   };
 
@@ -250,22 +251,6 @@ const VerificationCode = ({ email, onResendCode }) => {
             }}
           >
             {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert
-            severity="success"
-            sx={{
-              mb: 2.5,
-              fontSize: 13,
-              borderRadius: '8px',
-              '& .MuiAlert-icon': {
-                fontSize: '20px'
-              }
-            }}
-          >
-            {success}
           </Alert>
         )}
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Container, Grid, Card, CardContent, Typography, Button, Box, CircularProgress, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -312,11 +312,11 @@ const PriceCardsComp = () => {
             </Grid>
           ))}
         </Grid>
-        '{/* --- TYPOGRAPHY AÑADIDA ABAJO DE LAS CARDS --- */}
+        {/* --- TYPOGRAPHY AÑADIDA ABAJO DE LAS CARDS --- */}
         <Typography
           align="center"
           sx={{
-            mt: 8,
+            mt: 4,
             fontSize: '14px',
             color: '#64748b',
             fontWeight: 500,

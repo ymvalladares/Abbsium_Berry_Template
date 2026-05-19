@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Card,
@@ -15,8 +15,7 @@ import {
   IconButton,
   Grid,
   TextField,
-  InputAdornment,
-  Avatar
+  InputAdornment
 } from '@mui/material';
 import {
   CreditCard as CreditCardIcon,
@@ -122,33 +121,6 @@ const Billings = () => {
 
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Box
-            sx={{
-              bgcolor: '#FFCECE',
-              p: { xs: 1, sm: 1.5 },
-              borderRadius: 2.5,
-              display: 'flex',
-              mr: { xs: 1.5, sm: 2.5 },
-              boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1)'
-            }}
-          >
-            <CreditCardIcon sx={{ color: '#F60003', fontSize: { xs: 24, sm: 28 } }} />
-          </Box>
-
-          <Box>
-            <Typography variant="h5" fontWeight={600} color="text.primary">
-              Billing
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Manage your payment methods and billing information
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
       {/* Payment Method Card */}
       <Card
         elevation={0}

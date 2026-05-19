@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box } from '@mui/material';
 import Navbar from './Navbar';
 import AbbsiumHero from './AbbsiumHero';
@@ -7,6 +6,7 @@ import PricingComponent from './PricingComponent';
 import BrandSection from './BrandSection';
 import Footer from './Footer';
 import { FloatingWhatsApp } from 'react-floating-whatsapp';
+import ContactSection from './ContactSection';
 
 const LandingPage = () => {
   return (
@@ -108,8 +108,9 @@ const LandingPage = () => {
       <Box component="main" sx={{ position: 'relative', zIndex: 1, bgcolor: 'transparent' }}>
         <AbbsiumHero />
         <FeaturesSection />
-        <PricingComponent />
         <BrandSection />
+        <PricingComponent />
+        <ContactSection />
       </Box>
 
       {/* ── Footer ── */}

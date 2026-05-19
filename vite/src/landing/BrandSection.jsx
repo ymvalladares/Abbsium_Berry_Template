@@ -1,6 +1,5 @@
-import React from 'react';
 import { Box, Container, Typography, Grid, Stack, Avatar, AvatarGroup, Tooltip, Paper, Divider } from '@mui/material';
-import { MousePointer2, Sparkles, Zap, CheckCircle2, Clock, Layers3, FileText, UserPlus, Flame } from 'lucide-react';
+import { MousePointer2, Sparkles, Zap, Clock, Layers3, FileText, UserPlus } from 'lucide-react';
 
 // --- Micro-Módulo Componente (Para rellenar complejidad) ---
 const StatMiniCard = ({ icon: Icon, title, value, color }) => (
@@ -90,7 +89,7 @@ const BrandSection = () => {
                     color: '#64748b',
                     fontSize: '1.2rem',
                     lineHeight: 1.8,
-                    mb: 5,
+                    mb: 3,
                     maxWidth: 540
                   }}
                 >
@@ -98,7 +97,7 @@ const BrandSection = () => {
                 </Typography>
               </Box>
 
-              <Stack spacing={3.5}>
+              <Stack spacing={3}>
                 {[
                   { icon: <Zap size={20} />, title: 'No Noise. Just Tools.', desc: 'Focus on creating, we handle the infrastructure.' },
                   {

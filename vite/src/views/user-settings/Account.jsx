@@ -1,459 +1,402 @@
-import { Box, Paper, Typography, Avatar, Button, TextField, Grid, IconButton, useTheme, useMediaQuery } from '@mui/material';
-import { Person, Settings as SettingsIcon, PhotoCamera, VerifiedUser } from '@mui/icons-material';
+import { useState } from 'react';
+import { Box, Paper, Typography, Button, TextField, Divider, useMediaQuery, useTheme } from '@mui/material';
+import { VerifiedUser, Person, Mail, AlternateEmail } from '@mui/icons-material';
 
 export default function Account({ user }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  return (
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: { xs: 3, sm: 5 }, flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box
-            sx={{
-              bgcolor: '#eff6ff',
-              p: { xs: 1, sm: 1.5 },
-              borderRadius: 2.5,
-              display: 'flex',
-              mr: { xs: 1.5, sm: 2.5 },
-              boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1)'
-            }}
-          >
-            <Person sx={{ color: '#3b82f6', fontSize: { xs: 24, sm: 28 } }} />
-          </Box>
-          <Box>
-            <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight={700} sx={{ color: '#1a202c', mb: 0.5 }}>
-              Basic details
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: '#64748b', fontSize: { xs: '0.8rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'block' } }}
-            >
-              Manage your personal information and account settings
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+  const primaryColor = '#0399DF';
+  const primaryHover = '#0288cc';
+  const primaryLight = '#E3F2FD';
+  const primaryUltraLight = '#F0F9FF';
 
-      {/* Avatar Section */}
+  const [formData, setFormData] = useState({
+    fullName: user?.userName || '',
+    username: user?.userName ? '@' + user.userName : '',
+    email: user?.email || ''
+  });
+
+  const fieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '12px',
+      bgcolor: '#fff',
+      transition: 'all 0.2s ease',
+      '& fieldset': {
+        borderColor: '#e2e8f0',
+        borderWidth: '1.5px'
+      },
+      '&:hover fieldset': {
+        borderColor: '#cbd5e1'
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: primaryColor,
+        borderWidth: '2px',
+        boxShadow: `0 0 0 3px ${primaryLight}`
+      },
+      '& input': {
+        py: 1.5,
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        color: '#1e293b'
+      }
+    }
+  };
+
+  const handleSave = () => {
+    console.log('Saving:', formData);
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      fullName: user?.userName || '',
+      username: user?.userName ? '@' + user.userName : '',
+      email: user?.email || ''
+    });
+  };
+
+  return (
+    <Box sx={{ maxWidth: '100%' }}>
+      {/* Personal Information */}
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 2, sm: 3 },
-          mb: { xs: 3, sm: 4 },
-          borderRadius: 3,
-          border: '1px solid #e5e7eb',
-          bgcolor: '#fafbfc'
+          mb: 4,
+          borderRadius: 4,
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+          overflow: 'hidden',
+          background: '#fff'
         }}
       >
-        <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2.5, color: '#374151' }}>
-          Profile Photo
-        </Typography>
+        {/* Section Header */}
         <Box
           sx={{
+            px: { xs: 3, sm: 4, md: 5 },
+            pt: { xs: 3, sm: 4 },
+            pb: { xs: 2, sm: 3 },
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'center', sm: 'center' },
-            gap: { xs: 2, sm: 3 }
+            alignItems: 'center',
+            gap: 1.5
           }}
         >
-          <Box sx={{ position: 'relative' }}>
-            <Avatar
-              src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200"
+          <Box
+            sx={{
+              bgcolor: primaryLight,
+              p: 1.2,
+              borderRadius: 2.5,
+              display: 'flex',
+              boxShadow: `0 2px 8px rgba(3, 153, 223, 0.1)`
+            }}
+          >
+            <Person sx={{ color: primaryColor, fontSize: 20 }} />
+          </Box>
+          <Box>
+            <Typography
+              variant="h6"
+              fontWeight={700}
               sx={{
-                width: { xs: 90, sm: 100 },
-                height: { xs: 90, sm: 100 },
-                border: '4px solid #fff',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
-              }}
-            />
-            <IconButton
-              sx={{
-                position: 'absolute',
-                bottom: -5,
-                right: -5,
-                bgcolor: '#3b82f6',
-                color: 'white',
-                width: { xs: 34, sm: 38 },
-                height: { xs: 34, sm: 38 },
-                '&:hover': {
-                  bgcolor: '#2563eb',
-                  transform: 'scale(1.05)'
-                },
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
-                border: '3px solid #fff'
+                color: '#0f172a',
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
               }}
             >
-              <PhotoCamera sx={{ fontSize: { xs: 16, sm: 18 } }} />
-            </IconButton>
+              Personal information
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+              Your basic account details
+            </Typography>
           </Box>
-          <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
-            <Typography variant="body2" fontWeight={600} sx={{ color: '#1e293b', mb: 0.5 }}>
-              Upload a new photo
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 2 }}>
-              JPG, PNG or GIF. Max size 5MB. Recommended 400x400px
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1.5, justifyContent: { xs: 'center', sm: 'flex-start' }, flexWrap: 'wrap' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<PhotoCamera />}
+        </Box>
+
+        <Divider sx={{ mx: { xs: 3, sm: 4, md: 5 } }} />
+
+        {/* Form Fields */}
+        <Box sx={{ px: { xs: 3, sm: 4, md: 5 }, py: { xs: 3, sm: 4 } }}>
+          {/* Full Name */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 0 },
+              alignItems: { sm: 'center' },
+              mb: 4
+            }}
+          >
+            <Box sx={{ width: { sm: '32%' }, flexShrink: 0, mb: { xs: 0, sm: 0 } }}>
+              <Typography
+                variant="body2"
+                fontWeight={600}
                 sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  borderColor: '#3b82f6',
-                  color: '#3b82f6',
-                  fontSize: '0.8rem',
-                  px: 2,
-                  '&:hover': {
-                    borderColor: '#2563eb',
-                    bgcolor: '#eff6ff'
-                  }
+                  color: '#334155',
+                  fontSize: '0.875rem'
                 }}
               >
-                Change
-              </Button>
-              <Button
-                variant="text"
-                size="small"
+                Full name
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
+                As it appears on your ID
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, width: { sm: '68%' } }}>
+              <TextField
+                fullWidth
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                placeholder="Enter your full name"
+                sx={fieldStyle}
+              />
+            </Box>
+          </Box>
+
+          <Divider sx={{ mb: 4, borderColor: '#f1f5f9' }} />
+
+          {/* Username */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 0 },
+              alignItems: { sm: 'center' },
+              mb: 4
+            }}
+          >
+            <Box sx={{ width: { sm: '32%' }, flexShrink: 0, mb: { xs: 0, sm: 0 } }}>
+              <Typography
+                variant="body2"
+                fontWeight={600}
                 sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  color: '#dc2626',
-                  fontSize: '0.8rem',
-                  px: 2,
-                  '&:hover': {
-                    bgcolor: '#fef2f2'
-                  }
+                  color: '#334155',
+                  fontSize: '0.875rem'
                 }}
               >
-                Remove
-              </Button>
+                Username
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
+                Your unique handle
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, width: { sm: '68%' } }}>
+              <TextField
+                fullWidth
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                placeholder="Enter your username"
+                InputProps={{
+                  startAdornment: <AlternateEmail sx={{ color: '#94a3b8', fontSize: 20, mr: 1 }} />
+                }}
+                sx={{
+                  ...fieldStyle,
+                  '& .MuiOutlinedInput-root': {
+                    ...fieldStyle['& .MuiOutlinedInput-root'],
+                    display: 'flex',
+                    alignItems: 'center'
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+
+          <Divider sx={{ mb: 4, borderColor: '#f1f5f9' }} />
+
+          {/* Email */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 0 },
+              alignItems: { sm: 'flex-start' }
+            }}
+          >
+            <Box sx={{ width: { sm: '32%' }, flexShrink: 0, mb: { xs: 0, sm: 1.5 } }}>
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                sx={{
+                  color: '#334155',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Email address
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
+                Primary contact
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, width: { sm: '68%' } }}>
+              <TextField
+                fullWidth
+                value={formData.email}
+                disabled
+                InputProps={{
+                  startAdornment: <Mail sx={{ color: '#94a3b8', fontSize: 20, mr: 1 }} />,
+                  endAdornment: (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                      <Box
+                        sx={{
+                          bgcolor: '#10b981',
+                          borderRadius: '50%',
+                          p: 0.4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <VerifiedUser sx={{ fontSize: 14, color: 'white' }} />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#10b981',
+                          fontWeight: 600,
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        Verified
+                      </Typography>
+                    </Box>
+                  )
+                }}
+                sx={{
+                  ...fieldStyle,
+                  '& .MuiOutlinedInput-root': {
+                    ...fieldStyle['& .MuiOutlinedInput-root'],
+                    bgcolor: '#f8fafc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '& input': {
+                      ...fieldStyle['& .MuiOutlinedInput-root']['& input'],
+                      color: '#64748b'
+                    }
+                  }
+                }}
+              />
+
+              {/* Email Notice */}
+              <Box
+                sx={{
+                  mt: 2.5,
+                  px: { xs: 2.5, sm: 3 },
+                  py: { xs: 2, sm: 2.5 },
+                  background: `linear-gradient(135deg, ${primaryUltraLight} 0%, #ffffff 100%)`,
+                  borderRadius: 3,
+                  border: `1.5px solid ${primaryColor}20`,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 2
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: primaryColor,
+                    flexShrink: 0,
+                    mt: 1
+                  }}
+                />
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#0369a1',
+                      fontWeight: 600,
+                      mb: 0.5,
+                      fontSize: { xs: '0.8rem', sm: '0.85rem' }
+                    }}
+                  >
+                    Email cannot be changed directly
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#0288cc',
+                      lineHeight: 1.6,
+                      fontSize: { xs: '0.75rem', sm: '0.8rem' }
+                    }}
+                  >
+                    If you need to update your email, please{' '}
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        color: primaryColor,
+                        '&:hover': { color: primaryHover }
+                      }}
+                    >
+                      contact support
+                    </Typography>{' '}
+                    for assistance.
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           </Box>
         </Box>
       </Paper>
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 2, sm: 3 },
-          mb: { xs: 3, sm: 4 },
-          borderRadius: 3,
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 3, color: '#374151' }}>
-          Personal Information
-        </Typography>
-
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: '#374151', fontSize: '0.875rem' }}>
-              Full name *
-            </Typography>
-            <TextField
-              fullWidth
-              defaultValue={user.userName}
-              variant="outlined"
-              placeholder="Enter your full name"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  bgcolor: '#fff',
-                  transition: 'all 0.2s',
-                  '& fieldset': {
-                    borderColor: '#e5e7eb',
-                    borderWidth: '1.5px'
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#cbd5e1'
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#3b82f6',
-                    borderWidth: '2px'
-                  },
-                  '& input': {
-                    py: { xs: 1.2, sm: 1.5 },
-                    fontSize: { xs: '16px', sm: '0.95rem' }
-                  }
-                }
-              }}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: '#374151', fontSize: '0.875rem' }}>
-              Username *
-            </Typography>
-            <TextField
-              fullWidth
-              defaultValue={'@' + user.userName}
-              variant="outlined"
-              placeholder="Enter your username"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  bgcolor: '#fff',
-                  transition: 'all 0.2s',
-                  position: 'relative',
-                  '& fieldset': {
-                    borderColor: '#e5e7eb',
-                    borderWidth: '1.5px'
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#cbd5e1'
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#3b82f6',
-                    borderWidth: '2px'
-                  },
-                  '& input': {
-                    py: { xs: 1.2, sm: 1.5 },
-                    pr: 5,
-                    fontSize: { xs: '16px', sm: '0.95rem' }
-                  }
-                }
-              }}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12 }}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: '#374151', fontSize: '0.875rem' }}>
-              Email address *
-            </Typography>
-            <TextField
-              fullWidth
-              defaultValue={user.email}
-              variant="outlined"
-              disabled
-              InputProps={{
-                endAdornment: (
-                  <Box
-                    sx={{
-                      bgcolor: '#10b981',
-                      borderRadius: '50%',
-                      p: 0.4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mr: -1
-                    }}
-                  >
-                    <VerifiedUser sx={{ fontSize: 16, color: 'white' }} />
-                  </Box>
-                )
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  bgcolor: '#f9fafb',
-                  '& fieldset': {
-                    borderColor: '#e5e7eb',
-                    borderWidth: '1.5px'
-                  },
-                  '& input': {
-                    py: { xs: 1.2, sm: 1.5 },
-                    fontSize: { xs: '16px', sm: '0.95rem' }
-                  }
-                }
-              }}
-            />
-            <Box
-              sx={{
-                mt: 1.5,
-                px: 2,
-                py: 1.5,
-                bgcolor: '#eff6ff',
-                borderRadius: 2,
-                border: '1px solid #dbeafe',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}
-            >
-              <Box
-                sx={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  bgcolor: '#3b82f6',
-                  flexShrink: 0
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#1e40af',
-                  fontSize: { xs: '0.75rem', sm: '0.8rem' },
-                  lineHeight: 1.6
-                }}
-              >
-                Your email is verified and cannot be changed directly.{' '}
-                <Typography
-                  component="span"
-                  variant="caption"
-                  sx={{
-                    color: '#3b82f6',
-                    fontSize: { xs: '0.75rem', sm: '0.8rem' },
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    '&:hover': {
-                      color: '#2563eb'
-                    }
-                  }}
-                >
-                  Contact support
-                </Typography>{' '}
-                if you need assistance.
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Contact Information Section */}
-      {/* <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 2, sm: 3 },
-          mb: { xs: 3, sm: 4 },
-          borderRadius: 3,
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 3, color: '#374151' }}>
-          Contact Information
-        </Typography>
-
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: '#374151', fontSize: '0.875rem' }}>
-              Country / Dial code
-            </Typography>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="+1"
-              defaultValue="+1"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  bgcolor: '#fff',
-                  transition: 'all 0.2s',
-                  '& fieldset': {
-                    borderColor: '#e5e7eb',
-                    borderWidth: '1.5px'
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#cbd5e1'
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#3b82f6',
-                    borderWidth: '2px'
-                  },
-                  '& input': {
-                    py: { xs: 1.2, sm: 1.5 },
-                    fontSize: { xs: '16px', sm: '0.95rem' }
-                  }
-                }
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: '#374151', fontSize: '0.875rem' }}>
-              Phone number
-            </Typography>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="(555) 123-4567"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  bgcolor: '#fff',
-                  transition: 'all 0.2s',
-                  '& fieldset': {
-                    borderColor: '#e5e7eb',
-                    borderWidth: '1.5px'
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#cbd5e1'
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#3b82f6',
-                    borderWidth: '2px'
-                  },
-                  '& input': {
-                    py: { xs: 1.2, sm: 1.5 },
-                    fontSize: { xs: '16px', sm: '0.95rem' }
-                  }
-                }
-              }}
-            />
-          </Grid>
-        </Grid>
-      </Paper> */}
 
       {/* Action Buttons */}
       <Box
         sx={{
           display: 'flex',
-          gap: 2,
+          gap: { xs: 2, sm: 3 },
           justifyContent: { xs: 'stretch', sm: 'flex-end' },
-          flexDirection: { xs: 'column', sm: 'row' },
-          pt: 2,
-          borderTop: '1px solid #e5e7eb',
-          mt: 2
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          pt: 3,
+          pb: 4,
+          borderTop: '1px solid #e2e8f0'
         }}
       >
         <Button
           variant="outlined"
+          onClick={handleCancel}
           fullWidth={isMobile}
           sx={{
-            borderRadius: 2.5,
+            borderRadius: '12px',
             textTransform: 'none',
             px: 4,
-            py: 1.2,
+            py: 1.3,
             fontSize: '0.9rem',
             fontWeight: 600,
-            borderColor: '#e5e7eb',
+            borderColor: '#e2e8f0',
             color: '#64748b',
             borderWidth: '1.5px',
+            bgcolor: '#fff',
             '&:hover': {
               borderColor: '#cbd5e1',
-              bgcolor: '#f9fafb',
-              borderWidth: '1.5px'
-            }
+              bgcolor: '#f8fafc',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+            },
+            transition: 'all 0.2s ease'
           }}
         >
           Cancel
         </Button>
         <Button
           variant="contained"
+          onClick={handleSave}
           fullWidth={isMobile}
           sx={{
-            borderRadius: 2.5,
+            borderRadius: '12px',
             textTransform: 'none',
-            px: 4,
-            py: 1.2,
+            px: 5,
+            py: 1.3,
             fontSize: '0.9rem',
             fontWeight: 600,
-            bgcolor: '#3b82f6',
-            boxShadow: '0 2px 8px rgba(59,130,246,0.25)',
+            bgcolor: primaryColor,
+            boxShadow: `0 4px 12px rgba(3, 153, 223, 0.3)`,
             '&:hover': {
-              bgcolor: '#2563eb',
-              boxShadow: '0 4px 16px rgba(59,130,246,0.35)',
-              transform: 'translateY(-1px)'
+              bgcolor: primaryHover,
+              boxShadow: `0 6px 20px rgba(3, 153, 223, 0.4)`,
+              transform: 'translateY(-2px)'
             },
-            transition: 'all 0.2s'
+            transition: 'all 0.2s ease'
           }}
         >
-          Save Changes
+          Save changes
         </Button>
       </Box>
     </Box>

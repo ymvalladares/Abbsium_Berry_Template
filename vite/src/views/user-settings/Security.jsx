@@ -17,8 +17,7 @@ import {
   TableRow,
   useTheme,
   useMediaQuery,
-  IconButton,
-  Alert
+  IconButton
 } from '@mui/material';
 import {
   Lock,
@@ -31,12 +30,10 @@ import {
   Computer,
   TabletAndroid,
   PhoneIphone,
-  MoreVert,
-  ErrorOutline
+  MoreVert
 } from '@mui/icons-material';
 import api from '../../services/AxiosService'; // Adjust path as needed
 import { showSnackbar } from '../../utils/snackbarNotif'; // Adjust path as needed
-import { m } from 'framer-motion';
 
 const Security = () => {
   const theme = useTheme();
@@ -67,7 +64,7 @@ const Security = () => {
   const [mfaSms, setMfaSms] = useState(false);
 
   // Login history
-  const [loginHistory, setLoginHistory] = useState([
+  const loginHistory = [
     {
       device: 'Desktop',
       browser: 'Chrome on Windows',
@@ -92,7 +89,7 @@ const Security = () => {
       status: 'success',
       icon: <TabletAndroid />
     }
-  ]);
+  ];
 
   // Password validation
   const validatePassword = (password) => {
@@ -113,11 +110,6 @@ const Security = () => {
       errors.push('One special character');
     }
     return errors;
-  };
-
-  // Check if password meets requirements
-  const isPasswordValid = (password) => {
-    return validatePassword(password).length === 0;
   };
 
   // Handle password change
@@ -166,7 +158,7 @@ const Security = () => {
     // Submit to API
     setIsLoading(true);
     try {
-      const response = await api.post('/user/Change-Password', {
+      await api.post('/user/Change-Password', {
         currentPassword,
         newPassword,
         confirmPassword
@@ -185,8 +177,6 @@ const Security = () => {
       });
     } catch (error) {
       console.error('Error changing password:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to update password';
-      //showSnackbar(errorMessage, 'error');
 
       // If current password is wrong
       if (error.response?.status === 400) {
@@ -243,35 +233,6 @@ const Security = () => {
 
   return (
     <Box>
-      {/* Header Section */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: { xs: 3, sm: 5 }, flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box
-            sx={{
-              bgcolor: '#fef3c7',
-              p: { xs: 1, sm: 1.5 },
-              borderRadius: 2.5,
-              display: 'flex',
-              mr: { xs: 1.5, sm: 2.5 },
-              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.15)'
-            }}
-          >
-            <Lock sx={{ color: '#f59e0b', fontSize: { xs: 24, sm: 28 } }} />
-          </Box>
-          <Box>
-            <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight={700} sx={{ color: '#1a202c', mb: 0.5 }}>
-              Security
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: '#64748b', fontSize: { xs: '0.8rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'block' } }}
-            >
-              Manage your password and security settings
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
       {/* Change Password Section */}
       <Paper
         elevation={0}

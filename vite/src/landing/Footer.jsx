@@ -1,4 +1,3 @@
-import React from 'react';
 import { Container, Box, Typography, Link, Grid, Stack } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
@@ -16,6 +15,7 @@ const Footer = ({
 
   const colors = abbsiumMode
     ? {
+        bg: 'transparent',
         logoGradient: 'linear-gradient(135deg, #667eea, #764ba2)',
         borderColor: 'rgba(102,126,234,.2)',
         textPrimary: '#334155',
@@ -25,6 +25,7 @@ const Footer = ({
         boxShadow: 'rgba(102,126,234,.45)'
       }
     : {
+        bg: 'transparent',
         logoGradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
         borderColor: 'rgba(99,102,241,.1)',
         textPrimary: '#334155',

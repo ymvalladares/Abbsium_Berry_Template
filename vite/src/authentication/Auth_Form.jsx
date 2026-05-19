@@ -19,8 +19,11 @@ const Auth_Form = ({ onSuccess }) => {
   const [userAction, setUserAction] = useState('login');
   const [authError, setAuthError] = useState(null);
   const [authMessage, setAuthMessage] = useState(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const { authenticate, authLoading, googleLogin } = useAuth();
+
+  const isLoading = authLoading || googleLoading;
 
   const filteredInputs = useMemo(() => FORM_FIELDS.filter((f) => f.action.includes(userAction)), [userAction]);
 
@@ -41,19 +44,21 @@ const Auth_Form = ({ onSuccess }) => {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    setGoogleLoading(true);
     try {
       const res = await api.post('/account/google-login', JSON.stringify(credentialResponse.credential), {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      googleLogin(res.data); // <- actualiza contexto y localStorage
+      googleLogin(res.data);
       onSuccess?.(res.data.email);
     } catch (err) {
       setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
-  // 2. Luego el hook
   useGoogleOneTapLogin({
     onSuccess: handleGoogleSuccess,
     onError: () => setAuthError('Google sign-in failed. Please try again.')
@@ -121,19 +126,17 @@ const Auth_Form = ({ onSuccess }) => {
         </Stack>
 
         {(userAction === 'login' || userAction === 'register') && (
-          <>
-            <Box sx={{ width: '100%', mt: 2, mb: 1 }}>
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setAuthError('Google sign-in failed. Please try again.')}
-                width="100%"
-                theme="outline"
-                size="large"
-                text={userAction === 'login' ? 'signin_with' : 'signup_with'}
-                shape="rectangular"
-              />
-            </Box>
-          </>
+          <Box sx={{ width: '100%', mt: 2, mb: 1, position: 'relative' }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setAuthError('Google sign-in failed. Please try again.')}
+              width="100%"
+              theme="outline"
+              size="large"
+              text={userAction === 'login' ? 'signin_with' : 'signup_with'}
+              shape="rectangular"
+            />
+          </Box>
         )}
 
         <Divider sx={{ my: 2 }}>
@@ -214,7 +217,7 @@ const Auth_Form = ({ onSuccess }) => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                disabled={authLoading}
+                disabled={isLoading}
                 sx={{
                   mt: 1,
                   mb: 2,
@@ -239,7 +242,7 @@ const Auth_Form = ({ onSuccess }) => {
                   }
                 }}
               >
-                <Box sx={{ visibility: authLoading ? 'hidden' : 'visible' }}>
+                <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>
                   {
                     {
                       login: 'Log In',
@@ -249,7 +252,7 @@ const Auth_Form = ({ onSuccess }) => {
                   }
                 </Box>
 
-                {authLoading && (
+                {isLoading && (
                   <Box
                     sx={{
                       position: 'absolute',
