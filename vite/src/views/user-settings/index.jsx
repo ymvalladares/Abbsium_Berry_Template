@@ -8,6 +8,8 @@ import Account from './Account';
 import Security from './Security';
 import { useAuth } from '../../contexts/AuthContext';
 import Billings from './Billings';
+import NotificationsSection from './Notifications';
+import IntegrationsSection from './Integrations';
 
 const sections = [
   { id: 'account', label: 'Account', icon: Person, desc: 'Personal information' },
@@ -52,21 +54,13 @@ export default function SettingsPage() {
       case 'account':
         return <Account user={user} />;
       case 'notifications':
-        return (
-          <Typography variant="h6" sx={{ color: 'text.primary' }}>
-            Notifications Settings
-          </Typography>
-        );
+        return <NotificationsSection />;
       case 'security':
         return <Security />;
       case 'billing':
         return <Billings />;
       case 'integrations':
-        return (
-          <Typography variant="h6" sx={{ color: 'text.primary' }}>
-            Integrations
-          </Typography>
-        );
+        return <IntegrationsSection />;
       default:
         return null;
     }

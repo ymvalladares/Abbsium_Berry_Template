@@ -24,6 +24,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Pending as PendingIcon,
+  Receipt,
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
@@ -133,20 +134,10 @@ const Billings = () => {
       >
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 1,
-                bgcolor: '#EEF2FF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <CreditCardIcon sx={{ color: '#6366F1', fontSize: 22 }} />
+            <Box sx={{ bgcolor: '#EEF2FF', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(99, 102, 241, 0.1)' }}>
+              <CreditCardIcon sx={{ color: '#6366F1', fontSize: 20 }} />
             </Box>
-            <Box sx={{ ml: 3 }}>
+            <Box>
               <Typography variant="subtitle1" fontWeight={600} color="text.primary">
                 Payment Method
               </Typography>
@@ -270,20 +261,10 @@ const Billings = () => {
       >
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 1,
-                bgcolor: '#F0FDF4',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <AccountBalanceIcon sx={{ color: '#10B981', fontSize: 22 }} />
+            <Box sx={{ bgcolor: '#D1FAE5', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)' }}>
+              <AccountBalanceIcon sx={{ color: '#10B981', fontSize: 20 }} />
             </Box>
-            <Box sx={{ ml: 3 }}>
+            <Box>
               <Typography variant="subtitle1" fontWeight={600} color="text.primary">
                 Billing Address
               </Typography>
@@ -469,9 +450,19 @@ const Billings = () => {
         }}
       >
         <Box sx={{ p: 3 }}>
-          <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 3 }}>
-            Payment History
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+            <Box sx={{ bgcolor: '#FEF3C7', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.1)' }}>
+              <Receipt sx={{ color: '#F59E0B', fontSize: 20 }} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                Payment History
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                Your recent transactions and invoices
+              </Typography>
+            </Box>
+          </Box>
 
           <TableContainer
             component={Paper}

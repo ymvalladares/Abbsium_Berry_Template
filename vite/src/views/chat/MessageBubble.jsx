@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Avatar, Typography, IconButton, Menu, MenuItem, Fade } from '@mui/material';
-import { MoreVert as MoreIcon, Done as DoneIcon, DoneAll as DoneAllIcon, ErrorOutline as ErrorIcon } from '@mui/icons-material';
+import {
+  MoreVert, Done, DoneAll, ContentCopy, Reply,
+  DeleteOutline,
+} from '@mui/icons-material';
 import CircularProgress from '@mui/material/CircularProgress';
+
+const primaryColor = '#0EA5E9';
 
 const MessageBubble = ({ message, isAdmin }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const isMine = message.isSender === true;
-  const isPending = message.isPending === true; // ⭐ NUEVO
+  const isPending = message.isPending === true;
 
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   };
 
   const handleMenuOpen = (event) => {
@@ -31,162 +33,118 @@ const MessageBubble = ({ message, isAdmin }) => {
       sx={{
         display: 'flex',
         justifyContent: isMine ? 'flex-end' : 'flex-start',
-        mb: 2,
-        px: 2,
+        mb: 1.5,
+        px: 1,
         gap: 1,
         position: 'relative',
-        opacity: isPending ? 0.7 : 1, // ⭐ Opacidad reducida para pendientes
-        '&:hover .message-actions': {
-          opacity: 1
-        }
+        opacity: isPending ? 0.6 : 1,
+        transition: 'opacity 0.3s ease',
+        '&:hover .msg-actions': { opacity: 1, transform: 'scale(1)' },
       }}
     >
-      {/* Avatar IZQUIERDA (otros) */}
       {!isMine && (
         <Avatar
           src={message.avatar}
           alt={message.senderName}
           sx={{
-            width: 32,
-            height: 32,
-            bgcolor: '#1967D2',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            flexShrink: 0
+            width: 30, height: 30,
+            bgcolor: primaryColor,
+            fontSize: '0.8rem', fontWeight: 600,
+            flexShrink: 0, mt: 0.5,
           }}
         >
           {(message.senderName || 'U')[0]?.toUpperCase()}
         </Avatar>
       )}
 
-      {/* Contenedor del mensaje */}
-      <Box
-        sx={{
-          maxWidth: { xs: '75%', sm: '60%', md: '55%' },
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: isMine ? 'flex-end' : 'flex-start'
-        }}
-      >
-        {/* Nombre del remitente (solo para mensajes recibidos) */}
+      <Box sx={{
+        maxWidth: { xs: '80%', sm: '65%', md: '55%' },
+        display: 'flex', flexDirection: 'column',
+        alignItems: isMine ? 'flex-end' : 'flex-start',
+      }}>
         {!isMine && (
-          <Typography
-            variant="caption"
-            sx={{
-              color: '#5f6368',
-              fontWeight: 500,
-              mb: 0.5,
-              ml: 1,
-              fontSize: '0.75rem'
-            }}
-          >
+          <Typography variant="caption" sx={{
+            color: '#94a3b8', fontWeight: 500, mb: 0.3, ml: 1, fontSize: '0.7rem',
+          }}>
             {message.senderName || 'User'}
           </Typography>
         )}
 
-        {/* Burbuja del mensaje */}
         <Box
           sx={{
             position: 'relative',
-            bgcolor: isMine ? '#1967D2' : '#f1f3f4',
-            color: isMine ? '#fff' : '#202124',
+            bgcolor: isMine ? primaryColor : '#fff',
+            color: isMine ? '#fff' : '#0f172a',
             px: 2,
-            py: 1.5,
-            borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-            boxShadow: '0 1px 2px 0 rgba(60,64,67,0.15)',
+            py: 1.3,
+            borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+            border: isMine ? 'none' : '1px solid #e2e8f0',
+            boxShadow: isMine
+              ? `0 2px 8px ${primaryColor}30`
+              : '0 1px 2px rgba(0,0,0,0.04)',
             wordBreak: 'break-word',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'box-shadow 0.2s ease',
             '&:hover': {
-              boxShadow: '0 1px 3px 0 rgba(60,64,67,0.3)'
-            }
+              boxShadow: isMine
+                ? `0 4px 14px ${primaryColor}40`
+                : '0 2px 8px rgba(0,0,0,0.06)',
+            },
           }}
         >
-          <Typography
-            sx={{
-              fontSize: '0.9375rem',
-              lineHeight: 1.5,
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word'
-            }}
-          >
+          <Typography sx={{
+            fontSize: '0.9rem',
+            lineHeight: 1.5,
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+          }}>
             {message.content || message.text}
           </Typography>
         </Box>
 
-        {/* Metadatos: hora + estado */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            mt: 0.5,
-            px: 1
-          }}
-        >
-          <Typography
-            variant="caption"
-            sx={{
-              color: '#5f6368',
-              fontSize: '0.6875rem',
-              fontWeight: 400
-            }}
-          >
+        <Box sx={{
+          display: 'flex', alignItems: 'center', gap: 0.5,
+          mt: 0.3, px: 1,
+        }}>
+          <Typography variant="caption" sx={{
+            color: '#94a3b8', fontSize: '0.65rem', fontWeight: 400,
+          }}>
             {formatTime(message.sentAt || message.timestamp)}
           </Typography>
 
-          {/* Estado de lectura (solo mensajes enviados) */}
           {isMine && (
             <>
               {isPending ? (
-                <CircularProgress size={12} thickness={5} sx={{ color: '#5f6368' }} /> // ⭐ Spinner
+                <CircularProgress size={10} thickness={5} sx={{ color: '#94a3b8' }} />
               ) : message.isRead ? (
-                <DoneAllIcon sx={{ fontSize: 14, color: '#1967D2' }} />
+                <DoneAll sx={{ fontSize: 13, color: primaryColor }} />
               ) : (
-                <DoneIcon sx={{ fontSize: 14, color: '#5f6368' }} />
+                <Done sx={{ fontSize: 13, color: '#94a3b8' }} />
               )}
             </>
           )}
         </Box>
       </Box>
 
-      {/* Avatar DERECHA (míos) */}
-      {isMine && (
-        <Avatar
-          src={message.avatar}
-          alt="You"
-          sx={{
-            width: 32,
-            height: 32,
-            bgcolor: '#1967D2',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            flexShrink: 0
-          }}
-        >
-          {(message.senderName || 'Y')[0]?.toUpperCase()}
-        </Avatar>
-      )}
-
-      {/* Menú contextual */}
       <IconButton
         size="small"
         onClick={handleMenuOpen}
-        className="message-actions"
+        className="msg-actions"
         sx={{
           position: 'absolute',
-          top: -8,
-          right: isMine ? 48 : 'auto',
-          left: isMine ? 'auto' : 48,
+          top: -6,
+          right: isMine ? 40 : 'auto',
+          left: isMine ? 'auto' : 40,
           bgcolor: '#fff',
-          boxShadow: '0 1px 2px 0 rgba(60,64,67,0.3)',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           opacity: 0,
-          transition: 'opacity 0.2s',
-          '&:hover': {
-            bgcolor: '#f1f3f4'
-          }
+          transform: 'scale(0.8)',
+          transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          width: 28, height: 28,
+          '&:hover': { bgcolor: '#f8fafc' },
         }}
       >
-        <MoreIcon sx={{ fontSize: 16, color: '#5f6368' }} />
+        <MoreVert sx={{ fontSize: 14, color: '#64748b' }} />
       </IconButton>
 
       <Menu
@@ -197,20 +155,21 @@ const MessageBubble = ({ message, isAdmin }) => {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            minWidth: 160,
-            boxShadow: '0 2px 6px 2px rgba(60,64,67,0.15)'
-          }
+            minWidth: 150,
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+          },
         }}
       >
-        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.875rem' }}>
-          Copy
+        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.85rem', py: 1, gap: 1 }}>
+          <ContentCopy sx={{ fontSize: 16, color: '#64748b' }} /> Copy
         </MenuItem>
-        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.875rem' }}>
-          Reply
+        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.85rem', py: 1, gap: 1 }}>
+          <Reply sx={{ fontSize: 16, color: '#64748b' }} /> Reply
         </MenuItem>
         {isMine && (
-          <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.875rem', color: '#d93025' }}>
-            Delete
+          <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.85rem', py: 1, gap: 1, color: '#ef4444' }}>
+            <DeleteOutline sx={{ fontSize: 16 }} /> Delete
           </MenuItem>
         )}
       </Menu>

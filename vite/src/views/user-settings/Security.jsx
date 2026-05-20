@@ -243,8 +243,10 @@ const Security = () => {
           border: '1px solid #e5e7eb'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Shield sx={{ color: '#3b82f6', mr: 1.5, fontSize: 24 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <Box sx={{ bgcolor: '#dbeafe', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1)' }}>
+            <Lock sx={{ color: '#3b82f6', fontSize: 20 }} />
+          </Box>
           <Box>
             <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#374151' }}>
               Change Password
@@ -526,8 +528,10 @@ const Security = () => {
           border: '1px solid #e5e7eb'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Shield sx={{ color: '#10b981', mr: 1.5, fontSize: 24 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <Box sx={{ bgcolor: '#d1fae5', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)' }}>
+            <Shield sx={{ color: '#10b981', fontSize: 20 }} />
+          </Box>
           <Box>
             <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#374151' }}>
               Multi-Factor Authentication
@@ -773,8 +777,10 @@ const Security = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Computer sx={{ color: '#8b5cf6', mr: 1.5, fontSize: 24 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ bgcolor: '#ede9fe', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)' }}>
+              <Computer sx={{ color: '#8b5cf6', fontSize: 20 }} />
+            </Box>
             <Box>
               <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#374151' }}>
                 Login History

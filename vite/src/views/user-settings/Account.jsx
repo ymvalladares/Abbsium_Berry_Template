@@ -86,7 +86,7 @@ export default function Account({ user }) {
               p: 1.2,
               borderRadius: 2.5,
               display: 'flex',
-              boxShadow: `0 2px 8px rgba(3, 153, 223, 0.1)`
+              boxShadow: `0 2px 8px ${primaryColor}1A`
             }}
           >
             <Person sx={{ color: primaryColor, fontSize: 20 }} />
