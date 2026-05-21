@@ -1,8 +1,10 @@
-import { Box, Avatar, Typography, Badge } from '@mui/material';
+import { Box, Avatar, Typography, Badge, IconButton, Divider } from '@mui/material';
+import { MoreVert, DoneAll } from '@mui/icons-material';
 
 const primaryColor = '#0EA5E9';
+const primaryLight = '#E0F2FE';
 
-const ChatListItem = ({ chat, isSelected, onClick }) => {
+const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -19,100 +21,144 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
 
   const hasUnread = (chat.unreadCount || 0) > 0;
   const isOnline = chat.isOnline || chat.status === 'online';
+  const hasMessages = !!chat.lastMessage;
 
   return (
-    <Box
-      onClick={onClick}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1.5,
-        px: 2.5,
-        py: 1.8,
-        cursor: 'pointer',
-        bgcolor: isSelected ? primaryColor + '08' : 'transparent',
-        borderLeft: isSelected ? `3px solid ${primaryColor}` : '3px solid transparent',
-        transition: 'all 0.15s ease',
-        position: 'relative',
-        '&:hover': {
-          bgcolor: isSelected ? primaryColor + '08' : '#f8fafc',
-        },
-      }}
-    >
-      <Badge
-        overlap="circular"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        variant="dot"
+    <>
+      <Box
+        onClick={onClick}
         sx={{
-          '& .MuiBadge-badge': {
-            bgcolor: isOnline ? '#10b981' : 'transparent',
-            width: 10, height: 10, borderRadius: '50%',
-            border: isOnline ? '2px solid #fff' : 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          px: 2.5,
+          py: 1.5,
+          cursor: 'pointer',
+          bgcolor: isSelected ? primaryLight : 'transparent',
+          transition: 'all 0.15s ease',
+          position: 'relative',
+          '&:hover': {
+            bgcolor: isSelected ? primaryLight : '#f8fafc',
           },
+          '&:hover .list-actions': { opacity: 1 },
         }}
       >
-        <Avatar
-          src={chat.avatar}
-          alt={chat.userName || chat.name}
-          sx={{
-            width: 46, height: 46,
-            bgcolor: primaryColor,
-            fontSize: '1rem', fontWeight: 600,
-          }}
-        >
-          {(chat.userName || chat.name || 'U')[0]?.toUpperCase()}
-        </Avatar>
-      </Badge>
-
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.2 }}>
-          <Typography sx={{
-            fontWeight: hasUnread ? 600 : 500,
-            color: '#0f172a',
-            fontSize: '0.9rem',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            flex: 1,
-          }}>
-            {chat.userName || chat.name}
-          </Typography>
-
-          <Typography variant="caption" sx={{
-            color: hasUnread ? primaryColor : '#94a3b8',
-            fontSize: '0.7rem',
-            fontWeight: hasUnread ? 600 : 400,
-            ml: 1, flexShrink: 0,
-          }}>
-            {formatTime(chat.lastMessageAt || chat.timestamp)}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-          <Typography variant="body2" sx={{
-            fontSize: '0.8rem',
-            color: hasUnread ? '#334155' : '#94a3b8',
-            fontWeight: hasUnread ? 500 : 400,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            flex: 1, lineHeight: 1.4,
-          }}>
-            {chat.lastMessage || 'No messages yet'}
-          </Typography>
-
-          {hasUnread && (
+        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          <Badge
+            overlap="circular"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            variant="dot"
+            sx={{
+              '& .MuiBadge-badge': {
+                bgcolor: isOnline ? '#10b981' : 'transparent',
+                width: 11, height: 11, borderRadius: '50%',
+                border: isOnline ? '2.5px solid #fff' : 'none',
+                ...(isSelected && { borderColor: primaryLight }),
+              },
+            }}
+          >
+            <Avatar
+              src={chat.avatar}
+              alt={chat.userName || chat.name}
+              sx={{
+                width: 44, height: 44,
+                bgcolor: primaryColor,
+                fontSize: '1rem', fontWeight: 600,
+              }}
+            >
+              {(chat.userName || chat.name || 'U')[0]?.toUpperCase()}
+            </Avatar>
+          </Badge>
+          {isSelected && (
             <Box sx={{
-              minWidth: 20, height: 20,
-              borderRadius: '10px',
+              position: 'absolute', left: -10, top: '50%',
+              transform: 'translateY(-50%)',
+              width: 3, height: 24,
               bgcolor: primaryColor,
-              color: '#fff',
-              fontSize: '0.65rem', fontWeight: 600,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              px: 0.5, flexShrink: 0,
-            }}>
-              {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
-            </Box>
+              borderRadius: '0 4px 4px 0',
+            }} />
           )}
         </Box>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.2 }}>
+            <Typography sx={{
+              fontWeight: hasUnread ? 700 : 600,
+              color: '#0f172a',
+              fontSize: '0.9rem',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              flex: 1,
+            }}>
+              {chat.userName || chat.name}
+            </Typography>
+            <Typography variant="caption" sx={{
+              color: hasUnread ? primaryColor : '#94a3b8',
+              fontSize: '0.7rem',
+              fontWeight: hasUnread ? 600 : 400,
+              ml: 1, flexShrink: 0,
+            }}>
+              {formatTime(chat.lastMessageAt || chat.timestamp)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {hasMessages && (
+              <DoneAll sx={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }} />
+            )}
+            <Typography variant="body2" sx={{
+              fontSize: '0.8rem',
+              color: hasUnread ? '#334155' : '#94a3b8',
+              fontWeight: hasUnread ? 500 : 400,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              flex: 1, lineHeight: 1.4,
+            }}>
+              {chat.lastMessage || 'No messages yet'}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.3 }}>
+            {isOnline && (
+              <Typography variant="caption" sx={{
+                fontSize: '0.6rem', color: '#10b981', fontWeight: 500, lineHeight: 1,
+              }}>
+                Online
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        {hasUnread && (
+          <Box sx={{
+            minWidth: 20, height: 20,
+            borderRadius: '10px',
+            bgcolor: primaryColor,
+            color: '#fff',
+            fontSize: '0.65rem', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            px: 0.5, flexShrink: 0,
+            position: 'absolute', top: 10, right: 8,
+          }}>
+            {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
+          </Box>
+        )}
+
+        <IconButton
+          size="small"
+          className="list-actions"
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            opacity: 0,
+            transition: 'opacity 0.15s ease',
+            color: '#94a3b8',
+            p: 0.5,
+            '&:hover': { bgcolor: primaryLight },
+          }}
+        >
+          <MoreVert sx={{ fontSize: 16 }} />
+        </IconButton>
       </Box>
-    </Box>
+      {hasDivider && <Divider sx={{ mx: 2.5, borderColor: '#f1f5f9' }} />}
+    </>
   );
 };
 

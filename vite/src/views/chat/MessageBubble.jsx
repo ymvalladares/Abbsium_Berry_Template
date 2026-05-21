@@ -8,7 +8,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 const primaryColor = '#0EA5E9';
 
-const MessageBubble = ({ message, isAdmin }) => {
+const MessageBubble = ({ message, isAdmin, onReply, isHighlighted }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const isMine = message.isSender === true;
   const isPending = message.isPending === true;
@@ -26,6 +26,11 @@ const MessageBubble = ({ message, isAdmin }) => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleReply = () => {
+    handleMenuClose();
+    if (onReply) onReply(message);
   };
 
   return (
@@ -64,7 +69,7 @@ const MessageBubble = ({ message, isAdmin }) => {
       }}>
         {!isMine && (
           <Typography variant="caption" sx={{
-            color: '#94a3b8', fontWeight: 500, mb: 0.3, ml: 1, fontSize: '0.7rem',
+            color: '#94a3b8', fontWeight: 600, mb: 0.3, ml: 1, fontSize: '0.7rem',
           }}>
             {message.senderName || 'User'}
           </Typography>
@@ -81,13 +86,17 @@ const MessageBubble = ({ message, isAdmin }) => {
             border: isMine ? 'none' : '1px solid #e2e8f0',
             boxShadow: isMine
               ? `0 2px 8px ${primaryColor}30`
-              : '0 1px 2px rgba(0,0,0,0.04)',
+              : '0 1px 3px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.02)',
             wordBreak: 'break-word',
-            transition: 'box-shadow 0.2s ease',
+            transition: 'box-shadow 0.2s ease, transform 0.15s ease',
+            ...(isHighlighted && {
+              boxShadow: `0 0 0 3px ${primaryColor}40`,
+              transform: 'scale(1.01)',
+            }),
             '&:hover': {
               boxShadow: isMine
                 ? `0 4px 14px ${primaryColor}40`
-                : '0 2px 8px rgba(0,0,0,0.06)',
+                : '0 2px 8px rgba(0,0,0,0.08)',
             },
           }}
         >
@@ -106,7 +115,7 @@ const MessageBubble = ({ message, isAdmin }) => {
           mt: 0.3, px: 1,
         }}>
           <Typography variant="caption" sx={{
-            color: '#94a3b8', fontSize: '0.65rem', fontWeight: 400,
+            color: '#94a3b8', fontSize: '0.65rem', fontWeight: 500,
           }}>
             {formatTime(message.sentAt || message.timestamp)}
           </Typography>
@@ -116,7 +125,7 @@ const MessageBubble = ({ message, isAdmin }) => {
               {isPending ? (
                 <CircularProgress size={10} thickness={5} sx={{ color: '#94a3b8' }} />
               ) : message.isRead ? (
-                <DoneAll sx={{ fontSize: 13, color: primaryColor }} />
+                <DoneAll sx={{ fontSize: 13, color: '#10b981' }} />
               ) : (
                 <Done sx={{ fontSize: 13, color: '#94a3b8' }} />
               )}
@@ -136,7 +145,7 @@ const MessageBubble = ({ message, isAdmin }) => {
           left: isMine ? 'auto' : 40,
           bgcolor: '#fff',
           border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
           opacity: 0,
           transform: 'scale(0.8)',
           transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -164,7 +173,7 @@ const MessageBubble = ({ message, isAdmin }) => {
         <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.85rem', py: 1, gap: 1 }}>
           <ContentCopy sx={{ fontSize: 16, color: '#64748b' }} /> Copy
         </MenuItem>
-        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.85rem', py: 1, gap: 1 }}>
+        <MenuItem onClick={handleReply} sx={{ fontSize: '0.85rem', py: 1, gap: 1 }}>
           <Reply sx={{ fontSize: 16, color: '#64748b' }} /> Reply
         </MenuItem>
         {isMine && (

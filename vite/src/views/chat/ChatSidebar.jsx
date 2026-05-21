@@ -1,19 +1,20 @@
 import { useState, useMemo } from 'react';
 import {
   Box, TextField, InputAdornment, Typography, IconButton,
-  Avatar, CircularProgress, Badge, Divider, Chip,
+  Avatar, CircularProgress, Badge, Chip, Paper,
 } from '@mui/material';
 import {
-  Search, MoreVert, EditOutlined, Close, Chat, People,
+  Search, Close, Chat, People, Forum,
 } from '@mui/icons-material';
 import ChatListItem from './ChatListItem';
 
 const primaryColor = '#0EA5E9';
-const primaryLight = '#F0F9FF';
+const primaryLight = '#E0F2FE';
 
 const ChatSidebar = ({
   isAdmin, conversations, admins, isConnected,
   isLoading, onSelectChat, selectedChatId, isMobile,
+  standalone, outerOnly,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -46,61 +47,50 @@ const ChatSidebar = ({
     return list.reduce((sum, item) => sum + (item.unreadCount || 0), 0);
   }, [isAdmin, conversations, admins]);
 
+  const getRadius = () => {
+    if (standalone) return 3;
+    if (outerOnly) return '12px 0 0 12px';
+    return 3;
+  };
+
   return (
-    <Box
+    <Paper
+      elevation={0}
       sx={{
         width: isMobile ? '100%' : '360px',
         minWidth: isMobile ? '100%' : '360px',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        bgcolor: '#fff',
-        borderRadius: 3,
-        overflow: 'hidden',
+        borderRadius: getRadius(),
         border: '1px solid #e2e8f0',
+        borderRight: outerOnly ? 'none' : '1px solid #e2e8f0',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        overflow: 'hidden',
       }}
     >
-      <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid #f1f5f9' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+      <Box sx={{ px: { xs: 2.5, sm: 3 }, py: { xs: 2, sm: 2.5 }, borderBottom: '1px solid #e2e8f0' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Badge
-              overlap="circular"
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              variant="dot"
-              sx={{
-                '& .MuiBadge-badge': {
-                  bgcolor: isConnected ? '#10b981' : '#ef4444',
-                  width: 10, height: 10, borderRadius: '50%',
-                  border: '2px solid #fff',
-                },
-              }}
-            >
-              <Avatar
-                sx={{
-                  width: 38, height: 38,
-                  bgcolor: primaryColor,
-                  fontSize: '0.9rem', fontWeight: 600,
-                }}
-              >
-                {isAdmin ? 'A' : 'U'}
-              </Avatar>
-            </Badge>
+            <Box sx={{ bgcolor: primaryLight, p: 1, borderRadius: 2, display: 'flex', boxShadow: `0 2px 8px ${primaryColor}1A` }}>
+              <Forum sx={{ color: primaryColor, fontSize: 20 }} />
+            </Box>
             <Box>
-              <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem', lineHeight: 1.3 }}>
-                {isAdmin ? 'Messages' : 'Support Chat'}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem', lineHeight: 1.2 }}>
+                  {isAdmin ? 'Messages' : 'Support Chat'}
+                </Typography>
+                <Box sx={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  bgcolor: isConnected ? '#10b981' : '#ef4444',
+                  flexShrink: 0,
+                }} />
+              </Box>
               <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.75rem' }}>
                 {displayList.length} {displayList.length === 1 ? 'conversation' : 'conversations'}
               </Typography>
             </Box>
           </Box>
-
-          {isAdmin && (
-            <IconButton size="small" sx={{ color: '#94a3b8', '&:hover': { bgcolor: primaryLight } }}>
-              <EditOutlined sx={{ fontSize: 18 }} />
-            </IconButton>
-          )}
         </Box>
 
         <TextField
@@ -124,17 +114,18 @@ const ChatSidebar = ({
                 </IconButton>
               </InputAdornment>
             ),
-            sx: {
-              borderRadius: '10px',
-              bgcolor: '#f8fafc',
-              fontSize: '0.85rem',
+              sx: {
+                borderRadius: '12px',
+                bgcolor: '#f8fafc',
+                fontSize: { xs: '16px', sm: '0.85rem' },
               '& fieldset': { borderColor: '#e2e8f0', borderWidth: '1.5px' },
               '&:hover fieldset': { borderColor: '#cbd5e1' },
               '&.Mui-focused fieldset': {
                 borderColor: primaryColor,
                 borderWidth: '2px',
-                boxShadow: `0 0 0 3px ${primaryColor}20`,
+                boxShadow: `0 0 0 3px ${primaryLight}`,
               },
+              '& input': { py: 1.2 },
             },
           }}
         />
@@ -143,8 +134,8 @@ const ChatSidebar = ({
       {isAdmin && (
         <Box
           sx={{
-            px: 2, py: 1.2,
-            borderBottom: '1px solid #f1f5f9',
+            px: { xs: 2.5, sm: 3 }, py: 1.5,
+            borderBottom: '1px solid #e2e8f0',
             display: 'flex', gap: 1,
             overflowX: 'auto',
             '&::-webkit-scrollbar': { display: 'none' },
@@ -157,11 +148,12 @@ const ChatSidebar = ({
               size="small"
               onClick={() => setFilterType(f)}
               sx={{
-                bgcolor: filterType === f ? primaryLight : 'transparent',
+                bgcolor: filterType === f ? primaryLight : '#fff',
                 color: filterType === f ? primaryColor : '#64748b',
-                fontWeight: filterType === f ? 600 : 400,
+                fontWeight: filterType === f ? 600 : 500,
                 fontSize: '0.8rem',
-                border: filterType === f ? `1px solid ${primaryColor}40` : '1px solid #e2e8f0',
+                border: filterType === f ? `1.5px solid ${primaryColor}40` : '1.5px solid #e2e8f0',
+                borderRadius: '8px',
                 '&:hover': { bgcolor: filterType === f ? primaryLight : '#f8fafc' },
                 transition: 'all 0.15s ease',
               }}
@@ -198,39 +190,32 @@ const ChatSidebar = ({
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ py: 0.5 }}>
+          <Box>
             {displayList.map((item, index) => (
-              <Box key={item.id}>
-                <ChatListItem
-                  chat={item}
-                  isSelected={item.id === selectedChatId}
-                  onClick={() => onSelectChat(item)}
-                />
-                {index < displayList.length - 1 && (
-                  <Divider sx={{ mx: 2.5, borderColor: '#f1f5f9' }} />
-                )}
-              </Box>
+              <ChatListItem
+                key={item.id}
+                chat={item}
+                isSelected={item.id === selectedChatId}
+                onClick={() => onSelectChat(item)}
+                hasDivider={index < displayList.length - 1}
+              />
             ))}
           </Box>
         )}
       </Box>
 
-      <Box sx={{
-        px: 2.5, py: 1.5,
-        borderTop: '1px solid #f1f5f9',
-        bgcolor: '#fafafa',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      <Typography sx={{
+        textAlign: 'center',
+        color: '#94a3b8', fontSize: '0.6rem',
+        py: 1.2, letterSpacing: '0.03em',
+        userSelect: 'none',
       }}>
-        <Typography sx={{
-          fontSize: '0.65rem', color: '#94a3b8', fontWeight: 500,
-          display: 'flex', alignItems: 'center', gap: 0.5,
-          letterSpacing: '0.02em',
-        }}>
-          <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: isConnected ? '#10b981' : '#ef4444' }} />
-          {isConnected ? 'End-to-end encrypted' : 'Reconnecting...'}
-        </Typography>
-      </Box>
-    </Box>
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: isConnected ? '#10b981' : '#ef4444', display: 'inline-block' }} />
+          {isConnected ? 'Connected · Abbsium Chat' : 'Reconnecting...'}
+        </Box>
+      </Typography>
+    </Paper>
   );
 };
 

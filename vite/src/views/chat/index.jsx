@@ -63,10 +63,13 @@ const ChatApp = () => {
     setSelectedChat(null);
   };
 
+  const showSidebar = !isMobile || showChatList;
+  const showWindow = !isMobile || !showChatList;
+
   return (
     <Box sx={{ height: 'calc(100vh - 120px)', display: 'flex', p: { xs: 1.5, sm: 2.5 } }}>
-      <Box sx={{ width: '100%', height: '100%', display: 'flex', gap: 2.5, mx: 'auto' }}>
-        {(!isMobile || showChatList) && (
+      <Box sx={{ width: '100%', height: '100%', display: 'flex', mx: 'auto', gap: 0 }}>
+        {showSidebar && (
           <ChatSidebar
             isAdmin={isAdmin}
             conversations={conversations}
@@ -76,10 +79,12 @@ const ChatApp = () => {
             onSelectChat={handleSelectChat}
             selectedChatId={selectedChat?.id}
             isMobile={isMobile}
+            standalone={!showWindow}
+            outerOnly={!isMobile && showWindow}
           />
         )}
 
-        {(!isMobile || !showChatList) && (
+        {showWindow && (
           <ChatWindow
             isAdmin={isAdmin}
             selectedChat={selectedChat}
@@ -89,6 +94,8 @@ const ChatApp = () => {
             onSendMessage={handleSendMessage}
             onBack={handleBackToList}
             isMobile={isMobile}
+            standalone={!showSidebar}
+            outerOnly={!isMobile && showSidebar}
           />
         )}
       </Box>
