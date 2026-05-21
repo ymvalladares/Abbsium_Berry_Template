@@ -126,24 +126,15 @@ const Auth_Form = ({ onSuccess }) => {
         </Stack>
 
         {(userAction === 'login' || userAction === 'register') && (
-          <Box
-            sx={{
-              width: '100%', mt: 2, mb: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              '& > div': { width: '100% !important' },
-              '& iframe': { width: '100% !important', maxWidth: '100% !important' }
-            }}
-          >
+          <Box sx={{ width: '100%', mt: 2, mb: 1, overflow: 'hidden' }}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => setAuthError('Google sign-in failed. Please try again.')}
-              width={400}
+              width="100%"
               theme="outline"
               size="large"
               text={userAction === 'login' ? 'signin_with' : 'signup_with'}
               shape="rectangular"
-              logo_alignment="center"
             />
           </Box>
         )}
