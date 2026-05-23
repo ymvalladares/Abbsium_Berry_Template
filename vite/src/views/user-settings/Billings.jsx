@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -15,7 +15,7 @@ import {
   IconButton,
   Grid,
   TextField,
-  InputAdornment
+  CircularProgress
 } from '@mui/material';
 import {
   CreditCard as CreditCardIcon,
@@ -24,77 +24,67 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Pending as PendingIcon,
-  Receipt,
-  Visibility,
-  VisibilityOff
+  Receipt
 } from '@mui/icons-material';
+import api from '../../services/AxiosService';
 
 const Billings = () => {
-  const [showCardNumber, setShowCardNumber] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [savingAddress, setSavingAddress] = useState(false);
 
-  // Datos de ejemplo de la tarjeta
-  const [cardData] = useState({
-    cardNumber: '4242 4242 4242 4242',
-    cardNumberMasked: '**** **** **** 4242',
-    cardHolder: 'Sofia Rivers',
-    expiryDate: '12/26',
-    cvv: '123',
-    cardType: 'Visa'
+  const [billingData, setBillingData] = useState({
+    cardHolder: '',
+    expiryDate: '',
+    cardType: ''
   });
 
-  // Datos de billing address
-  const [billingAddress] = useState({
-    name: 'Sofia Rivers',
-    email: 'sofia.rivers@email.com',
-    country: 'Germany',
-    city: 'Berlin',
-    address: 'Hauptstraße 123',
-    zipCode: '10115'
+  const [billingAddress, setBillingAddress] = useState({
+    name: '',
+    email: '',
+    country: '',
+    city: '',
+    address: '',
+    zipCode: ''
   });
 
-  // Datos de ejemplo del historial de pagos
-  const [paymentHistory] = useState([
-    {
-      id: 1,
-      date: '2026-01-15',
-      description: 'Monthly Subscription',
-      amount: '$29.99',
-      status: 'paid',
-      invoice: 'INV-2026-001'
-    },
-    {
-      id: 2,
-      date: '2025-12-15',
-      description: 'Monthly Subscription',
-      amount: '$29.99',
-      status: 'paid',
-      invoice: 'INV-2025-012'
-    },
-    {
-      id: 3,
-      date: '2025-11-15',
-      description: 'Monthly Subscription',
-      amount: '$29.99',
-      status: 'paid',
-      invoice: 'INV-2025-011'
-    },
-    {
-      id: 4,
-      date: '2025-10-15',
-      description: 'Monthly Subscription',
-      amount: '$29.99',
-      status: 'failed',
-      invoice: 'INV-2025-010'
-    },
-    {
-      id: 5,
-      date: '2025-09-15',
-      description: 'Monthly Subscription',
-      amount: '$29.99',
-      status: 'paid',
-      invoice: 'INV-2025-009'
-    }
-  ]);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+
+  useEffect(() => {
+    api
+      .get('order/billing')
+      .then(({ data }) => {
+        if (data.card) {
+          setBillingData({
+            cardHolder: data.card.cardHolder || '',
+            expiryDate: data.card.expiryDate || '',
+            cardType: data.card.cardType || ''
+          });
+        }
+        if (data.address) {
+          setBillingAddress({
+            name: data.address.name || '',
+            email: data.address.email || '',
+            country: data.address.country || '',
+            city: data.address.city || '',
+            address: data.address.address || '',
+            zipCode: data.address.zipCode || ''
+          });
+        }
+        if (data.payments) {
+          setPaymentHistory(data.payments);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSaveAddress = async () => {
+    setSavingAddress(true);
+    try {
+      await api.put('order/billing/address', billingAddress);
+    } catch {}
+    setSavingAddress(false);
+  };
 
   const getStatusChip = (status) => {
     const statusConfig = {
@@ -142,110 +132,48 @@ const Billings = () => {
                 Payment Method
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                Update your payment card details
+                {billingData.cardHolder ? 'Managed securely via Stripe' : 'No payment method on file'}
               </Typography>
             </Box>
           </Box>
 
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 1 }}>
-                Card Number *
-              </Typography>
-              <TextField
-                fullWidth
-                value={showCardNumber ? cardData.cardNumber : cardData.cardNumberMasked}
-                placeholder="1234 1234 1234 1234"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowCardNumber(!showCardNumber)} edge="end" size="small">
-                        {showCardNumber ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#FAFAFA',
-                    '& fieldset': {
-                      borderColor: '#E5E7EB'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#D1D5DB'
-                    }
-                  }
-                }}
-              />
-            </Grid>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <Box>
+              {billingData.cardHolder ? (
+                <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#FAFAFA', borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight={600} color="text.primary">
+                    {billingData.cardType} ···· {billingData.cardHolder}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.8rem' }}>
+                    Expires {billingData.expiryDate}
+                  </Typography>
+                </Paper>
+              ) : (
+                <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#FAFAFA', borderRadius: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No card saved yet. Complete a purchase to add a payment method.
+                  </Typography>
+                </Paper>
+              )}
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 1 }}>
-                Cardholder Name *
-              </Typography>
-              <TextField
-                fullWidth
-                value={cardData.cardHolder}
-                placeholder="John Doe"
+              <Button
+                variant="outlined"
+                onClick={() => (window.location.href = '/platform/pricing')}
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#FAFAFA',
-                    '& fieldset': {
-                      borderColor: '#E5E7EB'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#D1D5DB'
-                    }
-                  }
+                  textTransform: 'none',
+                  borderColor: '#E5E7EB',
+                  color: 'text.secondary',
+                  '&:hover': { borderColor: '#D1D5DB', bgcolor: '#FAFAFA' }
                 }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 6, sm: 3 }}>
-              <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 1 }}>
-                Expiry Date *
-              </Typography>
-              <TextField
-                fullWidth
-                value={cardData.expiryDate}
-                placeholder="MM/YY"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#FAFAFA',
-                    '& fieldset': {
-                      borderColor: '#E5E7EB'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#D1D5DB'
-                    }
-                  }
-                }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 6, sm: 3 }}>
-              <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 1 }}>
-                CVV *
-              </Typography>
-              <TextField
-                fullWidth
-                value={cardData.cvv}
-                placeholder="123"
-                type="password"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#FAFAFA',
-                    '& fieldset': {
-                      borderColor: '#E5E7EB'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#D1D5DB'
-                    }
-                  }
-                }}
-              />
-            </Grid>
-          </Grid>
+              >
+                {billingData.cardHolder ? 'Update via Stripe' : 'Add payment method'}
+              </Button>
+            </Box>
+          )}
         </Box>
       </Card>
 
@@ -411,6 +339,17 @@ const Billings = () => {
           <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button
               variant="outlined"
+              disabled={savingAddress}
+              onClick={() =>
+                setBillingAddress({
+                  name: '',
+                  email: '',
+                  country: '',
+                  city: '',
+                  address: '',
+                  zipCode: ''
+                })
+              }
               sx={{
                 textTransform: 'none',
                 borderColor: '#E5E7EB',
@@ -421,10 +360,12 @@ const Billings = () => {
                 }
               }}
             >
-              Cancel
+              Clear
             </Button>
             <Button
               variant="contained"
+              disabled={savingAddress}
+              onClick={handleSaveAddress}
               sx={{
                 textTransform: 'none',
                 bgcolor: '#6366F1',
@@ -434,7 +375,7 @@ const Billings = () => {
                 boxShadow: 'none'
               }}
             >
-              Update Information
+              {savingAddress ? <CircularProgress size={18} sx={{ color: '#FFF' }} /> : 'Update Information'}
             </Button>
           </Box>
         </Box>

@@ -13,16 +13,20 @@ export const Schema_Login_Validation = yup.object().shape({
 
   password: yup
     .string()
-    .min(5, 'Password must be at least 5 characters')
+    .min(6, 'Password must be at least 6 characters')
     .matches(/^(?=^[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*().,+=_-]).{6,50}$/, 'Make sure you are using a strong password')
 
   // remember_me: yup.boolean()
   // .oneOf([true], "Please accept the terms of service"),
 });
 
+export const Schema_ForgetPassword_Validation = yup.object().shape({
+  email: yup.string().email('Please enter a valid email').required('Required')
+});
+
 export const Schema_Reset_Password_Validation = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required(),
-  newPassword: yup.string().min(5).matches(passwordRules, { message: 'Use a better pasword' }).required(),
+  newPassword: yup.string().min(6).matches(passwordRules, { message: 'Use a stronger password' }).required(),
 
   confirmPassword: yup
     .string()

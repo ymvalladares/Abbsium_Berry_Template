@@ -34,8 +34,11 @@ import {
 } from '@mui/icons-material';
 import api from '../../services/AxiosService'; // Adjust path as needed
 import { showSnackbar } from '../../utils/snackbarNotif'; // Adjust path as needed
+import { useAuth } from '../../contexts/AuthContext';
 
 const Security = () => {
+  const { user } = useAuth();
+  const isDemoUser = user?.email === 'demo@gmail.com';
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -178,12 +181,13 @@ const Security = () => {
     } catch (error) {
       console.error('Error changing password:', error);
 
-      // If current password is wrong
       if (error.response?.status === 400) {
         setErrors((prev) => ({
           ...prev,
           currentPassword: 'Current password is incorrect'
         }));
+      } else {
+        showSnackbar('Failed to update password', 'error');
       }
     } finally {
       setIsLoading(false);
@@ -243,6 +247,26 @@ const Security = () => {
           border: '1px solid #e5e7eb'
         }}
       >
+        {isDemoUser && (
+          <Box
+            sx={{
+              mb: 3,
+              px: 2,
+              py: 1.5,
+              bgcolor: '#fef3c7',
+              borderRadius: 2,
+              border: '1px solid #fde68a',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5
+            }}
+          >
+            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0, mt: 0.3 }} />
+            <Typography variant="caption" sx={{ color: '#92400e', fontSize: '0.8rem' }}>
+              This is a demo account. Password changes are not allowed.
+            </Typography>
+          </Box>
+        )}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
           <Box sx={{ bgcolor: '#dbeafe', p: 1.2, borderRadius: 2.5, display: 'flex', boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1)' }}>
             <Lock sx={{ color: '#3b82f6', fontSize: 20 }} />
@@ -264,6 +288,7 @@ const Security = () => {
             </Typography>
             <TextField
               fullWidth
+              disabled={isDemoUser}
               type={showOldPassword ? 'text' : 'password'}
               variant="outlined"
               placeholder="Enter your current password"
@@ -312,6 +337,7 @@ const Security = () => {
             </Typography>
             <TextField
               fullWidth
+              disabled={isDemoUser}
               type={showNewPassword ? 'text' : 'password'}
               variant="outlined"
               placeholder="Enter new password"
@@ -377,6 +403,7 @@ const Security = () => {
             </Typography>
             <TextField
               fullWidth
+              disabled={isDemoUser}
               type={showConfirmPassword ? 'text' : 'password'}
               variant="outlined"
               placeholder="Confirm new password"
@@ -491,7 +518,7 @@ const Security = () => {
             variant="contained"
             fullWidth={isMobile}
             onClick={handlePasswordChange}
-            disabled={isLoading || !currentPassword || !newPassword || !confirmPassword}
+            disabled={isLoading || !currentPassword || !newPassword || !confirmPassword || isDemoUser}
             sx={{
               borderRadius: 2.5,
               textTransform: 'none',

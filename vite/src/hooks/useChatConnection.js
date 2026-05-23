@@ -60,7 +60,10 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
             api.get('/User/All-Users')
           ]);
 
-          const allUsers = usersRes.data || [];
+          const allUsers = (usersRes.data || []).map((u) => ({
+            ...u,
+            id: u.id || u.userId,
+          }));
           const regularUsers = allUsers.filter(
             (u) => !u.role?.toLowerCase().includes('admin')
           );
@@ -83,9 +86,11 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
           const [adminsList, convs] = await Promise.all([chatService.getAdmins(), chatService.getMyConversations()]);
 
           const enrichedAdmins = adminsList.map((admin) => {
-            const existingConv = convs.find((c) => c.userId === admin.id);
+            const adminId = admin.id || admin.userId || admin.adminId;
+            const existingConv = convs.find((c) => c.userId === adminId);
             return {
               ...admin,
+              id: adminId,
               conversationId: existingConv?.id || null,
               lastMessage: existingConv?.lastMessage || '',
               lastMessageAt: existingConv?.lastMessageAt || null,
@@ -441,6 +446,12 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
   const sendMessage = useCallback(
     async (adminId, content) => {
       if (!isConnected || !content.trim()) return;
+      if (!adminId) {
+        console.error('sendMessage: adminId is missing', { adminId, content });
+        throw new Error('Cannot send message: recipient not found');
+      }
+
+      console.log('📤 Sending message to admin:', { adminId, content });
 
       lastTempId.current += 1;
       const tempId = `temp_${lastTempId.current}`;
@@ -472,6 +483,12 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
   const sendAdminReply = useCallback(
     async (conversationId, content) => {
       if (!isConnected || !content.trim()) return;
+      if (!conversationId) {
+        console.error('sendAdminReply: conversationId is missing', { conversationId, content });
+        throw new Error('Cannot send reply: no conversation found');
+      }
+
+      console.log('📤 Sending admin reply:', { conversationId, content });
 
       lastTempId.current += 1;
       const tempId = `temp_${lastTempId.current}`;

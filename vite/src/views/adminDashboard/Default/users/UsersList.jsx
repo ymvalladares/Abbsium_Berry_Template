@@ -90,6 +90,7 @@ const UsersList = () => {
       setSelectedUsers((prev) => prev.filter((x) => x !== id));
     } catch (err) {
       console.error('Delete user error:', err);
+      showSnackbar('Failed to delete user', 'error');
     }
   };
 
@@ -184,6 +185,7 @@ const UsersList = () => {
             showSnackbar(editUser ? 'User updated' : 'User created', 'success');
           } catch (err) {
             console.error(err);
+            showSnackbar('Failed to save user', 'error');
           }
 
           setOpenUpsert(false);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Box, TextField, InputAdornment, Typography, IconButton,
   Avatar, CircularProgress, Badge, Chip, Paper,
@@ -7,6 +7,7 @@ import {
   Search, Close, Chat, People, Forum,
 } from '@mui/icons-material';
 import ChatListItem from './ChatListItem';
+import { getPinnedIds, togglePin as togglePinStorage } from './chatPins';
 
 const primaryColor = '#0EA5E9';
 const primaryLight = '#E0F2FE';
@@ -18,6 +19,12 @@ const ChatSidebar = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [pinnedIds, setPinnedIds] = useState(getPinnedIds);
+
+  const handleTogglePin = useCallback((id) => {
+    const updated = togglePinStorage(id);
+    setPinnedIds(updated);
+  }, []);
 
   const displayList = useMemo(() => {
     let list = isAdmin ? conversations : admins;
@@ -36,11 +43,15 @@ const ChatSidebar = ({
     }
 
     return [...list].sort((a, b) => {
+      const aPinned = pinnedIds.includes(a.id);
+      const bPinned = pinnedIds.includes(b.id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
       const dateA = new Date(a.lastMessageAt || 0);
       const dateB = new Date(b.lastMessageAt || 0);
       return dateB - dateA;
     });
-  }, [isAdmin, conversations, admins, searchQuery, filterType]);
+  }, [isAdmin, conversations, admins, searchQuery, filterType, pinnedIds]);
 
   const totalUnread = useMemo(() => {
     const list = isAdmin ? conversations : admins;
@@ -69,29 +80,30 @@ const ChatSidebar = ({
         overflow: 'hidden',
       }}
     >
-      <Box sx={{ px: { xs: 2.5, sm: 3 }, py: { xs: 2, sm: 2.5 }, borderBottom: '1px solid #e2e8f0' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ bgcolor: primaryLight, p: 1, borderRadius: 2, display: 'flex', boxShadow: `0 2px 8px ${primaryColor}1A` }}>
-              <Forum sx={{ color: primaryColor, fontSize: 20 }} />
-            </Box>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem', lineHeight: 1.2 }}>
-                  {isAdmin ? 'Messages' : 'Support Chat'}
-                </Typography>
-                <Box sx={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  bgcolor: isConnected ? '#10b981' : '#ef4444',
-                  flexShrink: 0,
-                }} />
+        <Box sx={{ px: { xs: 2.5, sm: 3 }, py: { xs: 2, sm: 2.5 }, borderBottom: '1px solid #e2e8f0' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ bgcolor: primaryLight, p: 1, borderRadius: 2.5, display: 'flex', boxShadow: `0 3px 10px ${primaryColor}1A`, transition: 'transform 0.2s ease', '&:hover': { transform: 'scale(1.05)' } }}>
+                <Forum sx={{ color: primaryColor, fontSize: 20 }} />
               </Box>
-              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-                {displayList.length} {displayList.length === 1 ? 'conversation' : 'conversations'}
-              </Typography>
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem', lineHeight: 1.2 }}>
+                    {isAdmin ? 'Messages' : 'Support Chat'}
+                  </Typography>
+                  <Box sx={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    bgcolor: isConnected ? '#10b981' : '#ef4444',
+                    flexShrink: 0,
+                    boxShadow: isConnected ? '0 0 0 2px rgba(16,185,129,0.2)' : 'none',
+                  }} />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
+                  {displayList.length} {displayList.length === 1 ? 'conversation' : 'conversations'}
+                </Typography>
+              </Box>
             </Box>
           </Box>
-        </Box>
 
         <TextField
           fullWidth
@@ -197,6 +209,8 @@ const ChatSidebar = ({
                 chat={item}
                 isSelected={item.id === selectedChatId}
                 onClick={() => onSelectChat(item)}
+                onTogglePin={() => handleTogglePin(item.id)}
+                isPinned={pinnedIds.includes(item.id)}
                 hasDivider={index < displayList.length - 1}
               />
             ))}

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import { keyframes } from '@mui/system';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -128,7 +128,7 @@ const PaymentResult = () => {
         setStatus('success');
       })
       .catch(() => setStatus('failed'));
-  }, []);
+  }, [searchParams]);
 
   const isSuccess = status === 'success';
   const isLoading = status === 'loading';
@@ -160,7 +160,8 @@ const PaymentResult = () => {
         }}
       >
         {isLoading ? (
-          <Box sx={{ py: 4 }}>
+          <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <CircularProgress size={32} sx={{ color: '#6366f1' }} />
             <Typography sx={{ fontSize: '14px', color: '#a0aec0' }}>Verifying payment...</Typography>
           </Box>
         ) : (

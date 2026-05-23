@@ -87,6 +87,8 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
       }
     } catch (error) {
       console.error(error);
+      const msg = error.response?.data;
+      showSnackbar(typeof msg === 'string' ? msg : msg?.message || 'Operation failed', 'error');
     } finally {
       setLoading(false);
     }

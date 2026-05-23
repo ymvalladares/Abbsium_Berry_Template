@@ -129,9 +129,9 @@ class SignalRService {
       this.emit('onlineUsersList', userIds);
     });
 
-    // Errores
+    // Errores del servidor
     this.connection.on('Error', (error) => {
-      console.error('❌ SignalR Error:', error);
+      console.error('❌ SignalR Error:', JSON.stringify(error, null, 2));
       this.emit('error', error);
     });
   }

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Formik, Form } from 'formik';
-import { Schema_Login_Validation } from './Helpers/SchemaValidation';
+import { Schema_Login_Validation, Schema_ForgetPassword_Validation } from './Helpers/SchemaValidation';
 import Input_Fields from './Helpers/Input_Fields';
 import CustomCheckbox from './Helpers/CustomCheckbox';
 import { Box, Button, Chip, Divider, Stack, Typography, Alert } from '@mui/material';
@@ -15,6 +15,19 @@ const FORM_FIELDS = [
   { name: 'password', label: 'Password', type: 'password', action: ['login', 'register'] }
 ];
 
+const V = {
+  login: { title: 'Sign In Abbsium', submit: 'Log In', altText: "Don't have an account?", altAction: 'Sign Up', altMode: 'register' },
+  register: { title: 'Sign Up Abbsium', submit: 'Create Account', altText: 'Already have an account?', altAction: 'Sign In', altMode: 'login' },
+  forgetPassword: { title: 'Reset Password', submit: 'Send Reset Email', altText: '', altAction: 'Back to Sign In', altMode: 'login' }
+};
+
+const INITIAL_VALUES = {
+  email: 'demo@gmail.com',
+  password: 'Demo.2020',
+  username: '',
+  remember_me: false
+};
+
 const Auth_Form = ({ onSuccess }) => {
   const [userAction, setUserAction] = useState('login');
   const [authError, setAuthError] = useState(null);
@@ -24,13 +37,20 @@ const Auth_Form = ({ onSuccess }) => {
   const { authenticate, authLoading, googleLogin } = useAuth();
 
   const isLoading = authLoading || googleLoading;
+  const ui = V[userAction];
 
   const filteredInputs = useMemo(() => FORM_FIELDS.filter((f) => f.action.includes(userAction)), [userAction]);
+
+  const validationSchema = useMemo(
+    () => (userAction === 'forgetPassword' ? Schema_ForgetPassword_Validation : Schema_Login_Validation),
+    [userAction]
+  );
 
   const handleSubmit = async (values) => {
     const result = await authenticate(userAction, values);
 
     if (result?.success) {
+      setAuthError(null);
       if (userAction === 'login') {
         onSuccess?.(values.email);
       } else if (userAction === 'register') {
@@ -39,6 +59,7 @@ const Auth_Form = ({ onSuccess }) => {
         setAuthMessage('Password reset link sent! Check your inbox.');
       }
     } else {
+      setAuthMessage(null);
       setAuthError(result?.message || 'An error occurred. Please try again.');
     }
   };
@@ -46,10 +67,7 @@ const Auth_Form = ({ onSuccess }) => {
   const handleGoogleSuccess = async (credentialResponse) => {
     setGoogleLoading(true);
     try {
-      const res = await api.post('/account/google-login', JSON.stringify(credentialResponse.credential), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-
+      const res = await api.post('/account/google-login', JSON.stringify(credentialResponse.credential));
       googleLogin(res.data);
       onSuccess?.(res.data.email);
     } catch (err) {
@@ -65,6 +83,8 @@ const Auth_Form = ({ onSuccess }) => {
   });
 
   const switchMode = (mode) => {
+    setAuthError(null);
+    setAuthMessage(null);
     setUserAction(mode);
   };
 
@@ -105,13 +125,7 @@ const Auth_Form = ({ onSuccess }) => {
               mb: 1
             }}
           >
-            {
-              {
-                login: 'Sign In Abbsium',
-                register: 'Sign Up Abbsium',
-                forgetPassword: 'Reset Password'
-              }[userAction]
-            }
+            {ui.title}
           </Typography>
 
           <Typography
@@ -139,135 +153,220 @@ const Auth_Form = ({ onSuccess }) => {
           </Box>
         )}
 
-        <Divider sx={{ my: 2 }}>
-          <Chip
-            label="OR"
-            sx={{
-              color: '#0399DF',
-              backgroundColor: '#fff',
-              px: 2,
-              fontSize: '13px',
-              fontWeight: 600,
-              border: '2px solid #0399DF',
-              borderRadius: '20px'
-            }}
-          />
-        </Divider>
-
-        <Formik
-          initialValues={{
-            email: 'demo@gmail.com',
-            password: 'Demo.2020',
-            username: ''
-          }}
-          validationSchema={Schema_Login_Validation}
-          onSubmit={handleSubmit}
-        >
-          {() => (
-            <Form
-              style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              {authError && (
-                <Alert
-                  severity="error"
-                  sx={{
-                    mb: 2.5,
-                    fontSize: 13,
-                    borderRadius: '8px',
-                    '& .MuiAlert-icon': {
-                      fontSize: '20px'
-                    }
-                  }}
-                >
-                  {authError}
-                </Alert>
-              )}
-
-              {authMessage && (
-                <Alert
-                  severity="success"
-                  sx={{
-                    mb: 2.5,
-                    fontSize: 13,
-                    borderRadius: '8px',
-                    '& .MuiAlert-icon': {
-                      fontSize: '20px'
-                    }
-                  }}
-                >
-                  {authMessage}
-                </Alert>
-              )}
-
-              {filteredInputs.map((f) => (
-                <Input_Fields key={f.name} {...f} />
-              ))}
-
-              {userAction === 'login' && (
-                <Box sx={{ mt: 1, mb: 2 }}>
-                  <CustomCheckbox name="remember_me" type="checkbox" />
-                </Box>
-              )}
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={isLoading}
+        {userAction !== 'forgetPassword' && (
+          <>
+            <Divider sx={{ my: 2 }}>
+              <Chip
+                label="OR"
                 sx={{
-                  mt: 1,
-                  mb: 2,
-                  height: 48,
-                  fontSize: '15px',
+                  color: '#0399DF',
+                  backgroundColor: '#fff',
+                  px: 2,
+                  fontSize: '13px',
                   fontWeight: 600,
-                  textTransform: 'none',
-                  backgroundColor: '#0399DF',
-                  borderRadius: '10px',
-                  boxShadow: '0 4px 12px rgba(3, 153, 223, 0.3)',
-                  position: 'relative',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: '#0288cc',
-                    boxShadow: '0 6px 16px rgba(3, 153, 223, 0.4)',
-                    transform: 'translateY(-1px)'
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: '#0399DF',
-                    color: '#fff',
-                    opacity: 0.7
-                  }
+                  border: '2px solid #0399DF',
+                  borderRadius: '20px'
                 }}
-              >
-                <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>
-                  {
-                    {
-                      login: 'Log In',
-                      register: 'Create Account',
-                      forgetPassword: 'Send Reset Email'
-                    }[userAction]
-                  }
-                </Box>
+              />
+            </Divider>
 
-                {isLoading && (
-                  <Box
+            <Formik
+              key={userAction}
+              initialValues={INITIAL_VALUES}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+            >
+              {() => (
+                <Form
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  {authError && (
+                    <Alert
+                      severity="error"
+                      sx={{
+                        mb: 2.5,
+                        fontSize: 13,
+                        borderRadius: '8px',
+                        '& .MuiAlert-icon': { fontSize: '20px' }
+                      }}
+                    >
+                      {authError}
+                    </Alert>
+                  )}
+
+                  {authMessage && (
+                    <Alert
+                      severity="success"
+                      sx={{
+                        mb: 2.5,
+                        fontSize: 13,
+                        borderRadius: '8px',
+                        '& .MuiAlert-icon': { fontSize: '20px' }
+                      }}
+                    >
+                      {authMessage}
+                    </Alert>
+                  )}
+
+                  {filteredInputs.map((f) => (
+                    <Input_Fields key={f.name} {...f} />
+                  ))}
+
+                  {userAction === 'login' && (
+                    <Box sx={{ mt: 1, mb: 2 }}>
+                      <CustomCheckbox name="remember_me" type="checkbox" />
+                    </Box>
+                  )}
+
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    disabled={isLoading}
                     sx={{
-                      position: 'absolute',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      mt: 1,
+                      mb: 2,
+                      height: 48,
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      backgroundColor: '#0399DF',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 12px rgba(3, 153, 223, 0.3)',
+                      position: 'relative',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: '#0288cc',
+                        boxShadow: '0 6px 16px rgba(3, 153, 223, 0.4)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&.Mui-disabled': {
+                        backgroundColor: '#0399DF',
+                        color: '#fff',
+                        opacity: 0.7
+                      }
                     }}
                   >
-                    <BeatLoader size={10} color="#fff" />
-                  </Box>
+                    <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>{ui.submit}</Box>
+
+                    {isLoading && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <BeatLoader size={10} color="#fff" />
+                      </Box>
+                    )}
+                  </Button>
+                </Form>
+              )}
+            </Formik>
+          </>
+        )}
+
+        {userAction === 'forgetPassword' && (
+          <Formik
+            key="forgetPassword"
+            initialValues={{ email: '' }}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            {() => (
+              <Form
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                {authError && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      mb: 2.5,
+                      fontSize: 13,
+                      borderRadius: '8px',
+                      '& .MuiAlert-icon': { fontSize: '20px' }
+                    }}
+                  >
+                    {authError}
+                  </Alert>
                 )}
-              </Button>
-            </Form>
-          )}
-        </Formik>
+
+                {authMessage && (
+                  <Alert
+                    severity="success"
+                    sx={{
+                      mb: 2.5,
+                      fontSize: 13,
+                      borderRadius: '8px',
+                      '& .MuiAlert-icon': { fontSize: '20px' }
+                    }}
+                  >
+                    {authMessage}
+                  </Alert>
+                )}
+
+                <Input_Fields key="email" name="email" label="E-mail" type="email" />
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={isLoading}
+                  sx={{
+                    mt: 3,
+                    mb: 2,
+                    height: 48,
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    backgroundColor: '#0399DF',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(3, 153, 223, 0.3)',
+                    position: 'relative',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      backgroundColor: '#0288cc',
+                      boxShadow: '0 6px 16px rgba(3, 153, 223, 0.4)',
+                      transform: 'translateY(-1px)'
+                    },
+                    '&.Mui-disabled': {
+                      backgroundColor: '#0399DF',
+                      color: '#fff',
+                      opacity: 0.7
+                    }
+                  }}
+                >
+                  <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>{ui.submit}</Box>
+
+                  {isLoading && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <BeatLoader size={10} color="#fff" />
+                    </Box>
+                  )}
+                </Button>
+              </Form>
+            )}
+          </Formik>
+        )}
 
         {userAction === 'login' && (
           <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" sx={{ mb: 2 }}>
@@ -299,43 +398,68 @@ const Auth_Form = ({ onSuccess }) => {
           </Box>
         )}
 
-        <Divider sx={{ my: 2.5 }} />
+        {userAction !== 'login' && (
+          <Box display="flex" justifyContent="center" alignItems="center" width="100%" sx={{ mt: 2 }}>
+            <Typography
+              sx={{
+                color: '#0399DF',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '13px',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  color: '#0288cc',
+                  textDecoration: 'underline'
+                }
+              }}
+              onClick={() => switchMode('login')}
+            >
+              Back to Sign In
+            </Typography>
+          </Box>
+        )}
 
-        <Box
-          sx={{
-            textAlign: 'center',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 1
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: '14px',
-              color: '#64748b',
-              fontWeight: 500
-            }}
-          >
-            {userAction === 'login' ? "Don't have an account?" : 'Already have an account?'}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              color: '#0399DF',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                color: '#0288cc',
-                textDecoration: 'underline'
-              }
-            }}
-            onClick={() => switchMode(userAction === 'login' ? 'register' : 'login')}
-          >
-            {userAction === 'login' ? 'Sign Up' : 'Sign In'}
-          </Typography>
-        </Box>
+        {userAction === 'login' && (
+          <>
+            <Divider sx={{ my: 2.5 }} />
+
+            <Box
+              sx={{
+                textAlign: 'center',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: '#64748b',
+                  fontWeight: 500
+                }}
+              >
+                {ui.altText}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: '#0399DF',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    color: '#0288cc',
+                    textDecoration: 'underline'
+                  }
+                }}
+                onClick={() => switchMode(ui.altMode)}
+              >
+                {ui.altAction}
+              </Typography>
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );

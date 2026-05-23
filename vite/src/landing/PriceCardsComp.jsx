@@ -6,6 +6,7 @@ import JoinRightIcon from '@mui/icons-material/JoinRight';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/AxiosService';
 import { useAuth } from '../contexts/AuthContext';
+import { showSnackbar } from '../utils/snackbarNotif';
 
 const PriceCardsComp = () => {
   const [loadingPlanId, setLoadingPlanId] = useState(null);
@@ -17,7 +18,7 @@ const PriceCardsComp = () => {
     {
       id: 1,
       name: 'Starter',
-      price: annual ? 150 : Number((150 / 0.9).toFixed(2)),
+      price: 150,
       mode: 'payment',
       description: 'Perfect for entrepreneurs launching their first professional website.',
       buttonLabel: 'Get started',
@@ -28,7 +29,7 @@ const PriceCardsComp = () => {
     {
       id: 2,
       name: 'Professional',
-      price: annual ? 24.99 : Number((24.99 / 0.9).toFixed(2)),
+      price: annual ? 24.99 : Number((24.99 / 0.8).toFixed(2)),
       mode: 'subscription',
       badge: 'Most Popular',
       description: 'Ideal for growing businesses that need a powerful online presence.',
@@ -46,7 +47,7 @@ const PriceCardsComp = () => {
     {
       id: 3,
       name: 'Enterprise',
-      price: annual ? 39.99 : Number((39.99 / 0.9).toFixed(2)),
+      price: annual ? 39.99 : Number((39.99 / 0.8).toFixed(2)),
       mode: 'subscription',
       description: 'Full-scale solution for companies that demand custom development.',
       buttonLabel: 'Contact sales',
@@ -71,8 +72,8 @@ const PriceCardsComp = () => {
       window.location.href = data.sessionUrl;
     } catch (err) {
       console.error('Error:', err);
-    } finally {
       setLoadingPlanId(null);
+      showSnackbar('Failed to create checkout session', 'error');
     }
   };
 
@@ -281,15 +282,6 @@ const PriceCardsComp = () => {
                     onClick={() => handlePlanClick(plan)}
                     disabled={loadingPlanId === plan.id}
                     variant="contained"
-                    endIcon={
-                      loadingPlanId === plan.id ? (
-                        <CircularProgress size={18} />
-                      ) : isAuthenticated ? (
-                        <JoinRightIcon />
-                      ) : (
-                        <LockOutlinedIcon />
-                      )
-                    }
                     sx={{
                       py: 2,
                       borderRadius: '14px',
@@ -302,10 +294,33 @@ const PriceCardsComp = () => {
                       '&:hover': {
                         bgcolor: plan.isHighlighted ? '#e2e8f0' : '#1e293b',
                         transform: 'scale(1.02)'
-                      }
+                      },
+                      ...(loadingPlanId === plan.id && {
+                        pointerEvents: 'none'
+                      })
                     }}
                   >
-                    {!isAuthenticated ? 'Sign in to buy' : plan.buttonLabel}
+                    {loadingPlanId === plan.id ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 1.5,
+                          color: plan.isHighlighted ? '#6366f1' : '#fff'
+                        }}
+                      >
+                        <CircularProgress size={20} sx={{ color: 'inherit' }} />
+                        <Typography component="span" sx={{ fontWeight: 800, fontSize: '1rem', color: 'inherit' }}>
+                          Redirecting...
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        {!isAuthenticated ? 'Sign in to buy' : plan.buttonLabel}
+                        {isAuthenticated ? <JoinRightIcon sx={{ fontSize: 20 }} /> : <LockOutlinedIcon sx={{ fontSize: 20 }} />}
+                      </Box>
+                    )}
                   </Button>
                 </CardContent>
               </Card>

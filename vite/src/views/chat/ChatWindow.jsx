@@ -1,16 +1,18 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Avatar, Typography, IconButton, TextField,
-  CircularProgress, Badge, InputAdornment, Paper, Fade,
+  CircularProgress, Badge, Paper, Fade,
   Tooltip,
 } from '@mui/material';
 import {
   ArrowBack, SendRounded, AttachFileOutlined, Close,
-  MicOutlined, EmojiEmotionsOutlined, Forum,
+  MicOutlined, EmojiEmotionsOutlined, AddPhotoAlternateOutlined, Forum,
   CallOutlined, VideocamOutlined, InfoOutlined,
   SearchOutlined, KeyboardArrowDown,
 } from '@mui/icons-material';
 import MessageBubble from './MessageBubble';
+import EmojiPicker from './EmojiPicker';
+import { showSnackbar } from '../../utils/snackbarNotif';
 
 const primaryColor = '#0EA5E9';
 const primaryHover = '#0284C7';
@@ -42,7 +44,7 @@ const shouldShowDateSeparator = (current, previous) => {
 const ChatWindow = ({
   isAdmin, selectedChat, messages, isConnected,
   isLoading, onSendMessage, onBack, isMobile,
-  standalone, outerOnly,
+  standalone, outerOnly, onDeleteMessage,
 }) => {
   const [message, setMessage] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -50,6 +52,7 @@ const ChatWindow = ({
   const [searchIndex, setSearchIndex] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [emojiAnchor, setEmojiAnchor] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -89,6 +92,7 @@ const ChatWindow = ({
       setReplyTo(null);
     } catch (err) {
       console.error('Error sending message:', err);
+      showSnackbar('Failed to send message', 'error');
     }
   };
 
@@ -102,6 +106,10 @@ const ChatWindow = ({
   const handleReplyMessage = (msg) => {
     setReplyTo(msg);
     inputRef.current?.focus();
+  };
+
+  const handleDeleteMessage = async (msg) => {
+    if (onDeleteMessage) onDeleteMessage(msg);
   };
 
   const getRadius = () => {
@@ -142,6 +150,22 @@ const ChatWindow = ({
 
   const clearReply = () => setReplyTo(null);
 
+  const handleEmojiSelect = (emoji) => {
+    const input = inputRef.current;
+    if (input) {
+      const start = input.selectionStart || message.length;
+      const end = input.selectionEnd || message.length;
+      const newMsg = message.slice(0, start) + emoji + message.slice(end);
+      setMessage(newMsg);
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start + emoji.length, start + emoji.length);
+      }, 0);
+    } else {
+      setMessage((prev) => prev + emoji);
+    }
+  };
+
   if (isLoading) {
     return (
       <Paper elevation={0} sx={{
@@ -169,14 +193,16 @@ const ChatWindow = ({
           width: 72, height: 72, borderRadius: '50%',
           bgcolor: primaryLight, display: 'flex',
           alignItems: 'center', justifyContent: 'center', mb: 3,
-          boxShadow: `0 4px 12px ${primaryColor}20`,
+          boxShadow: `0 4px 16px ${primaryColor}25`,
+          transition: 'transform 0.3s ease',
+          '&:hover': { transform: 'scale(1.05)' },
         }}>
           <Forum sx={{ color: primaryColor, fontSize: 32 }} />
         </Box>
         <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1.05rem', mb: 1 }}>
           {isAdmin ? 'Select a conversation' : 'Start a conversation'}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#94a3b8', textAlign: 'center', maxWidth: 280 }}>
+        <Typography variant="body2" sx={{ color: '#94a3b8', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
           {isAdmin ? 'Choose a conversation from the sidebar to view messages' : 'Select an admin to get started with support'}
         </Typography>
       </Paper>
@@ -191,12 +217,13 @@ const ChatWindow = ({
       border: '1px solid #e2e8f0',
       borderLeft: outerOnly ? 'none' : '1px solid #e2e8f0',
       boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+      position: 'relative',
     }}>
       <Box sx={{
-        px: { xs: 2, sm: 2.5 }, py: 1.2,
+        px: { xs: 2, sm: 2.5 }, py: 0.8,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '1px solid #e2e8f0',
-        bgcolor: '#fff', minHeight: 60,
+        bgcolor: '#fff', minHeight: 52,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
           {isMobile && (
@@ -215,6 +242,7 @@ const ChatWindow = ({
                 bgcolor: selectedChat.isOnline ? '#10b981' : '#cbd5e1',
                 width: 11, height: 11, borderRadius: '50%',
                 border: '2.5px solid #fff',
+                boxShadow: selectedChat.isOnline ? '0 0 0 2px rgba(16,185,129,0.2)' : 'none',
               },
             }}
           >
@@ -316,22 +344,33 @@ const ChatWindow = ({
         ref={messagesContainerRef}
         onScroll={handleScroll}
         sx={{
-          flex: 1, overflowY: 'auto', px: { xs: 1.5, sm: 2.5 }, py: 2,
+          flex: 1, overflowY: 'auto', px: { xs: 1, sm: 1.5 }, py: 1,
           bgcolor: '#fafbfc',
           position: 'relative',
           '&::-webkit-scrollbar': { width: '6px' },
           '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
-          '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '3px' },
+          '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '3px', '&:hover': { bgcolor: '#cbd5e1' } },
         }}
       >
         {messages.length === 0 ? (
           <Box sx={{
             display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            py: 8,
+            py: 6, px: 3,
           }}>
-            <Typography sx={{ color: '#94a3b8', fontSize: '0.85rem', textAlign: 'center' }}>
-              No messages yet — send one below!
+            <Box sx={{
+              width: 56, height: 56, borderRadius: '50%',
+              bgcolor: primaryLight, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', mb: 2,
+              boxShadow: `0 3px 12px ${primaryColor}20`,
+            }}>
+              <Forum sx={{ color: primaryColor, fontSize: 24 }} />
+            </Box>
+            <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.9rem', mb: 0.5 }}>
+              No messages yet
+            </Typography>
+            <Typography sx={{ color: '#94a3b8', fontSize: '0.8rem', textAlign: 'center', maxWidth: 220, lineHeight: 1.5 }}>
+              Send a message to start the conversation
             </Typography>
           </Box>
         ) : (
@@ -340,24 +379,30 @@ const ChatWindow = ({
               <Box key={msg.id || msg.tempId || idx} data-msg-id={idx}>
                 {shouldShowDateSeparator(msg, messages[idx - 1]) && (
                   <Box sx={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    my: 2.5, position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    my: 1.5,
+                    gap: 1,
                   }}>
+                    <Box sx={{ flex: 1, height: '1px', bgcolor: '#e2e8f0' }} />
                     <Typography variant="caption" sx={{
-                      bgcolor: '#fafbfc', px: 2, py: 0.5,
-                      borderRadius: '12px',
-                      color: '#94a3b8', fontWeight: 600, fontSize: '0.7rem',
-                      border: '1px solid #e2e8f0',
-                      zIndex: 1,
+                      color: '#94a3b8',
+                      fontWeight: 600,
+                      fontSize: '0.68rem',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '0.02em',
                     }}>
                       {formatDateLabel(msg.sentAt || msg.timestamp)}
                     </Typography>
+                    <Box sx={{ flex: 1, height: '1px', bgcolor: '#e2e8f0' }} />
                   </Box>
                 )}
                 <MessageBubble
                   message={msg}
                   isAdmin={isAdmin}
                   onReply={handleReplyMessage}
+                  onDelete={handleDeleteMessage}
                   isHighlighted={searchedIndices.includes(idx) && searchedIndices[searchIndex] === idx}
                 />
               </Box>
@@ -367,128 +412,133 @@ const ChatWindow = ({
         <div ref={messagesEndRef} />
       </Box>
 
-      <Fade in={showScrollBtn}>
-        <IconButton
-          onClick={scrollToBottom}
-          size="small"
-          sx={{
-            position: 'absolute',
-            bottom: 120,
-            right: { xs: 24, sm: 40 },
-            bgcolor: '#fff',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            width: 36, height: 36,
-            '&:hover': { bgcolor: '#f8fafc' },
-            zIndex: 10,
-          }}
-        >
-          <KeyboardArrowDown sx={{ fontSize: 18, color: '#64748b' }} />
-        </IconButton>
-      </Fade>
-
       <Box sx={{
-        px: { xs: 2.5, sm: 3 }, py: 1.5,
+        px: { xs: 2, sm: 2.5 }, py: 1,
         borderTop: '1px solid #e2e8f0',
         bgcolor: '#fff',
         position: 'relative',
       }}>
         {replyTo && (
           <Box sx={{
-            display: 'flex', alignItems: 'flex-start', gap: 1,
-            mb: 1, px: 1.5, py: 1,
+            display: 'flex', alignItems: 'flex-start', gap: 0.8,
+            mb: 0.6, px: 1.2, py: 0.8,
             bgcolor: primaryLight, borderRadius: '8px',
             borderLeft: `3px solid ${primaryColor}`,
           }}>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="caption" sx={{ color: primaryColor, fontWeight: 600, fontSize: '0.7rem' }}>
+              <Typography variant="caption" sx={{ color: primaryColor, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 Replying to {replyTo.senderName || 'User'}
               </Typography>
               <Typography variant="body2" sx={{
                 color: '#475569', fontSize: '0.8rem',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mt: 0.2,
               }}>
                 {(replyTo.content || replyTo.text || '').substring(0, 80)}
               </Typography>
             </Box>
             <IconButton size="small" onClick={clearReply}
-              sx={{ color: '#94a3b8', p: 0.3, mt: 0.2 }}>
+              sx={{ color: '#94a3b8', p: 0.3, mt: 0.2, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}>
               <Close sx={{ fontSize: 14 }} />
             </IconButton>
           </Box>
         )}
 
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <IconButton size="small" sx={{ color: '#94a3b8', '&:hover': { bgcolor: primaryLight } }}>
-            <AttachFileOutlined sx={{ fontSize: 18 }} />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 0.2, alignItems: 'center' }}>
+            <IconButton onClick={(e) => setEmojiAnchor(e.currentTarget)} sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+              <EmojiEmotionsOutlined sx={{ fontSize: 17 }} />
+            </IconButton>
 
-          <TextField
-            fullWidth
-            multiline
-            maxRows={4}
-            placeholder="Type a message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            disabled={!isConnected}
-            inputRef={inputRef}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                bgcolor: '#f8fafc',
-                borderRadius: '12px',
-                fontSize: { xs: '16px', sm: '0.9rem' },
-                '& fieldset': { borderColor: '#e2e8f0', borderWidth: '1.5px' },
-                '&:hover fieldset': { borderColor: '#cbd5e1' },
-                '&.Mui-focused fieldset': {
-                  borderColor: primaryColor,
-                  borderWidth: '2px',
-                  boxShadow: `0 0 0 3px ${primaryLight}`,
+            <TextField
+              fullWidth
+              multiline
+              maxRows={4}
+              placeholder=""
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              disabled={!isConnected}
+              inputRef={inputRef}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: 'transparent',
+                  borderRadius: '12px',
+                  fontSize: { xs: '16px', sm: '0.9rem' },
+                  '& fieldset': { borderColor: 'transparent', borderWidth: '0' },
+                  '&:hover fieldset': { borderColor: 'transparent' },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'transparent',
+                    boxShadow: 'none',
+                  },
+                  py: 0.5,
+                  px: 0.5,
                 },
-                py: 0.5,
-                px: 1.5,
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton size="small" sx={{ color: '#94a3b8', '&:hover': { bgcolor: primaryLight } }}>
-                    <EmojiEmotionsOutlined sx={{ fontSize: 18 }} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+                '& .MuiInputBase-input': {
+                  color: '#0f172a',
+                  '&::placeholder': { color: 'transparent' },
+                },
+              }}
+            />
 
-          {message.trim() ? (
             <IconButton
               onClick={handleSend}
-              disabled={!isConnected}
+              disabled={!isConnected || !message.trim()}
               sx={{
-                bgcolor: primaryColor,
-                color: '#fff',
-                width: 36, height: 36,
-                '&:hover': { bgcolor: primaryHover },
-                '&:disabled': { bgcolor: '#e2e8f0', color: '#94a3b8' },
-                transition: 'all 0.15s ease',
+                bgcolor: message.trim() ? primaryColor : 'transparent',
+                color: message.trim() ? '#fff' : '#64748b',
+                width: 32, height: 32,
+                borderRadius: '10px',
+                '&:hover': message.trim() ? { bgcolor: primaryHover, transform: 'translateY(-1px)', boxShadow: `0 4px 12px ${primaryColor}40` } : { bgcolor: primaryLight, color: primaryColor },
+                '&:disabled': { bgcolor: 'transparent !important', color: '#cbd5e1 !important' },
+                transition: 'all 0.2s ease',
               }}
             >
-              <SendRounded sx={{ fontSize: 18 }} />
+              <SendRounded sx={{ fontSize: 17 }} />
             </IconButton>
-          ) : (
-            <IconButton size="small" sx={{ color: '#94a3b8', '&:hover': { bgcolor: primaryLight } }}>
-              <MicOutlined sx={{ fontSize: 18 }} />
+
+            <IconButton sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+              <AddPhotoAlternateOutlined sx={{ fontSize: 17 }} />
             </IconButton>
-          )}
-        </Box>
+
+            <IconButton sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+              <AttachFileOutlined sx={{ fontSize: 17 }} />
+            </IconButton>
+
+            <IconButton sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+              <MicOutlined sx={{ fontSize: 17 }} />
+            </IconButton>
+          </Box>
 
         <Typography variant="caption" sx={{
           display: 'block', textAlign: 'center',
-          color: '#94a3b8', fontSize: '0.65rem', mt: 0.8,
+          color: '#94a3b8', fontSize: '0.6rem', mt: 0.5,
+          letterSpacing: '0.02em',
         }}>
           End-to-end encrypted · Abbsium Chat
         </Typography>
       </Box>
+
+      <EmojiPicker anchorEl={emojiAnchor} onClose={() => setEmojiAnchor(null)} onEmojiSelect={handleEmojiSelect} />
+
+      <Fade in={showScrollBtn}>
+        <IconButton
+          onClick={scrollToBottom}
+          size="small"
+          sx={{
+            position: 'absolute',
+            bottom: { xs: 110, sm: 120 },
+            right: { xs: 24, sm: 40 },
+            bgcolor: '#fff',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            width: 34, height: 34,
+            '&:hover': { bgcolor: '#f8fafc', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' },
+            zIndex: 10,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <KeyboardArrowDown sx={{ fontSize: 18, color: '#64748b' }} />
+        </IconButton>
+      </Fade>
     </Paper>
   );
 };

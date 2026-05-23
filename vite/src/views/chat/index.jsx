@@ -4,6 +4,7 @@ import ChatSidebar from './ChatSidebar';
 import ChatWindow from './ChatWindow';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChatConnection } from '../../hooks/useChatConnection';
+import { showSnackbar } from '../../utils/snackbarNotif';
 
 const ChatApp = () => {
   const theme = useTheme();
@@ -14,47 +15,49 @@ const ChatApp = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [showChatList, setShowChatList] = useState(true);
 
-  const {
-    isConnected,
-    isLoading,
-    messages,
-    setMessages,
-    conversations,
-    admins,
-    sendMessage,
-    sendAdminReply,
-    loadMessages,
-  } = useChatConnection({ isAdmin, isAuthenticated });
+  const { isConnected, isLoading, messages, setMessages, conversations, admins, sendMessage, sendAdminReply, loadMessages } =
+    useChatConnection({ isAdmin, isAuthenticated });
 
   const handleSelectChat = async (chat) => {
     setSelectedChat(chat);
 
-    if (isAdmin) {
-      if (chat.conversationId) {
-        await loadMessages(chat.conversationId);
-      } else {
-        setMessages([]);
-      }
+    const targetId = chat.id;
+    const existingConv = !isAdmin
+      ? conversations.find((c) => c.userId === targetId)
+      : null;
+    const convId = existingConv?.id || chat.conversationId;
+
+    if (convId) {
+      await loadMessages(convId);
     } else {
-      const existingConv = conversations.find((c) => c.userId === chat.id);
-      if (existingConv) {
-        await loadMessages(existingConv.id);
-      } else {
-        setMessages([]);
-      }
+      setMessages([]);
     }
 
     if (isMobile) setShowChatList(false);
   };
 
+  const handleDeleteMessage = (msg) => {
+    setMessages((prev) => prev.filter((m) => (m.id || m.tempId) !== (msg.id || msg.tempId)));
+  };
+
   const handleSendMessage = async (content) => {
     if (!selectedChat) return;
-    if (isAdmin) {
-      if (selectedChat.conversationId) {
+    try {
+      if (isAdmin) {
+        if (!selectedChat.conversationId) {
+          showSnackbar('User has no active conversation. Ask them to send a message first.', 'warning');
+          return;
+        }
         await sendAdminReply(selectedChat.conversationId, content);
+      } else {
+        if (!selectedChat.id) {
+          showSnackbar('Cannot send message: recipient not found', 'error');
+          return;
+        }
+        await sendMessage(selectedChat.id, content);
       }
-    } else {
-      await sendMessage(selectedChat.id, content);
+    } catch (err) {
+      showSnackbar('Failed to send message', 'error');
     }
   };
 
@@ -67,7 +70,7 @@ const ChatApp = () => {
   const showWindow = !isMobile || !showChatList;
 
   return (
-    <Box sx={{ height: 'calc(100vh - 120px)', display: 'flex', p: { xs: 1.5, sm: 2.5 } }}>
+    <Box sx={{ height: { xs: 'calc(100dvh - 165px)', sm: 'calc(100vh - 175px)' }, display: 'flex', p: { xs: 1, sm: 2.5 }, overflow: 'hidden' }}>
       <Box sx={{ width: '100%', height: '100%', display: 'flex', mx: 'auto', gap: 0 }}>
         {showSidebar && (
           <ChatSidebar
@@ -89,9 +92,11 @@ const ChatApp = () => {
             isAdmin={isAdmin}
             selectedChat={selectedChat}
             messages={messages}
+            setMessages={setMessages}
             isConnected={isConnected}
             isLoading={isLoading}
             onSendMessage={handleSendMessage}
+            onDeleteMessage={handleDeleteMessage}
             onBack={handleBackToList}
             isMobile={isMobile}
             standalone={!showSidebar}

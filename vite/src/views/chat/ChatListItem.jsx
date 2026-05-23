@@ -1,10 +1,10 @@
-import { Box, Avatar, Typography, Badge, IconButton, Divider } from '@mui/material';
-import { MoreVert, DoneAll } from '@mui/icons-material';
+import { Box, Avatar, Typography, Badge, IconButton, Divider, Tooltip } from '@mui/material';
+import { MoreVert, DoneAll, PushPin } from '@mui/icons-material';
 
 const primaryColor = '#0EA5E9';
 const primaryLight = '#E0F2FE';
 
-const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
+const ChatListItem = ({ chat, isSelected, onClick, hasDivider, onTogglePin, isPinned }) => {
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -69,19 +69,21 @@ const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
               {(chat.userName || chat.name || 'U')[0]?.toUpperCase()}
             </Avatar>
           </Badge>
-          {isSelected && (
+          {isPinned && (
             <Box sx={{
-              position: 'absolute', left: -10, top: '50%',
-              transform: 'translateY(-50%)',
-              width: 3, height: 24,
-              bgcolor: primaryColor,
-              borderRadius: '0 4px 4px 0',
-            }} />
+              position: 'absolute', top: -4, right: -4,
+              bgcolor: '#fff', borderRadius: '50%',
+              width: 16, height: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+            }}>
+              <PushPin sx={{ fontSize: 10, color: primaryColor, transform: 'rotate(45deg)' }} />
+            </Box>
           )}
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.3 }}>
             <Typography sx={{
               fontWeight: hasUnread ? 700 : 600,
               color: '#0f172a',
@@ -93,9 +95,10 @@ const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
             </Typography>
             <Typography variant="caption" sx={{
               color: hasUnread ? primaryColor : '#94a3b8',
-              fontSize: '0.7rem',
+              fontSize: '0.68rem',
               fontWeight: hasUnread ? 600 : 400,
               ml: 1, flexShrink: 0,
+              letterSpacing: '0.02em',
             }}>
               {formatTime(chat.lastMessageAt || chat.timestamp)}
             </Typography>
@@ -103,7 +106,7 @@ const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {hasMessages && (
-              <DoneAll sx={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }} />
+              <DoneAll sx={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }} />
             )}
             <Typography variant="body2" sx={{
               fontSize: '0.8rem',
@@ -116,15 +119,16 @@ const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.3 }}>
-            {isOnline && (
+          {isOnline && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
+              <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#10b981' }} />
               <Typography variant="caption" sx={{
                 fontSize: '0.6rem', color: '#10b981', fontWeight: 500, lineHeight: 1,
               }}>
                 Online
               </Typography>
-            )}
-          </Box>
+            </Box>
+          )}
         </Box>
 
         {hasUnread && (
@@ -142,20 +146,38 @@ const ChatListItem = ({ chat, isSelected, onClick, hasDivider }) => {
           </Box>
         )}
 
-        <IconButton
-          size="small"
-          className="list-actions"
-          onClick={(e) => e.stopPropagation()}
-          sx={{
-            opacity: 0,
-            transition: 'opacity 0.15s ease',
-            color: '#94a3b8',
-            p: 0.5,
-            '&:hover': { bgcolor: primaryLight },
-          }}
-        >
-          <MoreVert sx={{ fontSize: 16 }} />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, ml: 'auto', flexShrink: 0 }}>
+          <Tooltip title={isPinned ? 'Unpin' : 'Pin'} arrow>
+            <IconButton
+              size="small"
+              className="list-actions"
+              onClick={(e) => { e.stopPropagation(); onTogglePin?.(); }}
+              sx={{
+                opacity: 0,
+                transition: 'opacity 0.15s ease',
+                color: isPinned ? primaryColor : '#94a3b8',
+                p: 0.5,
+                '&:hover': { bgcolor: primaryLight },
+              }}
+            >
+              <PushPin sx={{ fontSize: 14, transform: isPinned ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+            </IconButton>
+          </Tooltip>
+          <IconButton
+            size="small"
+            className="list-actions"
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              opacity: 0,
+              transition: 'opacity 0.15s ease',
+              color: '#94a3b8',
+              p: 0.5,
+              '&:hover': { bgcolor: primaryLight },
+            }}
+          >
+            <MoreVert sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Box>
       </Box>
       {hasDivider && <Divider sx={{ mx: 2.5, borderColor: '#f1f5f9' }} />}
     </>

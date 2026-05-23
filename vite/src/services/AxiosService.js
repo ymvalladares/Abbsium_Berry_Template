@@ -1,9 +1,6 @@
 import axios from 'axios';
 import { showSnackbar } from '../utils/snackbarNotif';
 
-//const baseURL = 'https://abbsium.onrender.com/';
-//const baseURL = 'https://localhost:44328/';
-
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' }
@@ -49,14 +46,20 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log('Error response interceptor:', error);
     const status = error.response?.status;
     const originalRequest = error.config;
 
-    console.log('Status:', status);
+    if (error.code === 'ERR_CANCELED') {
+      return Promise.reject(error);
+    }
+
+    if (!error.response && error.message === 'Network Error') {
+      showSnackbar('Server is not running', 'error');
+      return Promise.reject(error);
+    }
 
     // ---------- 401 REFRESH TOKEN ----------
-    if (status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest?._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -72,11 +75,11 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const token = getToken();
-        const refreshToken = getRefreshToken();
-        const result = await axios.post(`${baseURL}account/refresh-token`, {
-          token,
-          refreshToken
+        const currentToken = getToken();
+        const currentRefreshToken = getRefreshToken();
+        const result = await axios.post(`${import.meta.env.VITE_API_URL}account/refresh-token`, {
+          token: currentToken,
+          refreshToken: currentRefreshToken
         });
 
         const newAccess = result.data.token;
@@ -96,37 +99,23 @@ axiosInstance.interceptors.response.use(
         processQueue(e, null);
         isRefreshing = false;
 
-        localStorage.clear();
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
         window.location.href = '/authenticate';
 
         return Promise.reject(e);
       }
     }
 
-    if (error.message === 'Network Error') {
-      showSnackbar('Server is not running', 'error');
-      return Promise.reject(error);
-    }
-
     // ---------- OTROS ERRORES ----------
-    switch (status) {
-      case 400:
-        showSnackbar('Bad request (400)', 'error');
-        break;
-      case 403:
-        showSnackbar('Forbidden (403)', 'info');
-        // localStorage.clear();
-        // window.location.href = '/login';
-        break;
-      case 404:
-        showSnackbar('Not found (404)', 'error');
-        break;
-      case 500:
-        showSnackbar('Server error (500)', 'error');
-        break;
-      default:
-        showSnackbar('Unexpected error', 'error');
+    if (status >= 500) {
+      showSnackbar(`Server error (${status})`, 'error');
+    } else if (!status || status < 400) {
+      showSnackbar('Unexpected error', 'error');
     }
+    // 4xx errors are handled by individual components to avoid
+    // double notifications and show context-specific messages
 
     return Promise.reject(error);
   }
@@ -200,9 +189,8 @@ export const socialAPI = {
     }
   },
 
-  // Otros providers aún usando redirect normal
-  connectInstagram: () => (window.location.href = `${baseURL}SocialAuth/instagram/connect`),
-  connectYouTube: () => (window.location.href = `${baseURL}SocialAuth/youtube/connect`),
-  connectTikTok: () => (window.location.href = `${baseURL}SocialAuth/tiktok/connect`),
+  connectInstagram: () => (window.location.href = `${import.meta.env.VITE_API_URL}SocialAuth/instagram/connect`),
+  connectYouTube: () => (window.location.href = `${import.meta.env.VITE_API_URL}SocialAuth/youtube/connect`),
+  connectTikTok: () => (window.location.href = `${import.meta.env.VITE_API_URL}SocialAuth/tiktok/connect`),
   disconnect: (provider) => axiosInstance.post(`/SocialAuth/disconnect/${provider}`)
 };

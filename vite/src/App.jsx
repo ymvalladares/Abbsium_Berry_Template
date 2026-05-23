@@ -19,9 +19,42 @@ function SnackbarInitializer() {
 
 export default function App() {
   return (
-    <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} autoHideDuration={3000}>
-      <SnackbarInitializer />
-      <ThemeCustomization>
+    <ThemeCustomization>
+      <SnackbarProvider
+        maxSnack={3}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        autoHideDuration={3000}
+        hideIconVariant
+        ComponentsProps={{
+          Snackbar: {
+            sx: {
+              '& .SnackbarItem-contentRoot': {
+                borderRadius: '12px !important',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+                fontSize: '0.85rem',
+                fontWeight: 500,
+                padding: '6px 16px',
+                color: '#0f172a',
+                background: '#fff !important',
+              },
+              '& .SnackbarItem-variantSuccess': {
+                borderLeft: '4px solid #10b981',
+              },
+              '& .SnackbarItem-variantError': {
+                borderLeft: '4px solid #ef4444',
+              },
+              '& .SnackbarItem-variantWarning': {
+                borderLeft: '4px solid #f59e0b',
+              },
+              '& .SnackbarItem-variantInfo, & .SnackbarItem-variantDefault': {
+                borderLeft: '4px solid #0EA5E9',
+              },
+            },
+          },
+        }}
+      >
+        <SnackbarInitializer />
         <NavigationScroll>
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
             <AuthProvider>
@@ -31,7 +64,7 @@ export default function App() {
             </AuthProvider>
           </GoogleOAuthProvider>
         </NavigationScroll>
-      </ThemeCustomization>
-    </SnackbarProvider>
+      </SnackbarProvider>
+    </ThemeCustomization>
   );
 }
