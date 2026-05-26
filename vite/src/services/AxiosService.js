@@ -6,9 +6,6 @@ const axiosInstance = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-// =====================================================
-// TOKENS
-// =====================================================
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -28,9 +25,6 @@ const saveTokens = (access, refresh) => {
   if (refresh) localStorage.setItem('refreshToken', refresh);
 };
 
-// =====================================================
-// REQUEST INTERCEPTOR
-// =====================================================
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -40,34 +34,25 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// =====================================================
-// RESPONSE INTERCEPTOR
-// =====================================================
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = error.response?.status;
     const originalRequest = error.config;
 
-    if (error.code === 'ERR_CANCELED') {
-      return Promise.reject(error);
-    }
+    if (error.code === 'ERR_CANCELED') return Promise.reject(error);
 
     if (!error.response && error.message === 'Network Error') {
       showSnackbar('Server is not running', 'error');
       return Promise.reject(error);
     }
 
-    // ---------- 401 REFRESH TOKEN ----------
     if (status === 401 && !originalRequest?._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers['Authorization'] = 'Bearer ' + token;
-            return axiosInstance(originalRequest);
-          })
+          .then((token) => { originalRequest.headers['Authorization'] = 'Bearer ' + token; return axiosInstance(originalRequest); })
           .catch((err) => Promise.reject(err));
       }
 
@@ -77,53 +62,35 @@ axiosInstance.interceptors.response.use(
       try {
         const currentToken = getToken();
         const currentRefreshToken = getRefreshToken();
-        const result = await axios.post(`${import.meta.env.VITE_API_URL}account/refresh-token`, {
-          token: currentToken,
-          refreshToken: currentRefreshToken
-        });
+        const result = await axios.post(`${import.meta.env.VITE_API_URL}account/refresh-token`, { token: currentToken, refreshToken: currentRefreshToken });
 
         const newAccess = result.data.token;
         const newRefresh = result.data.refreshToken;
-
         saveTokens(newAccess, newRefresh);
-
         axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + newAccess;
-
         processQueue(null, newAccess);
         isRefreshing = false;
 
         originalRequest.headers['Authorization'] = 'Bearer ' + newAccess;
         return axiosInstance(originalRequest);
       } catch (e) {
-        console.log('Refresh token failed:', e);
         processQueue(e, null);
         isRefreshing = false;
-
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         window.location.href = '/authenticate';
-
         return Promise.reject(e);
       }
     }
 
-    // ---------- OTROS ERRORES ----------
-    if (status >= 500) {
-      showSnackbar(`Server error (${status})`, 'error');
-    } else if (!status || status < 400) {
-      showSnackbar('Unexpected error', 'error');
-    }
-    // 4xx errors are handled by individual components to avoid
-    // double notifications and show context-specific messages
+    if (status >= 500) showSnackbar(`Server error (${status})`, 'error');
+    else if (!status || status < 400) showSnackbar('Unexpected error', 'error');
 
     return Promise.reject(error);
   }
 );
 
-// =====================================================
-// MÉTODOS EXPORTADOS
-// =====================================================
 const api = {
   get: (url, config = {}) => axiosInstance.get(url, config),
   post: (url, data, config = {}) => axiosInstance.post(url, data, config),
@@ -134,63 +101,79 @@ const api = {
 
 export default api;
 
-// =====================================================
-// MÉTODOS SOCIALES CON POPUP
-// =====================================================
 export const socialAPI = {
   getStatus: () => axiosInstance.get('/SocialAuth/status'),
   checkConnections: () => axiosInstance.get('/SocialAuth/connections/check'),
+  getPages: () => axiosInstance.get('/SocialAuth/pages'),
 
-  connectFacebook: async (onSuccess) => {
-    // <--- Recibe el callback
-    try {
-      const res = await api.post('/SocialAuth/facebook/connect');
-      const url = res.data.url;
-
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-
-      const popup = window.open(url, 'Facebook Connect', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
-
-      const handleMessage = async (event) => {
-        if (event.data.type === 'AUTH_SUCCESS') {
-          console.log('¡Éxito! Facebook conectado');
-
-          if (onSuccess) await onSuccess(); // <--- 2️⃣ Ejecuta el refresh aquí
-
-          window.removeEventListener('message', handleMessage);
-        }
-      };
-
-      window.addEventListener('message', handleMessage);
-
-      const timer = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(timer);
-          window.removeEventListener('message', handleMessage);
-        }
-      }, 1000);
-    } catch (err) {
-      console.error(err);
-    }
+  connectFacebook: (onComplete) => {
+    api.post('/SocialAuth/facebook/connect')
+      .then((res) => openPopup(res.data.url, 'Facebook', onComplete))
+      .catch((err) => { console.error('Facebook connection error:', err); showSnackbar('Failed to start Facebook connection', 'error'); onComplete(false); });
   },
 
   facebookProfile: () => axiosInstance.get('/SocialAuth/facebook/test-profile'),
-  postFacebook: async ({ message, photoUrl, caption }) => {
-    try {
-      const res = await api.post('/SocialAuth/facebook/post', { message, photoUrl, caption });
-      console.log('Facebook API response:', res.data);
-      return res.data;
-    } catch (err) {
-      console.error('Error posting to Facebook:', err);
-      throw err;
-    }
+  postFacebookText: (message, pageId) => {
+    const data = { message };
+    if (pageId) data.pageId = pageId;
+    return api.post('/SocialAuth/facebook/post', data);
+  },
+  postFacebookPhoto: (message, photoUrl, caption, pageId) => {
+    const data = { message, photoUrl, caption: caption || message };
+    if (pageId) data.pageId = pageId;
+    return api.post('/SocialAuth/facebook/photo', data);
   },
 
-  connectInstagram: () => (window.location.href = `${import.meta.env.VITE_API_URL}SocialAuth/instagram/connect`),
-  connectYouTube: () => (window.location.href = `${import.meta.env.VITE_API_URL}SocialAuth/youtube/connect`),
-  connectTikTok: () => (window.location.href = `${import.meta.env.VITE_API_URL}SocialAuth/tiktok/connect`),
-  disconnect: (provider) => axiosInstance.post(`/SocialAuth/disconnect/${provider}`)
+  connectInstagram: (onComplete) => openPopup(`${import.meta.env.VITE_API_URL}SocialAuth/instagram/connect`, 'Instagram', onComplete),
+  connectYouTube: (onComplete) => openPopup(`${import.meta.env.VITE_API_URL}SocialAuth/youtube/connect`, 'YouTube', onComplete),
+  connectTikTok: (onComplete) => openPopup(`${import.meta.env.VITE_API_URL}SocialAuth/tiktok/connect`, 'TikTok', onComplete),
+  disconnect: (provider) => axiosInstance.delete(`/SocialAuth/disconnect/${provider}`)
 };
+
+function openPopup(url, platform, onComplete) {
+  const width = 600;
+  const height = 700;
+  const left = window.screenX + (window.outerWidth - width) / 2;
+  const top = window.screenY + (window.outerHeight - height) / 2;
+
+  const popup = window.open(url, `${platform} Connect`, `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+
+  if (!popup) {
+    showSnackbar('Pop-up blocked. Please allow pop-ups for this site.', 'error');
+    onComplete(false);
+    return;
+  }
+
+  let resolved = false;
+
+  const finish = (success, message) => {
+    if (resolved) return;
+    resolved = true;
+    clearTimeout(maxTimeout);
+    window.removeEventListener('storage', handleStorage);
+    try { popup.close(); } catch {}
+    if (message) showSnackbar(message, success ? 'success' : 'error');
+    onComplete(success);
+  };
+
+  const handleStorage = (e) => {
+    if (e.key !== 'social_auth_result' || !e.newValue) return;
+    try {
+      const result = JSON.parse(e.newValue);
+      if (!result || !result.ts || Date.now() - result.ts > 30000) return;
+
+      if (result.type === 'AUTH_SUCCESS') {
+        finish(true, `${result.data?.provider || platform} connected successfully`);
+      } else if (result.type === 'AUTH_ERROR') {
+        console.error('Social auth error received:', result);
+        finish(false, result.message || `Failed to connect ${platform}`);
+      }
+    } catch {}
+  };
+
+  window.addEventListener('storage', handleStorage);
+
+  const maxTimeout = setTimeout(() => {
+    finish(false, `${platform} connection timed out. Please try again.`);
+  }, 120000);
+}

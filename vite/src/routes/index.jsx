@@ -9,6 +9,7 @@ import EmailConfirmed from '../authentication/EmailConfirmed.jsx';
 import ResetPassword from '../authentication/ResetPassword.jsx';
 import { PrivacyPolicy } from '../utils/PrivacyPolicy.jsx';
 import { TermsOfService } from '../utils/TermsOfService.jsx';
+import AuthCallback from '../views/content-creator/socialNetwork/AuthCallback.jsx';
 
 const router = createBrowserRouter(
   [
@@ -19,14 +20,13 @@ const router = createBrowserRouter(
     { path: '/reset-password', element: <ResetPassword /> },
     { path: '/privacy-policy', element: <PrivacyPolicy /> },
     { path: '/terms', element: <TermsOfService /> },
+    { path: '/auth/auth-callback', element: <AuthCallback /> },
+    { path: '/auth/social-callback', element: <AuthCallback /> },
 
     {
       path: '/platform',
       element: <ProtectedRoute>{MainRoutes.element}</ProtectedRoute>,
-      children: [
-        ...MainRoutes.children,
-        AdminRoutes // 👈 aquí se montan las rutas de admin
-      ]
+      children: [...MainRoutes.children, AdminRoutes]
     }
   ],
   {

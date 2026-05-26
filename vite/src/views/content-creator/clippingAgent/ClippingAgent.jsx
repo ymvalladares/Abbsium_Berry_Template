@@ -173,8 +173,8 @@ export default function ClippingAgent() {
   };
 
   return (
-    <Box sx={{ py: 3, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: '100%', maxWidth: 780 }}>
+    <Box sx={{ py: 3, px: { xs: 1, sm: 2 }, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ width: { xs: '100%', lg: '75%' }, maxWidth: { xs: '100%', sm: 900, md: 1100, lg: '100%' } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1.4rem' }}>Clipping Agent</Typography>
           {startGeneration && (
@@ -783,21 +783,23 @@ export default function ClippingAgent() {
             )}
 
             {step === 4 && (
-              <Stack spacing={2}>
+              <Box>
+                {/* Header: Video + Quick Info */}
                 <Box
                   sx={{
-                    p: 2,
+                    p: { xs: 2, sm: 2.5 },
                     borderRadius: 2,
                     background: 'linear-gradient(135deg, alpha(#5E35B1, 0.08), alpha(#7C4DFF, 0.04))',
                     border: '1px solid',
-                    borderColor: alpha('#5E35B1', 0.12)
+                    borderColor: alpha('#5E35B1', 0.12),
+                    mb: 2
                   }}
                 >
-                  <Stack direction="row" spacing={2} alignItems="center">
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
                     <Box
                       sx={{
-                        width: 100,
-                        height: 56,
+                        width: { xs: '100%', sm: 140 },
+                        height: { xs: 90, sm: 80 },
                         borderRadius: 1.5,
                         overflow: 'hidden',
                         bgcolor: '#000',
@@ -810,165 +812,98 @@ export default function ClippingAgent() {
                         style={{ width: '100%', height: '100%', border: 0 }}
                       />
                     </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }}>Ready to Generate</Typography>
-                      <Stack direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', mb: 1 }}>Ready to Generate</Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                         <Chip
                           label={`${clips?.value} clips`}
                           size="small"
-                          sx={{
-                            borderRadius: 1.5,
-                            fontWeight: 600,
-                            height: 22,
-                            fontSize: '0.65rem',
-                            bgcolor: '#5E35B1',
-                            color: '#fff'
-                          }}
+                          sx={{ borderRadius: 1.5, fontWeight: 600, height: 24, fontSize: '0.7rem', bgcolor: '#5E35B1', color: '#fff' }}
                         />
                         <Chip
                           label={format}
                           size="small"
-                          sx={{
-                            borderRadius: 1.5,
-                            fontWeight: 600,
-                            height: 22,
-                            fontSize: '0.65rem',
-                            bgcolor: 'grey.100',
-                            color: 'text.primary'
-                          }}
+                          sx={{ borderRadius: 1.5, fontWeight: 600, height: 24, fontSize: '0.7rem', bgcolor: 'grey.100', color: 'text.primary' }}
                         />
                         <Chip
                           label={duration?.label}
                           size="small"
-                          sx={{
-                            borderRadius: 1.5,
-                            fontWeight: 600,
-                            height: 22,
-                            fontSize: '0.65rem',
-                            bgcolor: 'grey.100',
-                            color: 'text.primary'
-                          }}
+                          sx={{ borderRadius: 1.5, fontWeight: 600, height: 24, fontSize: '0.7rem', bgcolor: 'grey.100', color: 'text.primary' }}
                         />
                       </Stack>
                     </Box>
                   </Stack>
                 </Box>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5 }}>
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      bgcolor: 'grey.50'
-                    }}
-                  >
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>PLATFORMS</Typography>
-                    <Stack spacing={0.5}>
+                {/* Main Grid: 3 columns on md+ */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+                  {/* Platforms */}
+                  <Box sx={{ p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Platforms</Typography>
+                    <Stack spacing={0.75}>
                       {platforms.map((id) => {
                         const p = PLATFORMS.find((x) => x.id === id);
                         const Icon = p?.icon;
                         return (
                           <Stack key={id} direction="row" spacing={1} alignItems="center">
-                            <Box
-                              sx={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: 1,
-                                bgcolor: p?.color,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
+                            <Box sx={{ width: 22, height: 22, borderRadius: 1, bgcolor: p?.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Icon size={11} style={{ color: '#fff' }} />
                             </Box>
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 600 }}>{p?.name}</Typography>
+                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600 }}>{p?.name}</Typography>
                           </Stack>
                         );
                       })}
                     </Stack>
                   </Box>
 
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      bgcolor: 'grey.50'
-                    }}
-                  >
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>STYLE</Typography>
-                    <Stack spacing={0.5}>
+                  {/* Style */}
+                  <Box sx={{ p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Style</Typography>
+                    <Stack spacing={0.75}>
                       {[
                         { label: 'Tone', value: TONES.find((t) => t.id === tone)?.label },
                         { label: 'Captions', value: CAPTION_STYLES.find((c) => c.id === captionStyle)?.label },
                         { label: 'Language', value: LANGUAGES.find((l) => l.id === language)?.label },
                         { label: 'CTA', value: CTA_TEMPLATES.find((c) => c.id === cta)?.label }
                       ].map((item) => (
-                        <Stack key={item.label} direction="row" justifyContent="space-between">
-                          <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>{item.label}</Typography>
-                          <Typography sx={{ fontSize: '0.65rem', fontWeight: 700 }}>{item.value}</Typography>
+                        <Stack key={item.label} direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>{item.label}</Typography>
+                          <Typography sx={{ fontSize: '0.7rem', fontWeight: 700 }}>{item.value}</Typography>
                         </Stack>
                       ))}
                     </Stack>
                   </Box>
-                </Box>
 
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    bgcolor: 'grey.50'
-                  }}
-                >
-                  <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>AI FEATURES</Typography>
-                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                    {aiFeatures.map((id) => {
-                      const f = AI_FEATURES.find((x) => x.id === id);
-                      const Icon = f?.icon;
-                      return (
-                        <Tooltip key={id} title={f?.desc}>
-                          <Chip
-                            icon={Icon ? <Icon size={11} /> : undefined}
-                            label={f?.label}
-                            size="small"
-                            sx={{
-                              borderRadius: 1.5,
-                              fontWeight: 600,
-                              height: 22,
-                              fontSize: '0.6rem',
-                              bgcolor: alpha(f?.color || '#5E35B1', 0.08),
-                              color: f?.color || '#5E35B1',
-                              '& .MuiChip-icon': { color: f?.color || '#5E35B1' }
-                            }}
-                          />
-                        </Tooltip>
-                      );
-                    })}
-                    {brandKit && (
-                      <Chip
-                        icon={<IconPalette size={11} />}
-                        label="Brand Kit"
-                        size="small"
-                        sx={{
-                          borderRadius: 1.5,
-                          fontWeight: 600,
-                          height: 22,
-                          fontSize: '0.6rem',
-                          bgcolor: alpha('#5E35B1', 0.08),
-                          color: '#5E35B1',
-                          '& .MuiChip-icon': { color: '#5E35B1' }
-                        }}
-                      />
-                    )}
-                  </Stack>
+                  {/* AI Features */}
+                  <Box sx={{ p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Features</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {aiFeatures.map((id) => {
+                        const f = AI_FEATURES.find((x) => x.id === id);
+                        const Icon = f?.icon;
+                        return (
+                          <Tooltip key={id} title={f?.desc}>
+                            <Chip
+                              icon={Icon ? <Icon size={10} /> : undefined}
+                              label={f?.label}
+                              size="small"
+                              sx={{ borderRadius: 1.5, fontWeight: 600, height: 22, fontSize: '0.6rem', bgcolor: alpha(f?.color || '#5E35B1', 0.08), color: f?.color || '#5E35B1', '& .MuiChip-icon': { color: f?.color || '#5E35B1' } }}
+                            />
+                          </Tooltip>
+                        );
+                      })}
+                      {brandKit && (
+                        <Chip
+                          icon={<IconPalette size={10} />}
+                          label="Brand Kit"
+                          size="small"
+                          sx={{ borderRadius: 1.5, fontWeight: 600, height: 22, fontSize: '0.6rem', bgcolor: alpha('#5E35B1', 0.08), color: '#5E35B1', '& .MuiChip-icon': { color: '#5E35B1' } }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
                 </Box>
-              </Stack>
+              </Box>
             )}
           </Box>
 
