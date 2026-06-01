@@ -117,6 +117,29 @@ class SignalRService {
       this.emit('messagesMarkedAsRead', conversationId);
     });
 
+    // ⭐ NUEVO: Mensajes vistos por el usuario (read receipts)
+    this.connection.on('messagesReadByUser', (data) => {
+      console.log('👁️ Messages read by user:', data);
+      this.emit('messagesReadByUser', data);
+    });
+
+    // ⭐ NUEVO: Indicador de escritura (typing)
+    this.connection.on('userTyping', (data) => {
+      console.log('⌨️ User typing:', data);
+      this.emit('userTyping', data);
+    });
+
+    // ⭐ NUEVO: Reacciones a mensajes
+    this.connection.on('messageReactionAdded', (data) => {
+      console.log('😀 Message reaction added:', data);
+      this.emit('messageReactionAdded', data);
+    });
+
+    this.connection.on('messageReactionRemoved', (data) => {
+      console.log('❌ Message reaction removed:', data);
+      this.emit('messageReactionRemoved', data);
+    });
+
     // ⭐ NUEVO: Escuchar cambios de estado online/offline
     this.connection.on('userStatusChanged', (data) => {
       console.log('👤 User status changed:', data);
@@ -185,6 +208,36 @@ class SignalRService {
       await this.connection.invoke('GetOnlineUsers');
     } catch (error) {
       console.error('Error requesting online users:', error);
+    }
+  }
+
+  // ⭐ NUEVO: Enviar indicador de escritura
+  async sendTypingIndicator(conversationId) {
+    if (!this.isConnected || !this.connection) return;
+    try {
+      await this.connection.invoke('SendTypingIndicator', conversationId);
+    } catch (error) {
+      console.error('Error sending typing indicator:', error);
+    }
+  }
+
+  // ⭐ NUEVO: Agregar reacción a mensaje
+  async addMessageReaction(messageId, emoji) {
+    if (!this.isConnected || !this.connection) return;
+    try {
+      await this.connection.invoke('AddMessageReaction', messageId, emoji);
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+    }
+  }
+
+  // ⭐ NUEVO: Remover reacción de mensaje
+  async removeMessageReaction(messageId, emoji) {
+    if (!this.isConnected || !this.connection) return;
+    try {
+      await this.connection.invoke('RemoveMessageReaction', messageId, emoji);
+    } catch (error) {
+      console.error('Error removing reaction:', error);
     }
   }
 

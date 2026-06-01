@@ -8,15 +8,17 @@ import {
 } from '@mui/icons-material';
 import ChatListItem from './ChatListItem';
 import { getPinnedIds, togglePin as togglePinStorage } from './chatPins';
+import { useChat } from '../../contexts/ChatContext';
 
 const primaryColor = '#0EA5E9';
 const primaryLight = '#E0F2FE';
 
-const ChatSidebar = ({
-  isAdmin, conversations, admins, isConnected,
-  isLoading, onSelectChat, selectedChatId, isMobile,
-  standalone, outerOnly,
-}) => {
+const ChatSidebar = ({ isMobile }) => {
+  const {
+    isAdmin, conversations, admins, isConnected,
+    isLoading, selectChat, selectedChat,
+  } = useChat();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [pinnedIds, setPinnedIds] = useState(getPinnedIds);
@@ -58,12 +60,6 @@ const ChatSidebar = ({
     return list.reduce((sum, item) => sum + (item.unreadCount || 0), 0);
   }, [isAdmin, conversations, admins]);
 
-  const getRadius = () => {
-    if (standalone) return 3;
-    if (outerOnly) return '12px 0 0 12px';
-    return 3;
-  };
-
   return (
     <Paper
       elevation={0}
@@ -73,9 +69,9 @@ const ChatSidebar = ({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        borderRadius: getRadius(),
+        borderRadius: '12px 0 0 12px',
         border: '1px solid #e2e8f0',
-        borderRight: outerOnly ? 'none' : '1px solid #e2e8f0',
+        borderRight: '1px solid #e2e8f0',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
         overflow: 'hidden',
       }}
@@ -207,8 +203,8 @@ const ChatSidebar = ({
               <ChatListItem
                 key={item.id}
                 chat={item}
-                isSelected={item.id === selectedChatId}
-                onClick={() => onSelectChat(item)}
+                isSelected={item.id === selectedChat?.id}
+                onClick={() => selectChat(item)}
                 onTogglePin={() => handleTogglePin(item.id)}
                 isPinned={pinnedIds.includes(item.id)}
                 hasDivider={index < displayList.length - 1}

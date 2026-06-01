@@ -9,10 +9,11 @@ import {
   MicOutlined, EmojiEmotionsOutlined, AddPhotoAlternateOutlined, Forum,
   CallOutlined, VideocamOutlined, InfoOutlined,
   SearchOutlined, KeyboardArrowDown,
+  Done, DoneAll,
 } from '@mui/icons-material';
 import MessageBubble from './MessageBubble';
 import EmojiPicker from './EmojiPicker';
-import { showSnackbar } from '../../utils/snackbarNotif';
+import { useChat } from '../../contexts/ChatContext';
 
 const primaryColor = '#0EA5E9';
 const primaryHover = '#0284C7';
@@ -41,11 +42,20 @@ const shouldShowDateSeparator = (current, previous) => {
   return d1.toDateString() !== d2.toDateString();
 };
 
-const ChatWindow = ({
-  isAdmin, selectedChat, messages, isConnected,
-  isLoading, onSendMessage, onBack, isMobile,
-  standalone, outerOnly, onDeleteMessage,
-}) => {
+const formatTime = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+};
+
+const ChatWindow = ({ isMobile }) => {
+  const {
+    isAdmin, selectedChat, messages, isConnected,
+    isLoading, sendMessage, deleteMessage, goBackToList,
+    isOtherTyping, sendTypingIndicator, toggleReaction,
+    saveDraft, getDraft, clearDraft, updateUnreadBadge,
+  } = useChat();
+
   const [message, setMessage] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,11 +66,20 @@ const ChatWindow = ({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const typingDebounceRef = useRef(null);
+
+  useEffect(() => {
+    const draft = getDraft();
+    setMessage(draft);
+  }, [selectedChat]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) {
-      container.scrollTop = container.scrollHeight;
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+      if (isAtBottom || messages.length <= 3) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
   }, [messages]);
 
@@ -75,7 +94,11 @@ const ChatWindow = ({
     if (!el) return;
     const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
     setShowScrollBtn(!isNearBottom);
-  }, []);
+
+    if (isNearBottom) {
+      updateUnreadBadge(0);
+    }
+  }, [updateUnreadBadge]);
 
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
@@ -86,14 +109,10 @@ const ChatWindow = ({
 
   const handleSend = async () => {
     if (!message.trim() || !isConnected || !selectedChat) return;
-    try {
-      await onSendMessage(message);
-      setMessage('');
-      setReplyTo(null);
-    } catch (err) {
-      console.error('Error sending message:', err);
-      showSnackbar('Failed to send message', 'error');
-    }
+    await sendMessage(message);
+    setMessage('');
+    setReplyTo(null);
+    clearDraft();
   };
 
   const handleKeyPress = (e) => {
@@ -103,19 +122,28 @@ const ChatWindow = ({
     }
   };
 
+  const handleMessageChange = (e) => {
+    const value = e.target.value;
+    setMessage(value);
+    saveDraft(value);
+
+    if (value.trim()) {
+      if (typingDebounceRef.current) {
+        clearTimeout(typingDebounceRef.current);
+      }
+      typingDebounceRef.current = setTimeout(() => {
+        sendTypingIndicator();
+      }, 500);
+    }
+  };
+
   const handleReplyMessage = (msg) => {
     setReplyTo(msg);
     inputRef.current?.focus();
   };
 
-  const handleDeleteMessage = async (msg) => {
-    if (onDeleteMessage) onDeleteMessage(msg);
-  };
-
-  const getRadius = () => {
-    if (standalone) return 3;
-    if (outerOnly) return '0 12px 12px 0';
-    return 3;
+  const handleDeleteMessage = (msg) => {
+    deleteMessage(msg);
   };
 
   const searchedIndices = useMemo(() => {
@@ -157,20 +185,47 @@ const ChatWindow = ({
       const end = input.selectionEnd || message.length;
       const newMsg = message.slice(0, start) + emoji + message.slice(end);
       setMessage(newMsg);
+      saveDraft(newMsg);
       setTimeout(() => {
         input.focus();
         input.setSelectionRange(start + emoji.length, start + emoji.length);
       }, 0);
     } else {
-      setMessage((prev) => prev + emoji);
+      const newMsg = message + emoji;
+      setMessage(newMsg);
+      saveDraft(newMsg);
     }
   };
+
+  const getReadReceiptInfo = useCallback(() => {
+    if (!messages.length) return { allRead: false, lastReadTime: null, unreadCount: 0 };
+
+    const sentMessages = messages.filter((m) => m.isSender);
+    if (!sentMessages.length) return { allRead: false, lastReadTime: null, unreadCount: 0 };
+
+    const readMessages = sentMessages.filter((m) => m.isRead);
+    const unreadCount = sentMessages.length - readMessages.length;
+
+    const lastReadMessage = readMessages.reduce((latest, msg) => {
+      const msgTime = new Date(msg.sentAt || msg.timestamp).getTime();
+      const latestTime = latest ? new Date(latest.sentAt || latest.timestamp).getTime() : 0;
+      return msgTime > latestTime ? msg : latest;
+    }, null);
+
+    return {
+      allRead: unreadCount === 0,
+      lastReadTime: lastReadMessage ? formatTime(lastReadMessage.sentAt || lastReadMessage.timestamp) : null,
+      unreadCount,
+    };
+  }, [messages]);
+
+  const readReceiptInfo = getReadReceiptInfo();
 
   if (isLoading) {
     return (
       <Paper elevation={0} sx={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100%', borderRadius: getRadius(),
+        height: '100%', borderRadius: isMobile ? '12px' : '0 12px 12px 0',
         border: '1px solid #e2e8f0',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
       }}>
@@ -184,7 +239,7 @@ const ChatWindow = ({
       <Paper elevation={0} sx={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        height: '100%', borderRadius: getRadius(),
+        height: '100%', borderRadius: isMobile ? '12px' : '0 12px 12px 0',
         border: '1px solid #e2e8f0',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
         px: 4,
@@ -212,10 +267,9 @@ const ChatWindow = ({
   return (
     <Paper elevation={0} sx={{
       flex: 1, display: 'flex', flexDirection: 'column',
-      height: '100%', borderRadius: getRadius(),
+      height: '100%', borderRadius: isMobile ? 3 : '0 12px 12px 0',
       overflow: 'hidden',
       border: '1px solid #e2e8f0',
-      borderLeft: outerOnly ? 'none' : '1px solid #e2e8f0',
       boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
       position: 'relative',
     }}>
@@ -227,7 +281,7 @@ const ChatWindow = ({
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
           {isMobile && (
-            <IconButton onClick={onBack}
+            <IconButton onClick={goBackToList}
               sx={{ color: '#64748b', '&:hover': { bgcolor: primaryLight } }}>
               <ArrowBack sx={{ fontSize: 20 }} />
             </IconButton>
@@ -266,7 +320,24 @@ const ChatWindow = ({
               color: selectedChat.isOnline ? '#10b981' : '#94a3b8',
               fontSize: '0.7rem', fontWeight: 500,
             }}>
-              {selectedChat.isOnline ? 'Active now' : 'Offline'}
+              {isOtherTyping ? (
+                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <span>typing</span>
+                  <Box component="span" sx={{ display: 'inline-flex', gap: 0.3 }}>
+                    {[0, 1, 2].map((i) => (
+                      <Box
+                        key={i}
+                        sx={{
+                          width: 4, height: 4, borderRadius: '50%',
+                          bgcolor: '#10b981',
+                          animation: 'typingDot 1.4s ease-in-out infinite',
+                          animationDelay: `${i * 0.2}s`,
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              ) : selectedChat.isOnline ? 'Active now' : 'Offline'}
             </Typography>
           </Box>
         </Box>
@@ -403,10 +474,44 @@ const ChatWindow = ({
                   isAdmin={isAdmin}
                   onReply={handleReplyMessage}
                   onDelete={handleDeleteMessage}
+                  onToggleReaction={toggleReaction}
                   isHighlighted={searchedIndices.includes(idx) && searchedIndices[searchIndex] === idx}
                 />
               </Box>
             ))}
+
+            {readReceiptInfo.lastReadTime && (
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                my: 1,
+                gap: 0.5,
+              }}>
+                <Box sx={{ flex: 1, height: '1px', bgcolor: '#e2e8f0' }} />
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  px: 1.5,
+                  py: 0.3,
+                  borderRadius: '12px',
+                  bgcolor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                }}>
+                  <DoneAll sx={{ fontSize: 12, color: '#10b981' }} />
+                  <Typography variant="caption" sx={{
+                    color: '#10b981',
+                    fontWeight: 600,
+                    fontSize: '0.65rem',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    All messages read · {readReceiptInfo.lastReadTime}
+                  </Typography>
+                </Box>
+                <Box sx={{ flex: 1, height: '1px', bgcolor: '#e2e8f0' }} />
+              </Box>
+            )}
           </>
         )}
         <div ref={messagesEndRef} />
@@ -454,7 +559,7 @@ const ChatWindow = ({
               maxRows={4}
               placeholder=""
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={handleMessageChange}
               onKeyDown={handleKeyPress}
               disabled={!isConnected}
               inputRef={inputRef}
@@ -508,13 +613,27 @@ const ChatWindow = ({
             </IconButton>
           </Box>
 
-        <Typography variant="caption" sx={{
-          display: 'block', textAlign: 'center',
-          color: '#94a3b8', fontSize: '0.6rem', mt: 0.5,
-          letterSpacing: '0.02em',
-        }}>
-          End-to-end encrypted · Abbsium Chat
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+          <Typography variant="caption" sx={{
+            color: '#94a3b8', fontSize: '0.6rem',
+            letterSpacing: '0.02em',
+          }}>
+            End-to-end encrypted · Abbsium Chat
+          </Typography>
+
+          {readReceiptInfo.unreadCount > 0 && (
+            <Typography variant="caption" sx={{
+              color: '#64748b', fontSize: '0.6rem',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.3,
+            }}>
+              <Done sx={{ fontSize: 10 }} />
+              {readReceiptInfo.unreadCount} unread
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       <EmojiPicker anchorEl={emojiAnchor} onClose={() => setEmojiAnchor(null)} onEmojiSelect={handleEmojiSelect} />
@@ -539,6 +658,13 @@ const ChatWindow = ({
           <KeyboardArrowDown sx={{ fontSize: 18, color: '#64748b' }} />
         </IconButton>
       </Fade>
+
+      <style>{`
+        @keyframes typingDot {
+          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </Paper>
   );
 };

@@ -27,23 +27,23 @@ const VisualDashboard = () => {
       sx={{
         position: 'relative',
         width: '100%',
-        height: '600px',
+        height: { xs: '320px', sm: '400px', md: '500px' },
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        px: { md: 15 }
+        px: { xs: 0, sm: 2, md: 4 }
       }}
     >
-      {/* 1. TERMINAL PRINCIPAL - MAXIMIZADA */}
+      {/* 1. TERMINAL PRINCIPAL */}
       <Box
         sx={{
-          width: '100%',
-          maxWidth: '560px', // Aumentado para mayor impacto visual
-          height: '360px', // Más alta para que se vea robusta
+          width: { xs: '85%', sm: '80%', md: '90%' },
+          maxWidth: '560px',
+          height: { xs: '200px', sm: '260px', md: '340px' },
           bgcolor: '#0f172a',
-          borderRadius: '28px',
-          p: 4,
-          boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
+          borderRadius: { xs: '16px', sm: '22px', md: '28px' },
+          p: { xs: 2, sm: 3, md: 4 },
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           zIndex: 2,
           border: '1px solid rgba(255,255,255,0.08)',
           backdropFilter: 'blur(10px)',
@@ -52,48 +52,48 @@ const VisualDashboard = () => {
           flexDirection: 'column'
         }}
       >
-        <Stack direction="row" spacing={1.5} mb={3}>
-          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FF5F56' }} />
-          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
-          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#27C93F' }} />
+        <Stack direction="row" spacing={1.5} mb={{ xs: 1.5, md: 3 }}>
+          <Box sx={{ width: { xs: 8, md: 10 }, height: { xs: 8, md: 10 }, borderRadius: '50%', bgcolor: '#FF5F56' }} />
+          <Box sx={{ width: { xs: 8, md: 10 }, height: { xs: 8, md: 10 }, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
+          <Box sx={{ width: { xs: 8, md: 10 }, height: { xs: 8, md: 10 }, borderRadius: '50%', bgcolor: '#27C93F' }} />
         </Stack>
 
-        <Typography sx={{ color: '#6366f1', fontFamily: 'JetBrains Mono', fontSize: '0.9rem', fontWeight: 700, mb: 1.5 }}>
+        <Typography sx={{ color: '#6366f1', fontFamily: 'JetBrains Mono', fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' }, fontWeight: 700, mb: { xs: 1, md: 1.5 } }}>
           root@abbsium:~${' '}
           <Box component="span" sx={{ color: '#fff' }}>
-            deploy --prod --verbose
+            deploy --prod
           </Box>
         </Typography>
 
-        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontFamily: 'JetBrains Mono', lineHeight: 2 }}>
+        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem' }, fontFamily: 'JetBrains Mono', lineHeight: { xs: 1.6, md: 2 } }}>
           <Box component="span" sx={{ color: '#22c55e' }}>
             [OK]
           </Box>{' '}
-          Analyzing cluster integrity...
+          Analyzing cluster...
           <br />
           <Box component="span" sx={{ color: '#22c55e' }}>
             [OK]
           </Box>{' '}
-          SSL Certificates validated.
+          SSL validated.
           <br />
           <Box component="span" sx={{ color: '#6366f1' }}>
             [WAIT]
           </Box>{' '}
-          Syncing 24 global edge nodes...
+          Syncing edge nodes...
         </Typography>
 
-        <Box sx={{ mt: 'auto', pt: 4 }}>
-          <Stack direction="row" justifyContent="space-between" mb={1.5}>
-            <Typography sx={{ color: '#6366f1', fontSize: '0.7rem', fontWeight: 800, letterSpacing: 1.5 }}>
-              INFRASTRUCTURE_REPLICATION
+        <Box sx={{ mt: 'auto', pt: { xs: 2, md: 4 } }}>
+          <Stack direction="row" justifyContent="space-between" mb={1}>
+            <Typography sx={{ color: '#6366f1', fontSize: { xs: '0.6rem', md: '0.7rem' }, fontWeight: 800, letterSpacing: 1 }}>
+              REPLICATION
             </Typography>
-            <Typography sx={{ color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>{progress}%</Typography>
+            <Typography sx={{ color: '#fff', fontSize: { xs: '0.6rem', md: '0.7rem' }, fontWeight: 700 }}>{progress}%</Typography>
           </Stack>
           <LinearProgress
             variant="determinate"
             value={progress}
             sx={{
-              height: 8,
+              height: { xs: 6, md: 8 },
               borderRadius: 4,
               bgcolor: 'rgba(255,255,255,0.05)',
               '& .MuiLinearProgress-bar': { bgcolor: '#6366f1', borderRadius: 4 }
@@ -102,70 +102,70 @@ const VisualDashboard = () => {
         </Box>
       </Box>
 
-      {/* 2. WIDGET SUPERIOR - POSICIÓN EXTERNA PARA ANCHURA */}
+      {/* 2. WIDGET SUPERIOR */}
       <Paper
         sx={{
           position: 'absolute',
-          top: '12%',
-          right: { xs: '0%', md: '-2%' },
-          width: 190,
+          top: { xs: '2%', sm: '8%', md: '12%' },
+          right: { xs: '2%', sm: '0%', md: '-2%' },
+          width: { xs: '140px', sm: '160px', md: '190px' },
           bgcolor: 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(20px)',
-          borderRadius: '22px',
-          p: 2.5,
-          boxShadow: '0 25px 50px rgba(0,0,0,0.12)',
+          borderRadius: { xs: '14px', md: '22px' },
+          p: { xs: 1.5, sm: 2, md: 2.5 },
+          boxShadow: '0 15px 40px rgba(0,0,0,0.1)',
           border: '1px solid #fff',
           zIndex: 3,
           animation: 'float 7s ease-in-out infinite reverse'
         }}
       >
-        <Stack spacing={1}>
+        <Stack spacing={0.5}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22c55e', animation: 'pulse 2s infinite' }} />
-            <Typography sx={{ fontWeight: 800, fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase' }}>Live Traffic</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.6rem', md: '0.7rem' }, color: '#64748b', textTransform: 'uppercase' }}>Live Traffic</Typography>
           </Stack>
-          <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+          <Typography sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
             2.4k{' '}
-            <Box component="span" sx={{ fontSize: '0.7rem', color: '#22c55e' }}>
+            <Box component="span" sx={{ fontSize: { xs: '0.6rem', md: '0.7rem' }, color: '#22c55e' }}>
               req/s
             </Box>
           </Typography>
         </Stack>
       </Paper>
 
-      {/* 3. WIDGET INFERIOR - POSICIÓN EXTERNA */}
+      {/* 3. WIDGET INFERIOR */}
       <Box
         sx={{
           position: 'absolute',
-          bottom: '12%',
-          left: { xs: '0%', md: '-2%' },
+          bottom: { xs: '2%', sm: '8%', md: '12%' },
+          left: { xs: '2%', sm: '0%', md: '-2%' },
           bgcolor: '#fff',
-          borderRadius: '20px',
-          p: 2.5,
+          borderRadius: { xs: '14px', md: '20px' },
+          p: { xs: 1.5, sm: 2, md: 2.5 },
           display: 'flex',
           alignItems: 'center',
-          gap: 2,
-          boxShadow: '0 30px 60px rgba(99, 102, 241, 0.15)',
+          gap: { xs: 1.5, md: 2 },
+          boxShadow: '0 20px 50px rgba(99, 102, 241, 0.12)',
           border: '1px solid rgba(255,255,255,1)',
           zIndex: 4
         }}
       >
         <Box
           sx={{
-            width: 44,
-            height: 44,
-            borderRadius: '14px',
+            width: { xs: 36, md: 44 },
+            height: { xs: 36, md: 44 },
+            borderRadius: { xs: '10px', md: '14px' },
             bgcolor: 'rgba(99, 102, 241, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}
         >
-          <BoltIcon sx={{ color: '#6366f1', fontSize: '1.6rem' }} />
+          <BoltIcon sx={{ color: '#6366f1', fontSize: { xs: '1.2rem', md: '1.6rem' } }} />
         </Box>
         <Box>
-          <Typography sx={{ fontSize: '0.8rem', fontWeight: 900, color: '#0f172a' }}>Verified Layer</Typography>
-          <Typography sx={{ fontSize: '0.65rem', color: '#22c55e', fontWeight: 700 }}>AES-256 Active</Typography>
+          <Typography sx={{ fontSize: { xs: '0.7rem', md: '0.8rem' }, fontWeight: 900, color: '#0f172a' }}>Verified Layer</Typography>
+          <Typography sx={{ fontSize: { xs: '0.55rem', md: '0.65rem' }, color: '#22c55e', fontWeight: 700 }}>AES-256 Active</Typography>
         </Box>
       </Box>
 
@@ -173,8 +173,8 @@ const VisualDashboard = () => {
       <Box
         sx={{
           position: 'absolute',
-          width: '130%',
-          height: '130%',
+          width: { xs: '100%', md: '130%' },
+          height: { xs: '100%', md: '130%' },
           background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 65%)',
           zIndex: 0
         }}
@@ -190,27 +190,28 @@ export default function AdvancedHero() {
       <style>{KEYFRAMES}</style>
       <Box
         sx={{
-          minHeight: '100vh',
+          minHeight: { xs: 'auto', md: '100vh' },
           display: 'flex',
-          alignItems: 'center',
+          alignItems: { xs: 'flex-start', md: 'center' },
           position: 'relative',
           bgcolor: 'transparent',
-          py: { xs: 8, md: 0 },
+          pt: { xs: 12, sm: 14, md: 8 },
+          pb: { xs: 8, sm: 10, md: 12 },
           overflow: 'hidden'
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center">
-            {/* LADO IZQUIERDO: TEXTO COMPACTO Y ALINEADO */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Box sx={{ pr: { md: 6 }, textAlign: { xs: 'center', md: 'left' } }}>
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
+            {/* LADO IZQUIERDO: TEXTO */}
+            <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'flex', md: 'block' }, justifyContent: 'center' }}>
+              <Box sx={{ pr: { md: 4 }, textAlign: { xs: 'center', md: 'left' }, mx: { xs: 'auto', md: 0 }, maxWidth: { xs: '480px', md: '100%' } }}>
                 <Chip
                   label="v2.0 Infrastructure"
                   sx={{
                     bgcolor: 'rgba(99, 102, 241, 0.08)',
-                    mb: 3,
+                    mb: 2.5,
                     fontWeight: 800,
-                    fontSize: '0.75rem',
+                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                     color: '#6366f1',
                     border: '1px solid rgba(99, 102, 241, 0.2)',
                     px: 1
@@ -221,15 +222,21 @@ export default function AdvancedHero() {
                   sx={{
                     fontFamily: 'Syne',
                     fontWeight: 800,
-                    fontSize: { xs: '3rem', md: '4.5rem' },
+                    fontSize: { xs: '2.2rem', sm: '3rem', md: '4rem', lg: '4.5rem' },
                     color: '#0f172a',
-                    mb: 3,
-                    lineHeight: 1,
+                    mb: 2.5,
+                    lineHeight: 1.05,
                     letterSpacing: '-0.04em'
                   }}
                 >
                   Engineer Your <br />
-                  <Box component="span" sx={{ color: 'transparent', WebkitTextStroke: '1.5px #6366f1' }}>
+                  <Box
+                    component="span"
+                    sx={{
+                      color: '#6366f1',
+                      fontSize: { xs: '2.2rem', sm: '3rem', md: '4rem', lg: '4.5rem' }
+                    }}
+                  >
                     Digital
                   </Box>{' '}
                   Vision.
@@ -237,11 +244,11 @@ export default function AdvancedHero() {
 
                 <Typography
                   sx={{
-                    fontSize: '1.15rem',
+                    fontSize: { xs: '0.95rem', sm: '1.05rem', md: '1.15rem' },
                     color: '#475569',
                     lineHeight: 1.7,
-                    mb: 5,
-                    maxWidth: '500px',
+                    mb: 4,
+                    maxWidth: { xs: '100%', md: '500px' },
                     mx: { xs: 'auto', md: 0 },
                     fontWeight: 500
                   }}
@@ -250,19 +257,20 @@ export default function AdvancedHero() {
                   security.
                 </Typography>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} justifyContent={{ xs: 'center', md: 'flex-start' }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent={{ xs: 'center', md: 'flex-start' }} alignItems="center">
                   <Button
                     onClick={() => navigate('/authenticate')}
                     variant="contained"
                     disableElevation
                     sx={{
                       bgcolor: '#0f172a',
-                      px: 5,
-                      py: 2,
+                      px: { xs: 4, sm: 5 },
+                      py: { xs: 1.5, sm: 2 },
                       borderRadius: '14px',
                       fontWeight: 800,
                       textTransform: 'none',
-                      fontSize: '1rem',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      width: { xs: '100%', sm: 'auto' },
                       '&:hover': { bgcolor: '#6366f1' }
                     }}
                   >
@@ -274,7 +282,7 @@ export default function AdvancedHero() {
                       color: '#0f172a',
                       fontWeight: 800,
                       textTransform: 'none',
-                      fontSize: '1rem'
+                      fontSize: { xs: '0.9rem', sm: '1rem' }
                     }}
                   >
                     Documentation
@@ -283,8 +291,8 @@ export default function AdvancedHero() {
               </Box>
             </Grid>
 
-            {/* LADO DERECHO: VISUALIZACIÓN ANCHA Y PODEROSA */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            {/* LADO DERECHO: VISUALIZACIÓN (solo desktop) */}
+            <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'none', md: 'block' } }}>
               <VisualDashboard />
             </Grid>
           </Grid>

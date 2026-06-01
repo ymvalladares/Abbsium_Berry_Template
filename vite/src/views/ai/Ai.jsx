@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Box, TextField, IconButton, Paper, Typography, Button, Popover, Tooltip } from '@mui/material';
+import { Box, TextField, IconButton, Paper, Typography, Button, Popover, Tooltip, Alert, Snackbar, CircularProgress } from '@mui/material';
 import {
   IconSend2,
   IconPlus,
@@ -14,7 +14,8 @@ import {
   IconRefresh,
   IconPlayerStop,
   IconCopy,
-  IconRotate2
+  IconRotate2,
+  IconTrash
 } from '@tabler/icons-react';
 
 import ChatMessage from './message-view/MessageView';
@@ -26,18 +27,20 @@ const STORAGE_MODEL_KEY = 'ai_chat_model';
 const MAX_CHARS = 4000;
 
 const QUICK_PROMPTS = [
-  { icon: IconWand, label: 'Explain', text: 'Explain this in simple terms' },
+  { icon: IconWand, label: 'Marketing', text: 'Give me marketing ideas for' },
   { icon: IconCode, label: 'Code', text: 'Write code for' },
   { icon: IconBulb, label: 'Ideas', text: 'Give me ideas for' },
-  { icon: IconPencil, label: 'Improve', text: 'Improve this for me' },
+  { icon: IconPencil, label: 'Content', text: 'Help me create content for' },
   { icon: IconBug, label: 'Debug', text: 'Help me debug this' },
   { icon: IconBook, label: 'Summarize', text: 'Summarize this for me' }
 ];
 
 const MODELS = [
-  { id: 'gpt-4o-mini', label: 'GPT-4o-Mini', description: 'Affordable small model' },
-  { id: 'gpt-4.1', label: 'GPT-4.1', subtitle: 'Smarter', description: 'Better reasoning and coding' },
-  { id: 'gpt-5.1', label: 'GPT-5.1', subtitle: 'Faster', description: 'Fast responses for daily tasks' }
+  { id: 'gpt-4.1-mini', label: 'GPT-4.1-Mini', description: 'Fast and affordable' },
+  { id: 'gpt-4.1', label: 'GPT-4.1', subtitle: 'Smart', description: 'Better reasoning and coding' },
+  { id: 'gpt-4o-mini', label: 'GPT-4o-Mini', subtitle: 'Balanced', description: 'Good balance of speed and quality' },
+  { id: 'gpt-4o', label: 'GPT-4o', subtitle: 'Powerful', description: 'Most capable model' },
+  { id: 'gpt-3.5-turbo', label: 'GPT-3.5-Turbo', subtitle: 'Fast', description: 'Quick responses for simple tasks' }
 ];
 
 const loadMessages = () => {
@@ -80,6 +83,8 @@ export default function Ai() {
   const [firstMessageSent, setFirstMessageSent] = useState(() => loadMessages().length > 0);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState(null);
+  const [syncingHistory, setSyncingHistory] = useState(false);
 
   const [model, setModel] = useState(loadModel);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -100,6 +105,30 @@ export default function Ai() {
     localStorage.setItem(STORAGE_MODEL_KEY, JSON.stringify(model));
   }, [model]);
 
+  useEffect(() => {
+    loadServerHistory();
+  }, []);
+
+  const loadServerHistory = useCallback(async () => {
+    try {
+      setSyncingHistory(true);
+      const res = await api.get('Ai/Chat-Ai/history');
+      if (res.data && res.data.length > 0) {
+        const serverMessages = res.data.map((m, idx) => ({
+          role: m.role,
+          content: m.content,
+          timestamp: Date.now() - (res.data.length - idx) * 1000
+        }));
+        setMessages(serverMessages);
+        setFirstMessageSent(true);
+      }
+    } catch {
+      // Use local storage messages as fallback
+    } finally {
+      setSyncingHistory(false);
+    }
+  }, []);
+
   const canSend = useMemo(() => input.trim() && !loading, [input, loading]);
 
   const sendRequest = useCallback(
@@ -107,15 +136,30 @@ export default function Ai() {
       const controller = new AbortController();
       abortRef.current = controller;
       setLoading(true);
+      setError(null);
 
       try {
         const res = await api.post('Ai/Chat-Ai', { message: content, model: model.id, messages: history }, { signal: controller.signal });
         if (!controller.signal.aborted) {
           onSuccess(res.data.content || 'No response received');
         }
-      } catch {
+      } catch (err) {
         if (controller.signal.aborted) return;
-        onError();
+        
+        if (err.response) {
+          const status = err.response.status;
+          if (status === 429) {
+            setError('Rate limit exceeded. Please wait before sending more messages.');
+          } else if (status === 400) {
+            setError(err.response.data || 'Invalid request. Please try again.');
+          } else if (status === 401) {
+            setError('Authentication required. Please log in again.');
+          } else {
+            onError();
+          }
+        } else {
+          onError();
+        }
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -199,6 +243,18 @@ export default function Ai() {
     } catch {}
   }, [messages]);
 
+  const handleClearServerConversation = useCallback(async () => {
+    try {
+      await api.post('Ai/Chat-Ai/clear');
+      setMessages([]);
+      setFirstMessageSent(false);
+      setInput('');
+      setError(null);
+    } catch {
+      setError('Failed to clear conversation on server');
+    }
+  }, []);
+
   const handleInputKeyDown = useCallback(
     (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -222,7 +278,9 @@ export default function Ai() {
     setMessages([]);
     setFirstMessageSent(false);
     setInput('');
-  }, []);
+    setError(null);
+    handleClearServerConversation();
+  }, [handleClearServerConversation]);
 
   const charCount = input.length;
   const wordCount = input.trim() ? input.trim().split(/\s+/).length : 0;
@@ -247,6 +305,23 @@ export default function Ai() {
         pt: 2
       }}
     >
+      {/* ERROR SNACKBAR */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setError(null)}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
+
       {/* CHAT AREA */}
       <Box
         sx={{
@@ -260,8 +335,15 @@ export default function Ai() {
           '&::-webkit-scrollbar-thumb': { bgcolor: '#e5e7eb', borderRadius: 3 }
         }}
       >
+        {/* SYNCING INDICATOR */}
+        {syncingHistory && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={24} sx={{ color: '#7C3AED' }} />
+          </Box>
+        )}
+
         {/* HERO */}
-        {!firstMessageSent && (
+        {!firstMessageSent && !syncingHistory && (
           <Box
             sx={{
               display: 'flex',
@@ -338,6 +420,19 @@ export default function Ai() {
                     }}
                   >
                     <IconCopy size={16} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Clear conversation" arrow>
+                  <IconButton
+                    onClick={handleClearServerConversation}
+                    size="small"
+                    sx={{
+                      color: '#9CA3AF',
+                      '&:hover': { color: '#dc2626', bgcolor: '#FEF2F2' },
+                      transition: 'color 0.2s'
+                    }}
+                  >
+                    <IconTrash size={16} />
                   </IconButton>
                 </Tooltip>
                 <Button
@@ -728,7 +823,7 @@ export default function Ai() {
         transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         PaperProps={{ sx: { borderRadius: 3, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' } }}
       >
-        <Box sx={{ p: 2, width: 260 }}>
+        <Box sx={{ p: 2, width: 280 }}>
           <Typography
             sx={{ fontSize: 12, fontWeight: 700, mb: 1.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}
           >

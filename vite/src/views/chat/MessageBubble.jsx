@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Box, Avatar, Typography, IconButton, Menu, MenuItem, Fade, Tooltip } from '@mui/material';
+import { Box, Avatar, Typography, IconButton, Menu, MenuItem, Fade, Tooltip, Popover } from '@mui/material';
 import {
   MoreVert, Done, DoneAll, ContentCopy, Reply,
-  DeleteOutline,
+  DeleteOutline, EmojiEmotions,
 } from '@mui/icons-material';
 import CircularProgress from '@mui/material/CircularProgress';
 import { showSnackbar } from '../../utils/snackbarNotif';
@@ -12,8 +12,11 @@ const primaryLight = '#E0F2FE';
 const greyBorder = '#e2e8f0';
 const greyText = '#94a3b8';
 
-const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) => {
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onToggleReaction }) => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [reactionAnchor, setReactionAnchor] = useState(null);
   const isMine = message.isSender === true;
   const isPending = message.isPending === true;
 
@@ -61,8 +64,49 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) =
     if (onDelete) onDelete(message);
   };
 
+  const handleReactionClick = (event) => {
+    event.stopPropagation();
+    setReactionAnchor(event.currentTarget);
+  };
+
+  const handleReactionClose = () => {
+    setReactionAnchor(null);
+  };
+
+  const handleReaction = (emoji) => {
+    const messageId = message.id || message.messageId || message.tempId;
+    if (onToggleReaction && messageId) {
+      onToggleReaction(messageId, emoji);
+    }
+    handleReactionClose();
+  };
+
+  const getReadStatusIcon = () => {
+    if (isPending) {
+      return <CircularProgress size={8} thickness={5} sx={{ color: greyText }} />;
+    }
+    
+    if (message.isRead) {
+      return (
+        <Tooltip title={`Read at ${formatTime(message.readAt || message.sentAt)}`} arrow>
+          <DoneAll sx={{ fontSize: 11, color: '#10b981' }} />
+        </Tooltip>
+      );
+    }
+    
+    return (
+      <Tooltip title="Delivered" arrow>
+        <Done sx={{ fontSize: 11, color: greyText }} />
+      </Tooltip>
+    );
+  };
+
+  const reactions = message.reactions || {};
+  const hasReactions = Object.keys(reactions).length > 0;
+
   return (
     <Box
+      data-message-element="true"
       sx={{
         display: 'flex',
         flexDirection: isMine ? 'row-reverse' : 'row',
@@ -74,6 +118,7 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) =
         opacity: isPending ? 0.55 : 1,
         transition: 'opacity 0.3s ease',
         '&:hover .msg-actions': { opacity: 1, transform: 'scale(1)' },
+        '&:hover .reaction-btn': { opacity: 1, transform: 'scale(1)' },
       }}
     >
       <Avatar
@@ -157,6 +202,45 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) =
           </Typography>
         </Box>
 
+        {hasReactions && (
+          <Box sx={{
+            display: 'flex',
+            gap: 0.5,
+            mt: 0.3,
+            px: 0.5,
+            flexWrap: 'wrap',
+            flexDirection: isMine ? 'row-reverse' : 'row',
+          }}>
+            {Object.entries(reactions).map(([emoji, users]) => (
+              <Box
+                key={emoji}
+                onClick={() => handleReaction(emoji)}
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.3,
+                  px: 0.8,
+                  py: 0.2,
+                  borderRadius: '12px',
+                  bgcolor: users.some((u) => u.userId === 'me') ? primaryLight : '#f8fafc',
+                  border: `1px solid ${users.some((u) => u.userId === 'me') ? primaryColor + '40' : greyBorder}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    bgcolor: primaryLight,
+                    borderColor: primaryColor + '60',
+                  },
+                }}
+              >
+                <Typography sx={{ fontSize: '0.75rem' }}>{emoji}</Typography>
+                <Typography sx={{ fontSize: '0.65rem', color: greyText, fontWeight: 500 }}>
+                  {users.length}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
+
         <Tooltip title={formatFullDate(message.sentAt || message.timestamp)} arrow placement="right" enterDelay={600}>
           <Box sx={{
             display: 'flex',
@@ -174,20 +258,34 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) =
               {formatTime(message.sentAt || message.timestamp)}
             </Typography>
 
-            {isMine && (
-              <>
-                {isPending ? (
-                  <CircularProgress size={8} thickness={5} sx={{ color: greyText }} />
-                ) : message.isRead ? (
-                  <DoneAll sx={{ fontSize: 11, color: '#10b981' }} />
-                ) : (
-                  <Done sx={{ fontSize: 11, color: greyText }} />
-                )}
-              </>
-            )}
+            {isMine && getReadStatusIcon()}
           </Box>
         </Tooltip>
       </Box>
+
+      <IconButton
+        size="small"
+        onClick={handleReactionClick}
+        className="reaction-btn"
+        sx={{
+          position: 'absolute',
+          top: -2,
+          right: isMine ? 30 : 'auto',
+          left: isMine ? 'auto' : 30,
+          bgcolor: '#fff',
+          border: `1px solid ${greyBorder}`,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+          opacity: 0,
+          transform: 'scale(0.8)',
+          transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          width: 22,
+          height: 22,
+          zIndex: 2,
+          '&:hover': { bgcolor: primaryLight, color: primaryColor },
+        }}
+      >
+        <EmojiEmotions sx={{ fontSize: 12 }} />
+      </IconButton>
 
       <IconButton
         size="small"
@@ -196,8 +294,8 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) =
         sx={{
           position: 'absolute',
           top: -2,
-          right: isMine ? 30 : 'auto',
-          left: isMine ? 'auto' : 30,
+          right: isMine ? 'auto' : 30,
+          left: isMine ? 30 : 'auto',
           bgcolor: '#fff',
           border: `1px solid ${greyBorder}`,
           boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
@@ -246,6 +344,40 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete }) =
           </MenuItem>
         )}
       </Menu>
+
+      <Popover
+        open={Boolean(reactionAnchor)}
+        anchorEl={reactionAnchor}
+        onClose={handleReactionClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            p: 0.5,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+            border: `1px solid ${greyBorder}`,
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', gap: 0.3 }}>
+          {QUICK_REACTIONS.map((emoji) => (
+            <IconButton
+              key={emoji}
+              onClick={() => handleReaction(emoji)}
+              sx={{
+                width: 32,
+                height: 32,
+                fontSize: '1.1rem',
+                '&:hover': { bgcolor: primaryLight, transform: 'scale(1.2)' },
+                transition: 'transform 0.15s ease',
+              }}
+            >
+              {emoji}
+            </IconButton>
+          ))}
+        </Box>
+      </Popover>
     </Box>
   );
 };

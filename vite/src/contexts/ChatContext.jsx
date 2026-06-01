@@ -1,20 +1,34 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import signalRService from '../services/SignalRService';
 import chatService from '../services/ChatService';
 import api from '../services/AxiosService';
+import { showSnackbar } from '../utils/snackbarNotif';
 
-export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
+const ChatContext = createContext(null);
+
+export const useChat = () => {
+  const ctx = useContext(ChatContext);
+  if (!ctx) throw new Error('useChat must be used within ChatProvider');
+  return ctx;
+};
+
+export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [conversations, setConversations] = useState([]);
   const [admins, setAdmins] = useState([]);
-  const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [messages, setMessages] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
   const [selectedConversationId, setSelectedConversationId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [showChatList, setShowChatList] = useState(true);
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const [drafts, setDrafts] = useState({});
+  const [unreadBadge, setUnreadBadge] = useState(0);
 
   const isInitialized = useRef(false);
   const pendingMessages = useRef(new Map());
   const lastTempId = useRef(0);
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated || isInitialized.current) return;
@@ -22,7 +36,6 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      console.error('No token found');
       setIsLoading(false);
       return;
     }
@@ -51,14 +64,20 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
   useEffect(() => {
     if (!isConnected) return;
 
+    console.log('🔄 ChatContext loadData - isAdmin:', isAdmin);
+
     const loadData = async () => {
       setIsLoading(true);
       try {
         if (isAdmin) {
+          console.log('👑 Loading admin data...');
           const [convs, usersRes] = await Promise.all([
             chatService.getMyConversations(),
             api.get('/User/All-Users')
           ]);
+
+          console.log('📋 Conversations:', convs);
+          console.log('👥 All users:', usersRes.data);
 
           const allUsers = (usersRes.data || []).map((u) => ({
             ...u,
@@ -81,9 +100,14 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
             };
           });
 
+          console.log('✅ Enriched users for sidebar:', enrichedUsers);
           setConversations(enrichedUsers);
         } else {
+          console.log('👤 Loading user data (admins list)...');
           const [adminsList, convs] = await Promise.all([chatService.getAdmins(), chatService.getMyConversations()]);
+
+          console.log('🛡️ Admins:', adminsList);
+          console.log('📋 User conversations:', convs);
 
           const enrichedAdmins = adminsList.map((admin) => {
             const adminId = admin.id || admin.userId || admin.adminId;
@@ -99,13 +123,14 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
             };
           });
 
+          console.log('✅ Enriched admins for sidebar:', enrichedAdmins);
           setAdmins(enrichedAdmins);
           setConversations(convs);
         }
 
         await signalRService.requestOnlineUsers();
       } catch (err) {
-        console.error('Error loading data:', err);
+        console.error('❌ Error loading data:', err);
       } finally {
         setIsLoading(false);
       }
@@ -122,7 +147,6 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
       const onlineIds = new Set(
         userArray.map((u) => (typeof u === 'string' ? u : u.userId))
       );
-      setOnlineUsers(onlineIds);
 
       const nameMap = {};
       userArray.forEach((u) => {
@@ -160,11 +184,6 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
 
     const handleUserStatusChanged = (data) => {
       const { userId, isOnline, userName } = data;
-      setOnlineUsers((prev) => {
-        const newSet = new Set(prev);
-        isOnline ? newSet.add(userId) : newSet.delete(userId);
-        return newSet;
-      });
 
       if (!isAdmin) {
         setAdmins((prev) =>
@@ -209,6 +228,7 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
           sentAt: msg.sentAt,
           ...getExtraFields(msg),
           isRead: false,
+          readAt: null,
         };
         return newMessages;
       }
@@ -223,6 +243,8 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
           content: msg.content,
           sentAt: msg.sentAt,
           ...getExtraFields(msg),
+          isRead: false,
+          readAt: null,
         },
       ];
     });
@@ -363,22 +385,19 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
     };
   }, [isAdmin, isConnected, selectedConversationId, confirmTempMessage]);
 
-  // ⭐ Marcar como leídos: notificar al remitente y actualizar UI local
   useEffect(() => {
     if (!isConnected) return;
 
-    // Alguien leyó nuestros mensajes → actualizar isRead
     const handleMessagesRead = (data) => {
-      const { conversationId, messageIds } = data;
+      const { conversationId, messageIds, readAt } = data;
       if (!messageIds?.length) return;
 
       setMessages((prev) =>
         prev.map((msg) =>
-          messageIds.includes(msg.id) ? { ...msg, isRead: true } : msg
+          messageIds.includes(msg.id) ? { ...msg, isRead: true, readAt: readAt || new Date().toISOString() } : msg
         )
       );
 
-      // Si la conversación ya no está seleccionada, actualizar contador
       if (conversationId !== selectedConversationId) {
         if (isAdmin) {
           setConversations((prev) =>
@@ -390,143 +409,310 @@ export const useChatConnection = ({ isAdmin, isAuthenticated }) => {
       }
     };
 
-    // Confirmación de que nuestros mensajes se marcaron como leídos en el server
     const handleMarkedAsRead = (conversationId) => {
       setMessages((prev) =>
-        prev.map((msg) => (msg.isSender ? msg : { ...msg, isRead: true }))
+        prev.map((msg) => (msg.isSender ? { ...msg, isRead: true, readAt: new Date().toISOString() } : msg))
+      );
+    };
+
+    const handleMessagesReadByUser = (data) => {
+      const { conversationId, messageIds, userId, readAt } = data;
+      if (!messageIds?.length) return;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          messageIds.includes(msg.id) && msg.isSender
+            ? { ...msg, isRead: true, readAt: readAt || new Date().toISOString(), readBy: userId }
+            : msg
+        )
       );
     };
 
     signalRService.on('messagesRead', handleMessagesRead);
     signalRService.on('messagesMarkedAsRead', handleMarkedAsRead);
+    signalRService.on('messagesReadByUser', handleMessagesReadByUser);
 
     return () => {
       signalRService.off('messagesRead', handleMessagesRead);
       signalRService.off('messagesMarkedAsRead', handleMarkedAsRead);
+      signalRService.off('messagesReadByUser', handleMessagesReadByUser);
     };
   }, [isConnected, isAdmin, selectedConversationId]);
 
-  const loadMessages = useCallback(
-    async (conversationId) => {
-      if (!conversationId) {
-        setSelectedConversationId(null);
-        setMessages([]);
-        return;
+  // ⭐ NUEVO: Typing indicators
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const handleUserTyping = (data) => {
+      const { conversationId, userId, isTyping } = data;
+      if (conversationId === selectedConversationId) {
+        setIsOtherTyping(isTyping);
       }
+    };
+
+    signalRService.on('userTyping', handleUserTyping);
+
+    return () => {
+      signalRService.off('userTyping', handleUserTyping);
+    };
+  }, [isConnected, selectedConversationId]);
+
+  // ⭐ NUEVO: Message reactions
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const handleReactionAdded = (data) => {
+      const { messageId, emoji, userId, userName } = data;
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if ((msg.id || msg.messageId) === messageId) {
+            const reactions = msg.reactions || {};
+            if (!reactions[emoji]) {
+              reactions[emoji] = [];
+            }
+            if (!reactions[emoji].find((r) => r.userId === userId)) {
+              reactions[emoji].push({ userId, userName });
+            }
+            return { ...msg, reactions };
+          }
+          return msg;
+        })
+      );
+    };
+
+    const handleReactionRemoved = (data) => {
+      const { messageId, emoji, userId } = data;
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if ((msg.id || msg.messageId) === messageId) {
+            const reactions = msg.reactions || {};
+            if (reactions[emoji]) {
+              reactions[emoji] = reactions[emoji].filter((r) => r.userId !== userId);
+              if (reactions[emoji].length === 0) {
+                delete reactions[emoji];
+              }
+            }
+            return { ...msg, reactions };
+          }
+          return msg;
+        })
+      );
+    };
+
+    signalRService.on('messageReactionAdded', handleReactionAdded);
+    signalRService.on('messageReactionRemoved', handleReactionRemoved);
+
+    return () => {
+      signalRService.off('messageReactionAdded', handleReactionAdded);
+      signalRService.off('messageReactionRemoved', handleReactionRemoved);
+    };
+  }, [isConnected]);
+
+  const selectChat = useCallback(async (chat) => {
+    // Save current draft before switching
+    if (selectedConversationId) {
+      setDrafts((prev) => ({ ...prev }));
+    }
+
+    setSelectedChat(chat);
+    setIsOtherTyping(false);
+
+    const convId = chat.conversationId || chat.id;
+    if (convId) {
       try {
-        setSelectedConversationId(conversationId);
-        const msgs = await chatService.getMessages(conversationId);
+        setSelectedConversationId(convId);
+        const msgs = await chatService.getMessages(convId);
 
         const enrichedMessages = msgs.map((msg) => ({
           ...msg,
           isSender: isAdmin ? msg.isAdminMessage : !msg.isAdminMessage,
+          isRead: msg.isRead || false,
+          readAt: msg.readAt || null,
+          reactions: msg.reactions || {},
         }));
 
         setMessages(enrichedMessages);
-        await signalRService.markAsRead(conversationId);
+        await signalRService.markAsRead(convId);
 
         if (isAdmin) {
           setConversations((prev) =>
-            prev.map((conv) => (conv.conversationId === conversationId ? { ...conv, unreadCount: 0 } : conv))
+            prev.map((c) => (c.conversationId === convId ? { ...c, unreadCount: 0 } : c))
           );
         } else {
           setAdmins((prev) =>
-            prev.map((admin) =>
-              admin.conversationId === conversationId ? { ...admin, unreadCount: 0 } : admin
+            prev.map((a) =>
+              a.conversationId === convId ? { ...a, unreadCount: 0 } : a
             )
           );
         }
       } catch (err) {
         console.error('Error loading messages:', err);
+        setMessages([]);
       }
-    },
-    [isAdmin]
-  );
+    } else {
+      setSelectedConversationId(null);
+      setMessages([]);
+    }
 
-  const sendMessage = useCallback(
-    async (adminId, content) => {
-      if (!isConnected || !content.trim()) return;
-      if (!adminId) {
-        console.error('sendMessage: adminId is missing', { adminId, content });
-        throw new Error('Cannot send message: recipient not found');
+    setShowChatList(false);
+  }, [isAdmin, selectedConversationId]);
+
+  const goBackToList = useCallback(() => {
+    setShowChatList(true);
+    setSelectedChat(null);
+    setSelectedConversationId(null);
+    setMessages([]);
+  }, []);
+
+  const sendMessage = useCallback(async (content) => {
+    if (!content.trim() || !isConnected || !selectedChat) return;
+
+    try {
+      if (isAdmin) {
+        if (!selectedChat.conversationId) {
+          showSnackbar('User has no active conversation. Ask them to send a message first.', 'warning');
+          return;
+        }
+
+        lastTempId.current += 1;
+        const tempId = `temp_${lastTempId.current}`;
+        const tempMessage = {
+          tempId,
+          content,
+          sentAt: new Date().toISOString(),
+          isAdminMessage: true,
+          isSender: true,
+          senderName: 'You',
+          isPending: true,
+        };
+
+        setMessages((prev) => [...prev, tempMessage]);
+        pendingMessages.current.set(tempId, content);
+
+        await signalRService.sendAdminReply(selectedChat.conversationId, content);
+      } else {
+        if (!selectedChat.id) {
+          showSnackbar('Cannot send message: recipient not found', 'error');
+          return;
+        }
+
+        lastTempId.current += 1;
+        const tempId = `temp_${lastTempId.current}`;
+        const tempMessage = {
+          tempId,
+          content,
+          sentAt: new Date().toISOString(),
+          isAdminMessage: false,
+          isSender: true,
+          senderName: 'You',
+          isPending: true,
+        };
+
+        setMessages((prev) => [...prev, tempMessage]);
+        pendingMessages.current.set(tempId, content);
+
+        await signalRService.sendMessageToAdmin(selectedChat.id, content);
       }
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
+      pendingMessages.current.delete(tempId);
+      showSnackbar('Failed to send message', 'error');
+    }
+  }, [isAdmin, isConnected, selectedChat]);
 
-      console.log('📤 Sending message to admin:', { adminId, content });
+  const deleteMessage = useCallback((msg) => {
+    setMessages((prev) => prev.filter((m) => (m.id || m.tempId) !== (msg.id || msg.tempId)));
+  }, []);
 
-      lastTempId.current += 1;
-      const tempId = `temp_${lastTempId.current}`;
-      const tempMessage = {
-        tempId,
-        content,
-        sentAt: new Date().toISOString(),
-        isAdminMessage: false,
-        isSender: true,
-        senderName: 'You',
-        isPending: true,
-      };
+  // ⭐ NUEVO: Enviar typing indicator con debounce
+  const sendTypingIndicator = useCallback(() => {
+    if (!selectedConversationId || !isConnected) return;
 
-      setMessages((prev) => [...prev, tempMessage]);
-      pendingMessages.current.set(tempId, content);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
-      try {
-        await signalRService.sendMessageToAdmin(adminId, content);
-      } catch (err) {
-        console.error('Error sending message:', err);
-        setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
-        pendingMessages.current.delete(tempId);
-        throw err;
-      }
-    },
-    [isConnected]
-  );
+    signalRService.sendTypingIndicator(selectedConversationId);
 
-  const sendAdminReply = useCallback(
-    async (conversationId, content) => {
-      if (!isConnected || !content.trim()) return;
-      if (!conversationId) {
-        console.error('sendAdminReply: conversationId is missing', { conversationId, content });
-        throw new Error('Cannot send reply: no conversation found');
-      }
+    typingTimeoutRef.current = setTimeout(() => {
+      signalRService.sendTypingIndicator(selectedConversationId);
+    }, 2000);
+  }, [selectedConversationId, isConnected]);
 
-      console.log('📤 Sending admin reply:', { conversationId, content });
+  // ⭐ NUEVO: Toggle reaction on a message
+  const toggleReaction = useCallback(async (messageId, emoji) => {
+    const msg = messages.find((m) => (m.id || m.messageId) === messageId);
+    if (!msg) return;
 
-      lastTempId.current += 1;
-      const tempId = `temp_${lastTempId.current}`;
-      const tempMessage = {
-        tempId,
-        content,
-        sentAt: new Date().toISOString(),
-        isAdminMessage: true,
-        isSender: true,
-        senderName: 'You',
-        isPending: true,
-      };
+    const reactions = msg.reactions || {};
+    const hasReacted = reactions[emoji]?.some((r) => r.userId === 'me');
 
-      setMessages((prev) => [...prev, tempMessage]);
-      pendingMessages.current.set(tempId, content);
+    if (hasReacted) {
+      await signalRService.removeMessageReaction(messageId, emoji);
+    } else {
+      await signalRService.addMessageReaction(messageId, emoji);
+    }
+  }, [messages]);
 
-      try {
-        await signalRService.sendAdminReply(conversationId, content);
-      } catch (err) {
-        console.error('Error sending reply:', err);
-        setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
-        pendingMessages.current.delete(tempId);
-        throw err;
-      }
-    },
-    [isConnected]
-  );
+  // ⭐ NUEVO: Save draft for current conversation
+  const saveDraft = useCallback((content) => {
+    if (selectedConversationId) {
+      setDrafts((prev) => ({ ...prev, [selectedConversationId]: content }));
+    }
+  }, [selectedConversationId]);
 
-  return {
+  // ⭐ NUEVO: Get draft for current conversation
+  const getDraft = useCallback(() => {
+    if (selectedConversationId) {
+      return drafts[selectedConversationId] || '';
+    }
+    return '';
+  }, [selectedConversationId, drafts]);
+
+  // ⭐ NUEVO: Clear draft for current conversation
+  const clearDraft = useCallback(() => {
+    if (selectedConversationId) {
+      setDrafts((prev) => {
+        const newDrafts = { ...prev };
+        delete newDrafts[selectedConversationId];
+        return newDrafts;
+      });
+    }
+  }, [selectedConversationId]);
+
+  // ⭐ NUEVO: Update unread badge
+  const updateUnreadBadge = useCallback((count) => {
+    setUnreadBadge(count);
+  }, []);
+
+  const value = {
+    isAdmin,
     isConnected,
     isLoading,
-    messages,
-    setMessages,
     conversations,
     admins,
-    onlineUsers,
+    messages,
+    selectedChat,
+    selectedConversationId,
+    showChatList,
+    isOtherTyping,
+    unreadBadge,
+    selectChat,
+    goBackToList,
     sendMessage,
-    sendAdminReply,
-    loadMessages
+    deleteMessage,
+    sendTypingIndicator,
+    toggleReaction,
+    saveDraft,
+    getDraft,
+    clearDraft,
+    updateUnreadBadge,
   };
+
+  return (
+    <ChatContext.Provider value={value}>
+      {children}
+    </ChatContext.Provider>
+  );
 };
