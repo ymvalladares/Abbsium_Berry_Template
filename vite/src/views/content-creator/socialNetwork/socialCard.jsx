@@ -47,13 +47,19 @@ const PLATFORM_CONFIG = {
   }
 };
 
-export default function SocialCard({ platform, connected, expiresAt, onConnect, onDisconnect }) {
+export default function SocialCard({ platform, connection, onConnect, onDisconnect }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
   const config = PLATFORM_CONFIG[platform];
   if (!config) return null;
   const Icon = config.icon;
+
+  const connected = connection?.connected || false;
+  const expiresAt = connection?.expiresAt;
+  const isActive = connection?.isActive;
+  const accountName = connection?.accountName;
+  const createdAt = connection?.createdAt;
 
   const handleConnect = () => {
     setIsConnecting(true);
@@ -131,9 +137,23 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
               </Typography>
               {connected ? (
                 <Stack direction="row" spacing={0.5} alignItems="center">
-                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#4CAF50' }} />
-                  <Typography variant="caption" sx={{ color: '#4CAF50', fontWeight: 600, fontSize: '0.75rem' }}>
-                    Connected
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: isActive ? '#4CAF50' : '#f59e0b'
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isActive ? '#4CAF50' : '#f59e0b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    {isActive ? 'Connected & Active' : 'Connected & Inactive'}
                   </Typography>
                 </Stack>
               ) : (
@@ -174,6 +194,28 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
         <Box sx={{ flex: 1, mb: 3 }}>
           {connected ? (
             <Stack spacing={2}>
+              {accountName && (
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: 'grey.50',
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontSize: '0.7rem', fontWeight: 600, display: 'block', mb: 0.5 }}
+                  >
+                    ACCOUNT
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {accountName}
+                  </Typography>
+                </Box>
+              )}
+
               {expiresAt && (
                 <Box
                   sx={{
@@ -184,7 +226,10 @@ export default function SocialCard({ platform, connected, expiresAt, onConnect, 
                     borderColor: 'divider'
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', fontWeight: 600, display: 'block', mb: 0.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontSize: '0.7rem', fontWeight: 600, display: 'block', mb: 0.5 }}
+                  >
                     TOKEN EXPIRES
                   </Typography>
                   <Stack direction="row" alignItems="center" justifyContent="space-between">

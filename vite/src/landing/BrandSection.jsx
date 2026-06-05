@@ -32,10 +32,12 @@ const StatMiniCard = ({ icon: Icon, title, value, color }) => (
 const BrandSection = () => {
   return (
     <Box
+      id="solutions"
       sx={{
         py: { xs: 8 },
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        background: 'linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 40%, #ffffff 100%)'
       }}
     >
       {/* Luces de profundidad de fondo */}
@@ -79,7 +81,7 @@ const BrandSection = () => {
                   }}
                 >
                   Built for creators <br />
-                  <Box component="span" sx={{ color: '#6366f1' }}>
+                  <Box component="span" sx={{ color: '#7c3aed' }}>
                     who think bigger.
                   </Box>
                 </Typography>

@@ -69,7 +69,6 @@ const TYPES = [
 ];
 
 const ACCEPTED = { 'image/*': [], 'video/*': [] };
-const CONNECTED = ['facebook', 'instagram', 'youtube'];
 const STEP_LABELS = ['Platforms', 'Content', 'Review'];
 
 const CONFETTI_COLORS = ['#5E35B1', '#E4405F', '#1877F2', '#FF9800', '#4CAF50', '#FF0000', '#7C4DFF', '#FCAF45'];
@@ -122,7 +121,8 @@ export default function PostComposer() {
   const isMobile = theme ? useMediaQuery(theme.breakpoints.down('sm')) : false;
 
   const [step, setStep] = useState(0);
-  const [platforms, setPlatforms] = useState(['facebook', 'instagram', 'youtube']);
+  const [platforms, setPlatforms] = useState([]);
+  const [connectedPlatforms, setConnectedPlatforms] = useState([]);
   const [type, setType] = useState('post');
   const [mode, setMode] = useState('manual');
   const [files, setFiles] = useState([]);
@@ -147,34 +147,42 @@ export default function PostComposer() {
     setLoadingPages(true);
     try {
       const res = await socialAPI.checkConnections();
-      console.log('=== Social Connections Response ===');
-      console.log('Raw data:', JSON.stringify(res.data, null, 2));
-      
+      const providerNameMap = {
+        facebook: 'Facebook',
+        instagram: 'Instagram',
+        youtube: 'YouTube',
+        tiktok: 'TikTok',
+        twitter: 'X',
+        linkedin: 'LinkedIn',
+        pinterest: 'Pinterest'
+      };
+
+      const connected = [];
       const pagesMap = {};
       res.data.forEach((item) => {
-        console.log(`Processing provider: ${item.provider}, connected: ${item.connected}`);
-        if (item.connected) {
-          console.log(`  Pages available: ${item.pages?.length || 0}`, item.pages);
-          console.log(`  Default page ID: ${item.defaultPageId}`);
-        }
-        if (item.connected && item.pages && item.pages.length > 0) {
-          pagesMap[item.provider] = {
-            pages: item.pages,
-            defaultPageId: item.defaultPageId || item.pages[0]?.id
+        if (item.connected && item.isActive) {
+          const key = providerNameMap[item.provider] || item.provider.charAt(0).toUpperCase() + item.provider.slice(1);
+          const platformId = PLATFORMS.find((p) => p.name === key)?.id || item.provider.toLowerCase();
+          connected.push(platformId);
+          pagesMap[platformId] = {
+            id: item.id,
+            accountName: item.accountName || key,
+            providerAccountId: item.providerAccountId,
+            scope: item.scope,
+            expiresAt: item.expiresAt,
+            createdAt: item.createdAt
           };
         }
       });
-      console.log('=== Pages Map Built ===');
-      console.log(JSON.stringify(pagesMap, null, 2));
+      setConnectedPlatforms(connected);
       setPages(pagesMap);
 
       const initialSelected = {};
       Object.keys(pagesMap).forEach((provider) => {
-        initialSelected[provider] = pagesMap[provider].defaultPageId;
+        initialSelected[provider] = pagesMap[provider].id;
       });
       if (Object.keys(initialSelected).length > 0) {
         setSelectedPages(initialSelected);
-        console.log('Initial selected pages:', initialSelected);
       }
     } catch (err) {
       console.error('Failed to fetch pages:', err);
@@ -189,7 +197,7 @@ export default function PostComposer() {
   }, [fetchPages]);
 
   const toggle = (id) => setPlatforms((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
-  const selectAll = () => setPlatforms(CONNECTED);
+  const selectAll = () => setPlatforms(connectedPlatforms);
   const clearAll = () => setPlatforms([]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ accept: ACCEPTED, multiple: false, onDrop: setFiles });
@@ -212,23 +220,12 @@ export default function PostComposer() {
         if (p === 'facebook') {
           let response;
           const targetPage = selectedPages.facebook;
-          console.log('=== Facebook Publish ===');
-          console.log('Target page ID:', targetPage);
-          console.log('Available pages:', pages.facebook);
-          if (pages.facebook?.pages) {
-            const selectedPageObj = pages.facebook.pages.find((pg) => pg.id === targetPage);
-            console.log('Selected page object:', selectedPageObj);
-            console.log('Selected page name:', selectedPageObj?.name);
-          }
           if (file) {
             const photoUrl = await toBase64(file);
-            console.log('Publishing photo with pageId:', targetPage);
             response = await socialAPI.postFacebookPhoto(text, photoUrl, caption, targetPage);
           } else {
-            console.log('Publishing text with pageId:', targetPage);
             response = await socialAPI.postFacebookText(text, targetPage);
           }
-          console.log('Facebook publish response:', response?.data);
 
           const data = response?.data;
           if (data && (data.status === 'Photo published' || data.status === 'Post published' || data.message || data.id)) {
@@ -405,7 +402,7 @@ export default function PostComposer() {
                   }}
                 >
                   {PLATFORMS.map((p) => {
-                    const on = CONNECTED.includes(p.id);
+                    const on = connectedPlatforms.includes(p.id);
                     const sel = platforms.includes(p.id);
                     const Icon = p.icon;
                     return (
@@ -417,13 +414,14 @@ export default function PostComposer() {
                           p: 1.5,
                           borderRadius: 2,
                           border: '2px solid',
-                          borderColor: sel ? p.color : 'divider',
-                          bgcolor: sel ? alpha(p.color, 0.04) : 'transparent',
+                          borderColor: sel ? p.color : on ? alpha(p.color, 0.4) : 'divider',
+                          bgcolor: sel ? alpha(p.color, 0.04) : on ? alpha(p.color, 0.02) : 'transparent',
                           cursor: on ? 'pointer' : 'not-allowed',
                           opacity: on ? 1 : 0.35,
                           textAlign: 'center',
                           transition: 'all 0.2s',
-                          '&:hover': on ? { borderColor: p.color, bgcolor: alpha(p.color, 0.06) } : {},
+                          '&:hover': on ? { borderColor: p.color, bgcolor: alpha(p.color, 0.06), boxShadow: `0 4px 12px ${alpha(p.color, 0.15)}` } : {},
+                          boxShadow: on && !sel ? `0 2px 8px ${alpha(p.color, 0.08)}` : 'none',
                           minHeight: 68,
                           display: 'flex',
                           flexDirection: 'column',
@@ -455,7 +453,7 @@ export default function PostComposer() {
                             width: 30,
                             height: 30,
                             borderRadius: 1.5,
-                            bgcolor: sel ? p.color : alpha(p.color, 0.1),
+                            bgcolor: sel ? p.color : on ? alpha(p.color, 0.15) : alpha(p.color, 0.1),
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'
@@ -470,131 +468,40 @@ export default function PostComposer() {
                 </Box>
 
                 {/* Divider */}
-                {platforms.some((p) => pages[p] || (!pages[p] && !loadingPages)) && (
+                {platforms.some((p) => pages[p]) && (
                   <Divider sx={{ my: 0.5 }} />
                 )}
 
-                {/* Page Selector for connected platforms */}
+                {/* Account info for connected platforms */}
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, width: '100%' }}>
-                  {/* Facebook */}
-                  {platforms.includes('facebook') && !loadingPages && (
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-                        <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: '#1877F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#fff' }}>F</Typography>
-                        </Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>Facebook</Typography>
-                      </Stack>
-                      {pages.facebook ? (
-                        <Stack spacing={0.5}>
-                          {pages.facebook.pages.map((page) => {
-                            const isSelected = selectedPages.facebook === page.id;
-                            const isDefault = pages.facebook.defaultPageId === page.id;
-                            return (
-                              <Box
-                                key={page.id}
-                                onClick={() => setSelectedPages((prev) => ({ ...prev, facebook: page.id }))}
-                                sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: isSelected ? '#1877F2' : 'divider', bgcolor: isSelected ? alpha('#1877F2', 0.06) : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1, transition: 'all 0.2s', '&:hover': { borderColor: '#1877F2' } }}
-                              >
-                                <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: isSelected ? '#1877F2' : 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  {isSelected ? <IconCheck size={12} style={{ color: '#fff' }} /> : <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#999' }} />}
-                                </Box>
-                                <Typography sx={{ fontWeight: 600, fontSize: '0.8rem', flex: 1 }}>{page.name}</Typography>
-                                {isDefault && <Chip label="Default" size="small" sx={{ height: 16, fontSize: '0.55rem', fontWeight: 600, bgcolor: alpha('#5E35B1', 0.1), color: '#5E35B1' }} />}
-                              </Box>
-                            );
-                          })}
-                        </Stack>
-                      ) : (
-                        <Box sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: alpha('#1877F2', 0.12), bgcolor: alpha('#1877F2', 0.02), display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: alpha('#1877F2', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#1877F2' }}>F</Typography>
+                  {platforms.map((id) => {
+                    const p = PLATFORMS.find((plat) => plat.id === id);
+                    if (!p || !pages[id] || loadingPages) return null;
+                    const account = pages[id];
+                    return (
+                      <Box key={id}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#fff' }}>{p.name[0]}</Typography>
                           </Box>
-                          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Personal profile</Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-
-                  {/* Instagram */}
-                  {platforms.includes('instagram') && !loadingPages && (
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-                        <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: '#E4405F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#fff' }}>I</Typography>
-                        </Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>Instagram</Typography>
-                      </Stack>
-                      {pages.instagram ? (
-                        <Stack spacing={0.5}>
-                          {pages.instagram.pages.map((page) => {
-                            const isSelected = selectedPages.instagram === page.id;
-                            const isDefault = pages.instagram.defaultPageId === page.id;
-                            return (
-                              <Box
-                                key={page.id}
-                                onClick={() => setSelectedPages((prev) => ({ ...prev, instagram: page.id }))}
-                                sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: isSelected ? '#E4405F' : 'divider', bgcolor: isSelected ? alpha('#E4405F', 0.06) : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1, transition: 'all 0.2s', '&:hover': { borderColor: '#E4405F' } }}
-                              >
-                                <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: isSelected ? '#E4405F' : 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  {isSelected ? <IconCheck size={12} style={{ color: '#fff' }} /> : <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#999' }} />}
-                                </Box>
-                                <Typography sx={{ fontWeight: 600, fontSize: '0.8rem', flex: 1 }}>{page.name}</Typography>
-                                {isDefault && <Chip label="Default" size="small" sx={{ height: 16, fontSize: '0.55rem', fontWeight: 600, bgcolor: alpha('#5E35B1', 0.1), color: '#5E35B1' }} />}
-                              </Box>
-                            );
-                          })}
+                          <Typography sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>{p.name}</Typography>
                         </Stack>
-                      ) : (
-                        <Box sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: alpha('#E4405F', 0.12), bgcolor: alpha('#E4405F', 0.02), display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: alpha('#E4405F', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#E4405F' }}>I</Typography>
+                        <Box sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: alpha(p.color, 0.12), bgcolor: alpha(p.color, 0.02), display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: alpha(p.color, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: p.color }}>{p.name[0]}</Typography>
                           </Box>
-                          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Personal profile</Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-
-                  {/* YouTube */}
-                  {platforms.includes('youtube') && !loadingPages && (
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-                        <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: '#FF0000', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#fff' }}>Y</Typography>
-                        </Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>YouTube</Typography>
-                      </Stack>
-                      {pages.youtube ? (
-                        <Stack spacing={0.5}>
-                          {pages.youtube.pages.map((page) => {
-                            const isSelected = selectedPages.youtube === page.id;
-                            const isDefault = pages.youtube.defaultPageId === page.id;
-                            return (
-                              <Box
-                                key={page.id}
-                                onClick={() => setSelectedPages((prev) => ({ ...prev, youtube: page.id }))}
-                                sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: isSelected ? '#FF0000' : 'divider', bgcolor: isSelected ? alpha('#FF0000', 0.06) : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1, transition: 'all 0.2s', '&:hover': { borderColor: '#FF0000' } }}
-                              >
-                                <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: isSelected ? '#FF0000' : 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  {isSelected ? <IconCheck size={12} style={{ color: '#fff' }} /> : <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#999' }} />}
-                                </Box>
-                                <Typography sx={{ fontWeight: 600, fontSize: '0.8rem', flex: 1 }}>{page.name}</Typography>
-                                {isDefault && <Chip label="Default" size="small" sx={{ height: 16, fontSize: '0.55rem', fontWeight: 600, bgcolor: alpha('#5E35B1', 0.1), color: '#5E35B1' }} />}
-                              </Box>
-                            );
-                          })}
-                        </Stack>
-                      ) : (
-                        <Box sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: alpha('#FF0000', 0.12), bgcolor: alpha('#FF0000', 0.02), display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: alpha('#FF0000', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#FF0000' }}>Y</Typography>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{account.accountName}</Typography>
+                            {account.expiresAt && (
+                              <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>
+                                Expires: {new Date(account.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </Typography>
+                            )}
                           </Box>
-                          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Personal profile</Typography>
                         </Box>
-                      )}
-                    </Box>
-                  )}
+                      </Box>
+                    );
+                  })}
                 </Box>
 
                 {loadingPages && (
@@ -788,7 +695,7 @@ export default function PostComposer() {
                         </Box>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {selectedPages.facebook && pages.facebook?.pages ? pages.facebook.pages.find((pg) => pg.id === selectedPages.facebook)?.name || 'Your Page' : 'Your Page'}
+                            {selectedPages.facebook && pages.facebook ? pages.facebook.accountName || 'Your Account' : 'Your Account'}
                           </Typography>
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <IconGlobe size={10} style={{ color: 'text.disabled' }} />
@@ -844,7 +751,7 @@ export default function PostComposer() {
                         const p = plat(id);
                         if (!p) return null;
                         const Icon = p.icon;
-                        const selectedPage = selectedPages[id] && pages[id]?.pages ? pages[id].pages.find((pg) => pg.id === selectedPages[id]) : null;
+                        const account = pages[id];
 
                         return (
                           <Box key={id} sx={{ p: 0.75, borderRadius: 1, border: '1px solid', borderColor: alpha(p.color, 0.1), bgcolor: alpha(p.color, 0.02) }}>
@@ -855,7 +762,7 @@ export default function PostComposer() {
                               <Typography sx={{ fontWeight: 600, fontSize: '0.7rem' }}>{p.name}</Typography>
                             </Stack>
                             <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {selectedPage ? selectedPage.name : 'Personal profile'}
+                              {account ? account.accountName : 'Personal profile'}
                             </Typography>
                           </Box>
                         );
@@ -1011,10 +918,10 @@ export default function PostComposer() {
                           <Box>
                             <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{p?.name}</Typography>
                             {(() => {
-                              const selectedPage = selectedPages[id] && pages[id]?.pages ? pages[id].pages.find((pg) => pg.id === selectedPages[id]) : null;
-                              return selectedPage ? (
+                              const account = pages[id];
+                              return account ? (
                                 <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {selectedPage.name}
+                                  {account.accountName}
                                 </Typography>
                               ) : null;
                             })()}
@@ -1088,7 +995,7 @@ export default function PostComposer() {
                   const p = plat(id);
                   const ok = st === 'ok';
                   const Icon = p?.icon || IconAlertCircle;
-                  const selectedPage = selectedPages[id] && pages[id]?.pages ? pages[id].pages.find((pg) => pg.id === selectedPages[id]) : null;
+                  const account = pages[id];
                   return (
                     <Stack
                       key={id}
@@ -1119,9 +1026,9 @@ export default function PostComposer() {
                       <Icon size={16} style={{ color: p?.color }} />
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{p?.name}</Typography>
-                        {selectedPage && (
+                        {account && (
                           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {selectedPage.name}
+                            {account.accountName}
                           </Typography>
                         )}
                       </Box>

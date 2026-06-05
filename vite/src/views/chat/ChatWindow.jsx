@@ -15,9 +15,10 @@ import MessageBubble from './MessageBubble';
 import EmojiPicker from './EmojiPicker';
 import { useChat } from '../../contexts/ChatContext';
 
-const primaryColor = '#0EA5E9';
-const primaryHover = '#0284C7';
-const primaryLight = '#E0F2FE';
+const primaryColor = '#8B5CF6';
+const primaryHover = '#7C3AED';
+const primaryLight = '#F3E8FF';
+const iconColor = '#475569';
 
 const formatDateLabel = (dateString) => {
   const date = new Date(dateString);
@@ -76,10 +77,7 @@ const ChatWindow = ({ isMobile }) => {
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) {
-      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
-      if (isAtBottom || messages.length <= 3) {
-        container.scrollTop = container.scrollHeight;
-      }
+      container.scrollTop = container.scrollHeight;
     }
   }, [messages]);
 
@@ -225,9 +223,10 @@ const ChatWindow = ({ isMobile }) => {
     return (
       <Paper elevation={0} sx={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100%', borderRadius: isMobile ? '12px' : '0 12px 12px 0',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
+        border: isMobile ? 'none' : '1px solid #e2e8f0',
+        boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        background: 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
       }}>
         <CircularProgress size={28} thickness={4} sx={{ color: primaryColor }} />
       </Paper>
@@ -239,10 +238,11 @@ const ChatWindow = ({ isMobile }) => {
       <Paper elevation={0} sx={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        height: '100%', borderRadius: isMobile ? '12px' : '0 12px 12px 0',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
+        border: isMobile ? 'none' : '1px solid #e2e8f0',
+        boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
         px: 4,
+        background: 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
       }}>
         <Box sx={{
           width: 72, height: 72, borderRadius: '50%',
@@ -254,10 +254,10 @@ const ChatWindow = ({ isMobile }) => {
         }}>
           <Forum sx={{ color: primaryColor, fontSize: 32 }} />
         </Box>
-        <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1.05rem', mb: 1 }}>
+        <Typography sx={{ fontWeight: 700, color: '#475569', fontSize: '1.05rem', mb: 1 }}>
           {isAdmin ? 'Select a conversation' : 'Start a conversation'}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#94a3b8', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ color: '#64748b', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
           {isAdmin ? 'Choose a conversation from the sidebar to view messages' : 'Select an admin to get started with support'}
         </Typography>
       </Paper>
@@ -267,22 +267,23 @@ const ChatWindow = ({ isMobile }) => {
   return (
     <Paper elevation={0} sx={{
       flex: 1, display: 'flex', flexDirection: 'column',
-      height: '100%', borderRadius: isMobile ? 3 : '0 12px 12px 0',
+      height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
       overflow: 'hidden',
-      border: '1px solid #e2e8f0',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+      border: isMobile ? 'none' : '1px solid #e2e8f0',
+      boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
       position: 'relative',
+      touchAction: 'manipulation',
     }}>
       <Box sx={{
-        px: { xs: 2, sm: 2.5 }, py: 0.8,
+        px: 2.25, py: 0.8,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: '1px solid #e2e8f0',
-        bgcolor: '#fff', minHeight: 52,
+        background: 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
+        minHeight: 52,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
           {isMobile && (
             <IconButton onClick={goBackToList}
-              sx={{ color: '#64748b', '&:hover': { bgcolor: primaryLight } }}>
+              sx={{ color: iconColor, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
               <ArrowBack sx={{ fontSize: 20 }} />
             </IconButton>
           )}
@@ -294,8 +295,8 @@ const ChatWindow = ({ isMobile }) => {
             sx={{
               '& .MuiBadge-badge': {
                 bgcolor: selectedChat.isOnline ? '#10b981' : '#cbd5e1',
-                width: 11, height: 11, borderRadius: '50%',
-                border: '2.5px solid #fff',
+                width: 9, height: 9, borderRadius: '50%',
+                border: '2px solid #fff',
                 boxShadow: selectedChat.isOnline ? '0 0 0 2px rgba(16,185,129,0.2)' : 'none',
               },
             }}
@@ -303,9 +304,11 @@ const ChatWindow = ({ isMobile }) => {
             <Avatar
               src={selectedChat.avatar}
               sx={{
-                width: 40, height: 40,
+                width: 38, height: 38,
                 bgcolor: primaryColor,
-                fontWeight: 600, fontSize: '1rem',
+                border: `2px solid ${primaryColor}`,
+                color: '#fff',
+                fontWeight: 600, fontSize: '0.9rem',
               }}
             >
               {(selectedChat.userName || 'U')[0]?.toUpperCase()}
@@ -313,12 +316,12 @@ const ChatWindow = ({ isMobile }) => {
           </Badge>
 
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem', lineHeight: 1.3 }}>
+            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '0.85rem', lineHeight: 1.2 }}>
               {selectedChat.userName || 'User'}
             </Typography>
             <Typography variant="caption" sx={{
-              color: selectedChat.isOnline ? '#10b981' : '#94a3b8',
-              fontSize: '0.7rem', fontWeight: 500,
+              color: selectedChat.isOnline ? '#10b981' : '#64748b',
+              fontSize: '0.65rem', fontWeight: 500,
             }}>
               {isOtherTyping ? (
                 <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -327,6 +330,7 @@ const ChatWindow = ({ isMobile }) => {
                     {[0, 1, 2].map((i) => (
                       <Box
                         key={i}
+                        component="span"
                         sx={{
                           width: 4, height: 4, borderRadius: '50%',
                           bgcolor: '#10b981',
@@ -349,7 +353,7 @@ const ChatWindow = ({ isMobile }) => {
               bgcolor: '#f8fafc', borderRadius: '8px', px: 1, py: 0.3,
               border: '1.5px solid #e2e8f0',
             }}>
-              <SearchOutlined sx={{ fontSize: 16, color: '#94a3b8' }} />
+              <SearchOutlined sx={{ fontSize: 16, color: iconColor }} />
               <input
                 autoFocus
                 placeholder="Search messages..."
@@ -371,12 +375,12 @@ const ChatWindow = ({ isMobile }) => {
                 }}
               />
               {searchTerm && (
-                <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                <Typography variant="caption" sx={{ color: iconColor, fontSize: '0.65rem', whiteSpace: 'nowrap', fontWeight: 600 }}>
                   {searchedIndices.length > 0 ? `${searchIndex + 1}/${searchedIndices.length}` : '0/0'}
                 </Typography>
               )}
               <IconButton size="small" onClick={() => { setShowSearch(false); setSearchTerm(''); }}
-                sx={{ color: '#94a3b8', p: 0.3 }}>
+                sx={{ color: iconColor, p: 0.3, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
                 <Close sx={{ fontSize: 14 }} />
               </IconButton>
             </Box>
@@ -384,25 +388,25 @@ const ChatWindow = ({ isMobile }) => {
             <>
               <Tooltip title="Search in conversation">
                 <IconButton size="small" onClick={() => setShowSearch(true)}
-                  sx={{ color: '#64748b', '&:hover': { bgcolor: primaryLight } }}>
+                  sx={{ color: iconColor, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
                   <SearchOutlined sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Audio call">
                 <IconButton size="small"
-                  sx={{ color: '#64748b', '&:hover': { bgcolor: primaryLight } }}>
+                  sx={{ color: iconColor, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
                   <CallOutlined sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Video call">
                 <IconButton size="small"
-                  sx={{ color: '#64748b', '&:hover': { bgcolor: primaryLight } }}>
+                  sx={{ color: iconColor, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
                   <VideocamOutlined sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Conversation info">
                 <IconButton size="small"
-                  sx={{ color: '#64748b', '&:hover': { bgcolor: primaryLight } }}>
+                  sx={{ color: iconColor, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
                   <InfoOutlined sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
@@ -415,8 +419,8 @@ const ChatWindow = ({ isMobile }) => {
         ref={messagesContainerRef}
         onScroll={handleScroll}
         sx={{
-          flex: 1, overflowY: 'auto', px: { xs: 1, sm: 1.5 }, py: 1,
-          bgcolor: '#fafbfc',
+          flex: 1, overflowY: 'auto', px: 1.25, py: 1,
+          background: 'linear-gradient(180deg, #fafbfc 0%, #f8f9ff 100%)',
           position: 'relative',
           '&::-webkit-scrollbar': { width: '6px' },
           '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
@@ -437,10 +441,10 @@ const ChatWindow = ({ isMobile }) => {
             }}>
               <Forum sx={{ color: primaryColor, fontSize: 24 }} />
             </Box>
-            <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.9rem', mb: 0.5 }}>
+            <Typography sx={{ color: '#475569', fontWeight: 600, fontSize: '0.9rem', mb: 0.5 }}>
               No messages yet
             </Typography>
-            <Typography sx={{ color: '#94a3b8', fontSize: '0.8rem', textAlign: 'center', maxWidth: 220, lineHeight: 1.5 }}>
+            <Typography sx={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', maxWidth: 220, lineHeight: 1.5 }}>
               Send a message to start the conversation
             </Typography>
           </Box>
@@ -458,7 +462,7 @@ const ChatWindow = ({ isMobile }) => {
                   }}>
                     <Box sx={{ flex: 1, height: '1px', bgcolor: '#e2e8f0' }} />
                     <Typography variant="caption" sx={{
-                      color: '#94a3b8',
+                      color: '#64748b',
                       fontWeight: 600,
                       fontSize: '0.68rem',
                       whiteSpace: 'nowrap',
@@ -518,9 +522,8 @@ const ChatWindow = ({ isMobile }) => {
       </Box>
 
       <Box sx={{
-        px: { xs: 2, sm: 2.5 }, py: 1,
-        borderTop: '1px solid #e2e8f0',
-        bgcolor: '#fff',
+        px: 2.25, py: 1,
+        background: 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
         position: 'relative',
       }}>
         {replyTo && (
@@ -542,14 +545,14 @@ const ChatWindow = ({ isMobile }) => {
               </Typography>
             </Box>
             <IconButton size="small" onClick={clearReply}
-              sx={{ color: '#94a3b8', p: 0.3, mt: 0.2, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}>
+              sx={{ color: iconColor, p: 0.3, mt: 0.2, '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
               <Close sx={{ fontSize: 14 }} />
             </IconButton>
           </Box>
         )}
 
           <Box sx={{ display: 'flex', gap: 0.2, alignItems: 'center' }}>
-            <IconButton onClick={(e) => setEmojiAnchor(e.currentTarget)} sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+            <IconButton onClick={(e) => setEmojiAnchor(e.currentTarget)} sx={{ color: iconColor, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
               <EmojiEmotionsOutlined sx={{ fontSize: 17 }} />
             </IconButton>
 
@@ -567,7 +570,7 @@ const ChatWindow = ({ isMobile }) => {
                 '& .MuiOutlinedInput-root': {
                   bgcolor: 'transparent',
                   borderRadius: '12px',
-                  fontSize: { xs: '16px', sm: '0.9rem' },
+                  fontSize: '16px',
                   '& fieldset': { borderColor: 'transparent', borderWidth: '0' },
                   '&:hover fieldset': { borderColor: 'transparent' },
                   '&.Mui-focused fieldset': {
@@ -580,6 +583,7 @@ const ChatWindow = ({ isMobile }) => {
                 '& .MuiInputBase-input': {
                   color: '#0f172a',
                   '&::placeholder': { color: 'transparent' },
+                  touchAction: 'manipulation',
                 },
               }}
             />
@@ -589,7 +593,7 @@ const ChatWindow = ({ isMobile }) => {
               disabled={!isConnected || !message.trim()}
               sx={{
                 bgcolor: message.trim() ? primaryColor : 'transparent',
-                color: message.trim() ? '#fff' : '#64748b',
+                color: message.trim() ? '#fff' : iconColor,
                 width: 32, height: 32,
                 borderRadius: '10px',
                 '&:hover': message.trim() ? { bgcolor: primaryHover, transform: 'translateY(-1px)', boxShadow: `0 4px 12px ${primaryColor}40` } : { bgcolor: primaryLight, color: primaryColor },
@@ -600,39 +604,26 @@ const ChatWindow = ({ isMobile }) => {
               <SendRounded sx={{ fontSize: 17 }} />
             </IconButton>
 
-            <IconButton sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+            <IconButton sx={{ color: iconColor, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
               <AddPhotoAlternateOutlined sx={{ fontSize: 17 }} />
             </IconButton>
 
-            <IconButton sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+            <IconButton sx={{ color: iconColor, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
               <AttachFileOutlined sx={{ fontSize: 17 }} />
             </IconButton>
 
-            <IconButton sx={{ color: '#64748b', width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
+            <IconButton sx={{ color: iconColor, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primaryLight, color: primaryColor } }}>
               <MicOutlined sx={{ fontSize: 17 }} />
             </IconButton>
           </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.5 }}>
           <Typography variant="caption" sx={{
-            color: '#94a3b8', fontSize: '0.6rem',
-            letterSpacing: '0.02em',
+            color: '#64748b', fontSize: '0.6rem',
+            letterSpacing: '0.02em', fontWeight: 500,
           }}>
             End-to-end encrypted · Abbsium Chat
           </Typography>
-
-          {readReceiptInfo.unreadCount > 0 && (
-            <Typography variant="caption" sx={{
-              color: '#64748b', fontSize: '0.6rem',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.3,
-            }}>
-              <Done sx={{ fontSize: 10 }} />
-              {readReceiptInfo.unreadCount} unread
-            </Typography>
-          )}
         </Box>
       </Box>
 
@@ -648,14 +639,14 @@ const ChatWindow = ({ isMobile }) => {
             right: { xs: 24, sm: 40 },
             bgcolor: '#fff',
             border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            boxShadow: '0 2px 8px rgba(139,92,246,0.15)',
             width: 34, height: 34,
-            '&:hover': { bgcolor: '#f8fafc', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' },
+            '&:hover': { bgcolor: primaryLight, color: primaryColor, boxShadow: '0 4px 12px rgba(139,92,246,0.2)' },
             zIndex: 10,
             transition: 'all 0.2s ease',
           }}
         >
-          <KeyboardArrowDown sx={{ fontSize: 18, color: '#64748b' }} />
+          <KeyboardArrowDown sx={{ fontSize: 18 }} />
         </IconButton>
       </Fade>
 

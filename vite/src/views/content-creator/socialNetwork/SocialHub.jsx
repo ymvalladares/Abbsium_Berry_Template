@@ -1,13 +1,42 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  Box, Typography, Stack, Button, Divider, alpha, TextField, InputAdornment, Chip,
-  LinearProgress, Tooltip, IconButton, Collapse, useMediaQuery, useTheme, CircularProgress
+  Box,
+  Typography,
+  Stack,
+  Button,
+  TextField,
+  InputAdornment,
+  Chip,
+  useMediaQuery,
+  useTheme,
+  CircularProgress,
+  Checkbox,
+  IconButton,
+  alpha,
+  Dialog,
+  Fade
 } from '@mui/material';
 import {
-  IconBrandFacebook, IconBrandInstagram, IconBrandYoutube, IconBrandTiktok,
-  IconBrandTwitter, IconBrandLinkedin, IconBrandPinterest,
-  IconCheck, IconPlus, IconLogout, IconSearch, IconWifi, IconAlertCircle,
-  IconChevronDown, IconChartBar, IconUsers, IconRefresh, IconClock
+  IconBrandFacebook,
+  IconBrandInstagram,
+  IconBrandYoutube,
+  IconBrandTiktok,
+  IconBrandTwitter,
+  IconBrandLinkedin,
+  IconBrandPinterest,
+  IconCheck,
+  IconPlus,
+  IconLogout,
+  IconSearch,
+  IconRefresh,
+  IconChecklist,
+  IconAlertCircle,
+  IconX,
+  IconUsers,
+  IconChartBar,
+  IconCalendar,
+  IconClock,
+  IconTrendingUp
 } from '@tabler/icons-react';
 import { socialAPI } from '../../../services/AxiosService';
 import { showSnackbar } from '../../../utils/snackbarNotif';
@@ -30,6 +59,156 @@ const connectMethods = {
   TikTok: socialAPI.connectTikTok.bind(socialAPI)
 };
 
+function ConnectionModal({ open, onClose, platform, conn }) {
+  if (!platform || !conn) return null;
+  const Icon = platform.icon;
+
+  const stats = [
+    {
+      label: 'Account Name',
+      value: conn?.accountName || '—',
+      icon: IconUsers,
+      color: '#8b5cf6'
+    },
+    {
+      label: 'Status',
+      value: conn?.isActive ? 'Active' : 'Inactive',
+      icon: IconCheck,
+      color: conn?.isActive ? '#22c55e' : '#f59e0b'
+    },
+    {
+      label: 'Connected Since',
+      value: conn?.createdAt
+        ? new Date(conn.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '—',
+      icon: IconCalendar,
+      color: '#3b82f6'
+    },
+    {
+      label: 'Token Expires',
+      value: conn?.expiresAt
+        ? new Date(conn.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '—',
+      icon: IconClock,
+      color: '#f59e0b'
+    }
+  ];
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' } }}
+      TransitionComponent={Fade}
+      transitionDuration={200}
+    >
+      <Box sx={{ position: 'relative' }}>
+        <Box
+          sx={{
+            height: 80,
+            background: `linear-gradient(135deg, ${platform.color}, ${alpha(platform.color, 0.7)})`,
+            display: 'flex',
+            alignItems: 'center',
+            px: 3,
+            gap: 2
+          }}
+        >
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 2.5,
+              bgcolor: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }}
+          >
+            <Icon size={24} style={{ color: platform.color }} />
+          </Box>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>
+              {platform.name}
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#fff', 0.8), fontSize: '0.85rem' }}>
+              {conn?.accountName || platform.name}
+            </Typography>
+          </Box>
+        </Box>
+
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            bgcolor: alpha('#fff', 0.2),
+            color: '#fff',
+            '&:hover': { bgcolor: alpha('#fff', 0.3) }
+          }}
+        >
+          <IconX size={18} />
+        </IconButton>
+
+        <Box sx={{ p: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2.5 }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: conn?.isActive ? '#22c55e' : '#f59e0b',
+                boxShadow: conn?.isActive ? '0 0 8px rgba(34,197,94,0.4)' : '0 0 8px rgba(245,158,11,0.4)'
+              }}
+            />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: conn?.isActive ? '#22c55e' : '#f59e0b' }}>
+              {conn?.isActive ? 'Connected & Active' : 'Connected & Inactive'}
+            </Typography>
+          </Stack>
+
+          <Stack spacing={1.5}>
+            {stats.map((stat) => {
+              const StatIcon = stat.icon;
+              return (
+                <Box key={stat.label} sx={{ p: 1.5, borderRadius: 2, bgcolor: 'grey.50', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 2,
+                      bgcolor: alpha(stat.color, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}
+                  >
+                    <StatIcon size={18} style={{ color: stat.color }} />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.disabled', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                    >
+                      {stat.label}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                      {stat.value}
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Stack>
+        </Box>
+      </Box>
+    </Dialog>
+  );
+}
+
 export default function SocialHub() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -38,36 +217,49 @@ export default function SocialHub() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
-  const [expandedId, setExpandedId] = useState(null);
   const [connecting, setConnecting] = useState({});
-  const connectingRef = useRef(connecting);
-
-  useEffect(() => {
-    connectingRef.current = connecting;
-  }, [connecting]);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
+  const [modalPlatform, setModalPlatform] = useState(null);
+  const [modalConn, setModalConn] = useState(null);
 
   const fetchStatus = useCallback(async () => {
     try {
       const res = await socialAPI.checkConnections();
       const map = {};
       PLATFORMS.forEach((p) => {
-        map[p.name] = { connected: false, expiresAt: null, accountName: null, providerAccountId: null, scope: '—', health: 0, followers: '—', connectedAt: null, postsCount: 0, status: 'inactive' };
+        map[p.name] = {
+          id: null,
+          connected: false,
+          isActive: false,
+          expiresAt: null,
+          createdAt: null,
+          providerAccountId: null,
+          scope: null,
+          accountName: null
+        };
       });
-
+      const providerNameMap = {
+        facebook: 'Facebook',
+        instagram: 'Instagram',
+        youtube: 'YouTube',
+        tiktok: 'TikTok',
+        twitter: 'X (Twitter)',
+        linkedin: 'LinkedIn',
+        pinterest: 'Pinterest'
+      };
       res.data.forEach((item) => {
-        const key = item.provider.charAt(0).toUpperCase() + item.provider.slice(1);
+        const key = providerNameMap[item.provider] || item.provider.charAt(0).toUpperCase() + item.provider.slice(1);
         if (map.hasOwnProperty(key)) {
           map[key] = {
+            id: item.id || null,
             connected: item.connected,
+            isActive: item.isActive,
             expiresAt: item.expiresAt,
-            accountName: item.accountName || key,
-            providerAccountId: item.providerAccountId || null,
-            scope: item.scope || '—',
-            health: item.health ?? (item.connected ? 90 : 0),
-            followers: item.followers || '—',
-            connectedAt: item.connectedAt || null,
-            postsCount: item.postsCount || 0,
-            status: item.connected ? (item.expiresAt && new Date(item.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) ? 'expiring' : 'active') : 'inactive'
+            createdAt: item.createdAt,
+            providerAccountId: item.providerAccountId,
+            scope: item.scope,
+            accountName: item.accountName || key
           };
         }
       });
@@ -84,13 +276,25 @@ export default function SocialHub() {
   }, [fetchStatus]);
 
   useEffect(() => {
-    // Storage listener is handled by openPopup in AxiosService.js
-    // No need for a duplicate listener here
-  }, []);
+    const handleAuthResult = (e) => {
+      if (e.key !== 'social_auth_result' || !e.newValue) return;
+      try {
+        const result = JSON.parse(e.newValue);
+        if (!result || !result.ts || Date.now() - result.ts > 30000) return;
+        if (result.type === 'AUTH_SUCCESS') {
+          localStorage.removeItem('social_auth_result');
+          setTimeout(() => fetchStatus(), 500);
+        } else if (result.type === 'AUTH_ERROR') {
+          localStorage.removeItem('social_auth_result');
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', handleAuthResult);
+    return () => window.removeEventListener('storage', handleAuthResult);
+  }, [fetchStatus]);
 
   const handleConnect = useCallback((platform) => {
     setConnecting((prev) => ({ ...prev, [platform]: true }));
-
     const method = connectMethods[platform];
     if (method) {
       method(() => {
@@ -98,109 +302,276 @@ export default function SocialHub() {
         fetchStatus();
       });
     }
-  }, [fetchStatus]);
+  }, []);
 
   const handleDisconnect = async (platform) => {
     try {
-      const res = await socialAPI.disconnect(platform);
+      await socialAPI.disconnect(platform);
       setConnections((prev) => ({
         ...prev,
-        [platform]: { connected: false, expiresAt: null, accountName: null, providerAccountId: null, scope: '—', health: 0, followers: '—', connectedAt: null, postsCount: 0, status: 'inactive' }
+        [platform]: {
+          id: null,
+          connected: false,
+          isActive: false,
+          expiresAt: null,
+          createdAt: null,
+          providerAccountId: null,
+          scope: null,
+          accountName: null
+        }
       }));
-      if (expandedId === platform) setExpandedId(null);
-      showSnackbar(res.data?.message || `${platform} disconnected successfully`, 'success');
+      if (modalPlatform === platform) setModalPlatform(null);
+      showSnackbar(`${platform} disconnected`, 'success');
     } catch (err) {
       showSnackbar(err?.response?.data?.error || `Failed to disconnect ${platform}`, 'error');
     }
   };
 
-  const connectedCount = Object.values(connections).filter((x) => x?.connected).length;
+  const toggleSelect = (platform) =>
+    setSelectedPlatforms((prev) => (prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]));
+  const selectAllDisconnected = () => setSelectedPlatforms(PLATFORMS.filter((p) => !connections[p.name]?.connected).map((p) => p.name));
+  const clearSelection = () => {
+    setSelectedPlatforms([]);
+    setSelectMode(false);
+  };
 
+  const handleMultiConnect = () => {
+    if (selectedPlatforms.length === 0) return;
+    const available = selectedPlatforms.filter((p) => connectMethods[p]);
+    socialAPI.connectMultiple(
+      available,
+      () => {},
+      async (results) => {
+        clearSelection();
+        const successCount = Object.values(results).filter(Boolean).length;
+        if (successCount > 0) showSnackbar(`${successCount} platform${successCount > 1 ? 's' : ''} connected`, 'success');
+        await fetchStatus();
+      }
+    );
+  };
+
+  const openModal = (platform) => {
+    setModalPlatform(platform);
+    setModalConn(connections[platform.name]);
+  };
+
+  const connectedCount = Object.values(connections).filter((x) => x?.connected).length;
   const filtered = PLATFORMS.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const isConnected = connections[p.name]?.connected;
     if (filter === 'connected') return matchesSearch && isConnected;
-    if (filter === 'disconnected') return matchesSearch && !isConnected;
+    if (filter === 'available') return matchesSearch && !isConnected;
     return matchesSearch;
   });
 
   if (loading) return <Loader />;
 
-  const getHealthColor = (health) => {
-    if (health >= 90) return '#4CAF50';
-    if (health >= 70) return '#FF9800';
-    return '#f44336';
-  };
-
   return (
-    <Box sx={{ py: { xs: 2, sm: 3, md: 4 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: { xs: '100%', lg: '75%' }, maxWidth: { xs: '100%', sm: 900, md: 1100, lg: '100%' }, px: { xs: 2, sm: 3, md: 4 } }}>
-        {/* Header */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: { xs: 2, sm: 3 }, gap: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' } }}>
-              Social Networks
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
-              Connect and manage your social media accounts
-            </Typography>
-          </Box>
-
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
-            <Chip label={`${connectedCount} connected`} sx={{ px: 2, py: 0.75, borderRadius: 2, bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50', fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.85rem' } }} />
-            <Button variant="contained" size="small" startIcon={<IconRefresh size={isMobile ? 14 : 16} />} onClick={fetchStatus} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.85rem' }, px: { xs: 1.5, sm: 2 }, background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)', '&:hover': { background: 'linear-gradient(135deg, #512DA8, #651FFF)' } }}>
-              {isMobile ? 'Sync' : 'Sync All'}
+    <Box sx={{ py: { xs: 3, sm: 5 }, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ width: { xs: '100%', lg: '80%' }, px: { xs: 2, sm: 4, md: 6 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Chip
+              label={`${connectedCount}/${PLATFORMS.length} connected`}
+              size="small"
+              sx={{ borderRadius: 1.5, fontWeight: 600, bgcolor: alpha('#22c55e', 0.1), color: '#22c55e', fontSize: '0.75rem' }}
+            />
+            <Button
+              size="small"
+              variant={selectMode ? 'contained' : 'outlined'}
+              startIcon={<IconChecklist size={16} />}
+              onClick={() => {
+                if (selectMode) clearSelection();
+                else setSelectMode(true);
+              }}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.8rem',
+                ...(selectMode && { bgcolor: '#8b5cf6', '&:hover': { bgcolor: alpha('#8b5cf6', 0.85) } })
+              }}
+            >
+              {selectMode ? 'Done' : 'Select All'}
             </Button>
           </Stack>
+          <IconButton size="small" onClick={fetchStatus} sx={{ bgcolor: 'action.hover', '&:hover': { bgcolor: 'action.selected' } }}>
+            <IconRefresh size={16} />
+          </IconButton>
         </Stack>
 
-        {/* Quick Stats */}
-        {connectedCount > 0 && (
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
-            {[
-              { label: 'Active Connections', value: `${connectedCount}/${PLATFORMS.length}`, icon: IconWifi, color: '#4CAF50' },
-              { label: 'Platforms Ready', value: `${PLATFORMS.length - connectedCount} pending`, icon: IconClock, color: '#FF9800' }
-            ].map((stat) => (
-              <Box key={stat.label} sx={{ flex: { sm: 1 }, p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, borderRadius: 2, bgcolor: alpha(stat.color, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <stat.icon size={isMobile ? 16 : 18} style={{ color: stat.color }} />
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' }, fontWeight: 600, display: 'block' }}>{stat.label}</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 700, fontSize: { xs: '1rem', sm: '1.1rem' } }}>{stat.value}</Typography>
-                  </Box>
-                </Stack>
-              </Box>
-            ))}
-          </Stack>
-        )}
-
-        {/* Security Notice */}
-        <Box sx={{ borderRadius: '12px 12px 0 0', px: { xs: 1.5, sm: 2 }, py: { xs: 0.75, sm: 1 }, bgcolor: alpha('#6b7280', 0.06), border: '1px solid', borderColor: alpha('#6b7280', 0.12), borderBottom: 'none', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconAlertCircle size={14} color="#9ca3af" style={{ flexShrink: 0 }} />
-          <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.4, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-            Connections use OAuth 2.0 secure authentication. Your credentials are never stored on our servers.
-          </Typography>
+        <Box
+          sx={{
+            mb: 3,
+            p: 1.5,
+            borderRadius: 2.5,
+            background: `linear-gradient(135deg, ${alpha('#8b5cf6', 0.08)}, ${alpha('#3b82f6', 0.06)})`,
+            border: `1px solid ${alpha('#8b5cf6', 0.15)}`,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2
+          }}
+        >
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              bgcolor: alpha('#8b5cf6', 0.12),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}
+          >
+            <IconAlertCircle size={20} style={{ color: '#8b5cf6' }} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25, fontSize: '0.9rem' }}>
+              Your Privacy Matters
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.5 }}>
+              We use secure OAuth 2.0 authentication. Your social media credentials are never stored on our servers
+            </Typography>
+          </Box>
         </Box>
 
-        {/* Main Panel */}
-        <Box sx={{ borderRadius: '0 0 12px 12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', overflow: 'hidden' }}>
-          {/* Toolbar */}
-          <Box sx={{ p: { xs: 1.5, sm: 2 }, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1.5, sm: 2 }, alignItems: { xs: 'stretch', sm: 'center' } }}>
-            <TextField size="small" placeholder="Search platforms..." value={search} onChange={(e) => setSearch(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><IconSearch size={16} style={{ color: '#9ca3af' }} /></InputAdornment>), sx: { borderRadius: 2, bgcolor: 'grey.50', '& fieldset': { border: 'none' } } }} sx={{ flex: 1, maxWidth: { sm: 280 } }} />
-            <Stack direction="row" spacing={0.5} sx={{ justifyContent: { xs: 'center', sm: 'flex-start' } }}>
-              {[{ key: 'all', label: 'All' }, { key: 'connected', label: 'Connected' }, { key: 'disconnected', label: 'Disconnected' }].map((f) => (
-                <Chip key={f.key} label={f.label} size="small" variant={filter === f.key ? 'filled' : 'outlined'} onClick={() => setFilter(f.key)} sx={{ borderRadius: 1.5, fontWeight: 600, fontSize: '0.75rem', ...(filter === f.key && { bgcolor: '#5E35B1', color: '#fff', borderColor: '#5E35B1' }) }} />
-              ))}
+        {selectMode && (
+          <Box
+            sx={{
+              mb: 2,
+              p: 2,
+              borderRadius: 2.5,
+              bgcolor: alpha('#8b5cf6', 0.04),
+              border: `1px solid ${alpha('#8b5cf6', 0.12)}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 1.5
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Checkbox
+                size="small"
+                checked={
+                  selectedPlatforms.length === PLATFORMS.filter((p) => !connections[p.name]?.connected).length &&
+                  PLATFORMS.filter((p) => !connections[p.name]?.connected).length > 0
+                }
+                onChange={(e) => {
+                  if (e.target.checked) selectAllDisconnected();
+                  else setSelectedPlatforms([]);
+                }}
+                sx={{ p: 0.5 }}
+              />
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                {selectedPlatforms.length > 0
+                  ? `${selectedPlatforms.length} platform${selectedPlatforms.length > 1 ? 's' : ''} selected`
+                  : 'Select platforms to connect'}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                onClick={clearSelection}
+                sx={{
+                  borderRadius: 1.5,
+                  px: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  color: 'text.secondary'
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                disabled={selectedPlatforms.length === 0}
+                onClick={handleMultiConnect}
+                sx={{
+                  borderRadius: 2,
+                  px: 2.5,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  bgcolor: '#8b5cf6',
+                  '&:hover': { bgcolor: alpha('#8b5cf6', 0.85) }
+                }}
+              >
+                Connect {selectedPlatforms.length > 0 ? `(${selectedPlatforms.length})` : ''}
+              </Button>
             </Stack>
           </Box>
+        )}
 
-          {/* Platform List */}
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <TextField
+            size="small"
+            placeholder="Search platforms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconSearch size={15} style={{ color: '#9ca3af' }} />
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: 2,
+                '& fieldset': { border: 'none' },
+                bgcolor: '#fff',
+                fontSize: '0.85rem',
+                height: 38,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+              }
+            }}
+            sx={{ width: { xs: '100%', sm: 320 } }}
+          />
+          <Box
+            sx={{
+              p: 0.5,
+              borderRadius: 2,
+              bgcolor: '#fff',
+              display: 'flex',
+              gap: 0.5,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              flexShrink: 0
+            }}
+          >
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'connected', label: 'Connected' },
+              { key: 'available', label: 'Available' }
+            ].map((f) => (
+              <Button
+                key={f.key}
+                size="small"
+                onClick={() => setFilter(f.key)}
+                sx={{
+                  borderRadius: 1.5,
+                  px: { xs: 1.5, sm: 2 },
+                  py: 0.4,
+                  fontWeight: 500,
+                  fontSize: '0.75rem',
+                  textTransform: 'none',
+                  color: filter === f.key ? '#fff' : 'text.secondary',
+                  bgcolor: filter === f.key ? 'text.primary' : 'transparent',
+                  '&:hover': { bgcolor: filter === f.key ? 'text.primary' : alpha('#000', 0.04) },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {f.label}
+              </Button>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
           {filtered.length === 0 ? (
             <Box sx={{ p: 6, textAlign: 'center' }}>
-              <IconSearch size={40} style={{ color: '#d1d5db', margin: '0 auto 12px' }} />
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>No platforms found</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                No platforms found
+              </Typography>
             </Box>
           ) : (
             filtered.map((platform, idx) => {
@@ -208,262 +579,153 @@ export default function SocialHub() {
               const isConnected = conn?.connected;
               const isConnecting = connecting[platform.name] || false;
               const Icon = platform.icon;
-              const isExpanded = expandedId === platform.name;
 
               return (
-                <Box key={platform.name}>
+                <Box
+                  key={platform.name}
+                  onClick={() => isConnected && openModal(platform.name)}
+                  sx={{
+                    py: { xs: 1, sm: 1.25 },
+                    px: { xs: 1.5, sm: 2 },
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    transition: 'all 0.15s',
+                    cursor: isConnected ? 'pointer' : 'default',
+                    bgcolor: isConnected ? alpha(platform.color, 0.02) : 'transparent',
+                    '&:hover': { bgcolor: isConnected ? alpha(platform.color, 0.05) : 'action.hover' },
+                    borderBottom: idx < filtered.length - 1 ? '1px solid' : 'none',
+                    borderColor: 'divider'
+                  }}
+                >
+                  {selectMode && !isConnected && (
+                    <Checkbox
+                      size="small"
+                      checked={selectedPlatforms.includes(platform.name)}
+                      onChange={() => toggleSelect(platform.name)}
+                      sx={{ p: 0, mr: -0.5 }}
+                    />
+                  )}
+
                   <Box
                     sx={{
-                      p: { xs: 1.5, sm: 2 },
+                      width: 36,
+                      height: 36,
+                      borderRadius: 2,
                       display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: { xs: 'flex-start', sm: 'center' },
-                      gap: { xs: 1.5, sm: 2 },
-                      cursor: isConnected ? 'pointer' : 'default',
-                      transition: 'all 0.2s',
-                      ...(isConnected
-                        ? {
-                            bgcolor: isExpanded ? alpha(platform.color, 0.03) : 'transparent',
-                            borderLeft: `3px solid ${alpha(platform.color, isExpanded ? 0.6 : 0)}`,
-                            '&:hover': { bgcolor: alpha(platform.color, 0.04) }
-                          }
-                        : {
-                            borderLeft: '3px solid transparent',
-                            '&:hover': { bgcolor: 'grey.50' }
-                          })
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: isConnected ? platform.color : '#fff',
+                      border: `1px solid ${isConnected ? 'transparent' : alpha(platform.color, 0.15)}`,
+                      boxShadow: isConnected ? `0 3px 8px ${alpha(platform.color, 0.25)}` : '0 1px 3px rgba(0,0,0,0.04)',
+                      flexShrink: 0,
+                      transition: 'all 0.2s'
                     }}
-                    onClick={() => isConnected && setExpandedId(isExpanded ? null : platform.name)}
                   >
-                    <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, width: '100%' }}>
-                      {/* Icon with glow effect for connected */}
-                      <Box sx={{ position: 'relative' }}>
-                        {isConnected && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              inset: -2,
-                              borderRadius: 2.5,
-                              bgcolor: alpha(platform.color, 0.15),
-                              filter: 'blur(4px)',
-                              zIndex: 0
-                            }}
-                          />
-                        )}
-                        <Box
-                          sx={{
-                            width: { xs: 36, sm: 40 },
-                            height: { xs: 36, sm: 40 },
-                            borderRadius: 2,
-                            bgcolor: isConnecting ? alpha(platform.color, 0.2) : isConnected ? alpha(platform.color, 0.12) : alpha(platform.color, 0.08),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            position: 'relative',
-                            zIndex: 1,
-                            border: isConnected ? `1px solid ${alpha(platform.color, 0.2)}` : '1px solid transparent',
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          {isConnecting ? (
-                            <CircularProgress size={20} thickness={4} sx={{ color: platform.color, position: 'absolute' }} />
-                          ) : (
-                            <Icon size={isMobile ? 18 : 20} style={{ color: platform.color }} />
-                          )}
-                        </Box>
-                      </Box>
-
-                      {/* Info */}
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.25 }}>
-                          <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', sm: '0.95rem' }, color: isConnected ? 'text.primary' : 'text.secondary' }}>
-                            {platform.name}
-                          </Typography>
-                          {isConnected && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#4CAF50', boxShadow: `0 0 6px ${alpha('#4CAF50', 0.4)}` }} />
-                            </Box>
-                          )}
-                        </Stack>
-                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.75rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {isConnecting ? 'Connecting...' : isConnected ? (conn?.accountName || platform.name) : platform.desc}
-                        </Typography>
-                      </Box>
-
-                      {/* Right side */}
-                      {!isMobile && !isConnecting && (
-                        isConnected ? (
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Tooltip title="Expand details">
-                              <IconButton size="small" sx={{ color: 'text.secondary', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                                <IconChevronDown size={16} />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        ) : (
-                          <Chip icon={<IconAlertCircle size={14} />} label="Not connected" size="small" sx={{ borderRadius: 1.5, bgcolor: 'grey.100', color: 'text.secondary', fontSize: '0.75rem', height: 24 }} />
-                        )
-                      )}
-
-                      {isMobile && !isConnecting && (
-                        isConnected ? (
-                          <IconButton size="small" sx={{ color: 'text.secondary', ml: 'auto', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                            <IconChevronDown size={16} />
-                          </IconButton>
-                        ) : (
-                          <Chip icon={<IconAlertCircle size={12} />} label="Not connected" size="small" sx={{ borderRadius: 1.5, bgcolor: 'grey.100', color: 'text.secondary', fontSize: '0.7rem', height: 22 }} />
-                        )
-                      )}
-                    </Stack>
-
-                    <Button
-                      variant={isConnected ? 'outlined' : 'contained'}
-                      size="small"
-                      disabled={isConnecting}
-                      startIcon={
-                        isConnecting ? (
-                          <CircularProgress size={14} thickness={4} sx={{ color: isConnected ? 'text.secondary' : '#fff' }} />
-                        ) : isConnected ? (
-                          <IconLogout size={isMobile ? 14 : 16} />
-                        ) : (
-                          <IconPlus size={isMobile ? 14 : 16} />
-                        )
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        isConnected ? handleDisconnect(platform.name) : handleConnect(platform.name);
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        px: { xs: 1.5, sm: 2 },
-                        py: { xs: 0.6, sm: 0.75 },
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        fontSize: { xs: '0.8rem', sm: '0.85rem' },
-                        minWidth: { xs: '100%', sm: 120 },
-                        ...(isConnected
-                          ? {
-                              borderColor: alpha('#f44336', 0.3),
-                              color: '#f44336',
-                              '&:hover': { borderColor: '#f44336', bgcolor: alpha('#f44336', 0.04) }
-                            }
-                          : { bgcolor: platform.color, '&:hover': { bgcolor: alpha(platform.color, 0.9) } })
-                      }}
-                    >
-                      {isConnecting ? 'Connecting...' : isConnected ? 'Disconnect' : 'Connect'}
-                    </Button>
+                    {isConnecting ? (
+                      <CircularProgress size={16} thickness={4} sx={{ color: isConnected ? '#fff' : platform.color }} />
+                    ) : (
+                      <Icon size={18} style={{ color: isConnected ? '#fff' : platform.color }} />
+                    )}
                   </Box>
 
-                  <Collapse in={isConnected && isExpanded}>
-                    <Box
-                      sx={{
-                        mx: { xs: 1.5, sm: 2 },
-                        mb: 2,
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: alpha(platform.color, 0.15),
-                        bgcolor: 'background.paper'
-                      }}
-                    >
-                      {/* Health Header */}
-                      <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: alpha(getHealthColor(conn?.health ?? 0), 0.06), borderBottom: '1px solid', borderColor: 'divider' }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            Connection Health
-                          </Typography>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: getHealthColor(conn?.health ?? 0), fontSize: '0.85rem' }}>
-                            {conn?.health ?? 0}%
-                          </Typography>
-                        </Stack>
-                        <LinearProgress
-                          variant="determinate"
-                          value={conn?.health ?? 0}
-                          sx={{
-                            height: 4,
-                            borderRadius: 2,
-                            bgcolor: alpha(getHealthColor(conn?.health ?? 0), 0.15),
-                            '& .MuiLinearProgress-bar': { borderRadius: 2, bgcolor: getHealthColor(conn?.health ?? 0), transition: 'transform 0.5s ease' }
-                          }}
-                        />
-                      </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {platform.name}
+                      </Typography>
+                      {isConnected && <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#22c55e' }} />}
+                    </Stack>
+                    {isConnected ? (
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.78rem' }}>
+                        {conn?.accountName || platform.name}
+                      </Typography>
+                    ) : (
+                      <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.78rem' }}>
+                        {platform.desc}
+                      </Typography>
+                    )}
+                  </Box>
 
-                      {/* Stats Grid */}
-                      <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} divider={<Divider orientation="vertical" flexItem sx={{ mx: { sm: 2 } }} />} spacing={{ xs: 1.5 }}>
-                          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: alpha('#5E35B1', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <IconUsers size={16} style={{ color: '#5E35B1' }} />
-                            </Box>
-                            <Box>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', fontWeight: 600, display: 'block' }}>Followers</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{conn?.followers ?? '—'}</Typography>
-                            </Box>
-                          </Box>
-                          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: alpha('#2196f3', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <IconChartBar size={16} style={{ color: '#2196f3' }} />
-                            </Box>
-                            <Box>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', fontWeight: 600, display: 'block' }}>Posts Published</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{conn?.postsCount ?? 0}</Typography>
-                            </Box>
-                          </Box>
-                          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: alpha('#f44336', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <IconClock size={16} style={{ color: '#f44336' }} />
-                            </Box>
-                            <Box>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', fontWeight: 600, display: 'block' }}>Expires</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
-                                {conn?.expiresAt ? new Date(conn.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
-                              </Typography>
-                            </Box>
-                          </Box>
-                          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: alpha('#4CAF50', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <IconCheck size={16} style={{ color: '#4CAF50' }} />
-                            </Box>
-                            <Box>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', fontWeight: 600, display: 'block' }}>Connected Since</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
-                                {conn?.connectedAt ? new Date(conn.connectedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
-                              </Typography>
-                            </Box>
-                          </Box>
-                          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box
-                              sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 1.5,
-                                bgcolor: conn?.status === 'active' ? alpha('#4CAF50', 0.08) : conn?.status === 'expiring' ? alpha('#FF9800', 0.08) : alpha('#9ca3af', 0.08),
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                              }}
-                            >
-                              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: conn?.status === 'active' ? '#4CAF50' : conn?.status === 'expiring' ? '#FF9800' : '#9ca3af' }} />
-                            </Box>
-                            <Box>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', fontWeight: 600, display: 'block' }}>Status</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem', color: conn?.status === 'active' ? '#4CAF50' : conn?.status === 'expiring' ? '#FF9800' : '#9ca3af' }}>
-                                {conn?.status === 'expiring' ? 'Expiring Soon' : conn?.status === 'active' ? 'Active' : 'Inactive'}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Stack>
+                  {isConnected && (
+                    <Stack direction="row" spacing={2.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
+                      <Box sx={{ textAlign: 'center' }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: 600, fontSize: '0.85rem', display: 'block', color: conn?.isActive ? 'text.primary' : 'text.disabled' }}
+                        >
+                          {conn?.isActive ? 'Active' : 'Inactive'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem' }}>
+                          Status
+                        </Typography>
                       </Box>
-                    </Box>
-                  </Collapse>
+                      <Box sx={{ textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.85rem', display: 'block' }}>
+                          {conn?.expiresAt
+                            ? new Date(conn.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : '—'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem' }}>
+                          Expires
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  )}
 
-                  {idx < filtered.length - 1 && <Divider sx={{ ml: { xs: 'calc(36px + 16px)', sm: 'calc(40px + 16px)' } }} />}
+                  <Button
+                    size="small"
+                    disabled={isConnecting || (selectMode && !isConnected)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      isConnected ? handleDisconnect(platform.name) : handleConnect(platform.name);
+                    }}
+                    sx={{
+                      borderRadius: 1.5,
+                      px: 2,
+                      py: 0.5,
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      fontSize: '0.78rem',
+                      minWidth: 90,
+                      ...(isConnected
+                        ? {
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            color: 'text.secondary',
+                            bgcolor: 'transparent',
+                            '&:hover': { borderColor: '#ef4444', color: '#ef4444', bgcolor: alpha('#ef4444', 0.04) }
+                          }
+                        : {
+                            bgcolor: platform.color,
+                            color: '#fff',
+                            border: '1px solid transparent',
+                            '&:hover': { bgcolor: alpha(platform.color, 0.85) }
+                          }),
+                      ...(selectMode && !isConnected && { opacity: 0.3, pointerEvents: 'none' })
+                    }}
+                    startIcon={
+                      isConnecting ? (
+                        <CircularProgress size={12} thickness={4} sx={{ color: 'inherit' }} />
+                      ) : !isConnected ? (
+                        <IconPlus size={14} />
+                      ) : null
+                    }
+                  >
+                    {isConnecting ? '...' : isConnected ? 'Disconnect' : 'Connect'}
+                  </Button>
                 </Box>
               );
             })
           )}
         </Box>
+
+        <ConnectionModal
+          open={!!modalPlatform}
+          onClose={() => setModalPlatform(null)}
+          platform={PLATFORMS.find((p) => p.name === modalPlatform)}
+          conn={modalConn}
+        />
       </Box>
     </Box>
   );

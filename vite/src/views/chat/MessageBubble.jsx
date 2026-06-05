@@ -7,10 +7,11 @@ import {
 import CircularProgress from '@mui/material/CircularProgress';
 import { showSnackbar } from '../../utils/snackbarNotif';
 
-const primaryColor = '#0EA5E9';
-const primaryLight = '#E0F2FE';
+const primaryColor = '#8B5CF6';
+const primaryHover = '#7C3AED';
+const primaryLight = '#F3E8FF';
 const greyBorder = '#e2e8f0';
-const greyText = '#94a3b8';
+const greyText = '#64748b';
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -128,6 +129,7 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
           width: 24,
           height: 24,
           bgcolor: primaryColor,
+          color: '#fff',
           fontSize: '0.65rem',
           fontWeight: 600,
           flexShrink: 0,
@@ -154,7 +156,7 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
           flexDirection: isMine ? 'row-reverse' : 'row',
         }}>
           <Typography variant="caption" sx={{
-            color: greyText,
+            color: '#64748b',
             fontWeight: 600,
             fontSize: '0.6rem',
             letterSpacing: '0.02em',
@@ -167,7 +169,7 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
         <Box
           sx={{
             position: 'relative',
-            bgcolor: isMine ? primaryColor : '#fff',
+            background: isMine ? `linear-gradient(135deg, ${primaryColor} 0%, ${primaryHover} 100%)` : '#fff',
             color: isMine ? '#fff' : '#0f172a',
             px: 1.5,
             py: 0.8,
@@ -176,8 +178,8 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
               : '14px 14px 14px 4px',
             border: isMine ? 'none' : `1px solid ${greyBorder}`,
             boxShadow: isMine
-              ? `0 2px 8px ${primaryColor}30, 0 4px 16px ${primaryColor}15`
-              : '0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03)',
+              ? `0 4px 12px ${primaryColor}40, 0 2px 6px ${primaryColor}20`
+              : '0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
             wordBreak: 'break-word',
             transition: 'box-shadow 0.2s ease, transform 0.15s ease',
             ...(isHighlighted && {
@@ -186,8 +188,8 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
             }),
             '&:hover': {
               boxShadow: isMine
-                ? `0 4px 14px ${primaryColor}40, 0 6px 20px ${primaryColor}20`
-                : '0 2px 6px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.04)',
+                ? `0 6px 16px ${primaryColor}50, 0 3px 8px ${primaryColor}25`
+                : '0 4px 12px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)',
             },
           }}
         >
@@ -233,7 +235,7 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
                 }}
               >
                 <Typography sx={{ fontSize: '0.75rem' }}>{emoji}</Typography>
-                <Typography sx={{ fontSize: '0.65rem', color: greyText, fontWeight: 500 }}>
+                <Typography sx={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 500 }}>
                   {users.length}
                 </Typography>
               </Box>
@@ -251,7 +253,7 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
             cursor: 'default',
           }}>
             <Typography variant="caption" sx={{
-              color: greyText,
+              color: '#64748b',
               fontSize: '0.6rem',
               fontWeight: 500,
             }}>
@@ -333,10 +335,10 @@ const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onT
         }}
       >
         <MenuItem onClick={handleCopy}>
-          <ContentCopy sx={{ fontSize: 15, color: '#64748b' }} /> Copy
+          <ContentCopy sx={{ fontSize: 15, color: '#475569' }} /> Copy
         </MenuItem>
         <MenuItem onClick={handleReply}>
-          <Reply sx={{ fontSize: 15, color: '#64748b' }} /> Reply
+          <Reply sx={{ fontSize: 15, color: '#475569' }} /> Reply
         </MenuItem>
         {isMine && (
           <MenuItem onClick={handleDelete} sx={{ color: '#ef4444' }}>

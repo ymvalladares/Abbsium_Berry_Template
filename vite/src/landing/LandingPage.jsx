@@ -16,7 +16,7 @@ const LandingPage = () => {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        background: '#ffffff',
+        background: 'linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 40%, #ffffff 100%)',
         overflow: 'hidden'
       }}
     >
@@ -28,10 +28,9 @@ const LandingPage = () => {
           zIndex: 0,
           pointerEvents: 'none',
           background: `
-            radial-gradient(ellipse 80% 50% at 10% -10%, rgba(139, 92, 246, 0.09) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 95% 5%,  rgba(99, 102, 241, 0.08) 0%, transparent 55%),
-            radial-gradient(ellipse 50% 50% at 50% 100%, rgba(147, 197, 253, 0.07) 0%, transparent 60%),
-            linear-gradient(160deg, #f8f7ff 0%, #f0f4ff 35%, #f5f8ff 65%, #ffffff 100%)
+            radial-gradient(ellipse 60% 40% at 95% 5%,  rgba(139, 92, 246, 0.04) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 35% at 5% 10%, rgba(99, 102, 241, 0.03) 0%, transparent 55%),
+            linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 40%, #ffffff 100%)
           `
         }}
       />
@@ -59,10 +58,10 @@ const LandingPage = () => {
           width: '480px',
           height: '480px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(139,92,246,0.03) 0%, transparent 70%)',
           zIndex: 0,
           pointerEvents: 'none',
-          filter: 'blur(40px)'
+          filter: 'blur(50px)'
         }}
       />
 
@@ -75,10 +74,10 @@ const LandingPage = () => {
           width: '420px',
           height: '420px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(139,92,246,0.03) 0%, transparent 70%)',
           zIndex: 0,
           pointerEvents: 'none',
-          filter: 'blur(48px)'
+          filter: 'blur(50px)'
         }}
       />
 
@@ -92,10 +91,10 @@ const LandingPage = () => {
           width: '600px',
           height: '300px',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse, rgba(147,197,253,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, rgba(147,197,253,0.03) 0%, transparent 70%)',
           zIndex: 0,
           pointerEvents: 'none',
-          filter: 'blur(40px)'
+          filter: 'blur(50px)'
         }}
       />
 

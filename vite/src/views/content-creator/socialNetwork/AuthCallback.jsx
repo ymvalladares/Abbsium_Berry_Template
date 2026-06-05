@@ -10,10 +10,18 @@ export default function AuthCallback() {
     const error = searchParams.get('error');
 
     if (status === 'success') {
-      localStorage.setItem('social_auth_result', JSON.stringify({ type: 'AUTH_SUCCESS', data: { provider, connected: true }, ts: Date.now() }));
+      localStorage.setItem('social_auth_result', JSON.stringify({
+        type: 'AUTH_SUCCESS',
+        data: { provider, connected: true },
+        ts: Date.now()
+      }));
     } else if (status === 'error' || error) {
-      console.error('Facebook Auth Callback Error:', { status, provider, error });
-      localStorage.setItem('social_auth_result', JSON.stringify({ type: 'AUTH_ERROR', message: error || 'Authentication failed', ts: Date.now() }));
+      localStorage.setItem('social_auth_result', JSON.stringify({
+        type: 'AUTH_ERROR',
+        data: { provider },
+        message: error || 'Authentication failed',
+        ts: Date.now()
+      }));
     }
 
     window.close();

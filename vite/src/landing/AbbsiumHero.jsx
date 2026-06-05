@@ -1,303 +1,489 @@
-import { useEffect, useState } from 'react';
-import { Box, Button, Container, Typography, Stack, Chip, LinearProgress, Grid, Paper } from '@mui/material';
-import TerminalIcon from '@mui/icons-material/Terminal';
-import BoltIcon from '@mui/icons-material/Bolt';
-import { useNavigate } from 'react-router-dom';
+import { Box, Button, Container, IconButton, Typography, useMediaQuery } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import TwitterIcon from '@mui/icons-material/Twitter';
 
-const KEYFRAMES = `
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-`;
+/* ─── Theme ─────────────────────────────────────── */
+const theme = createTheme({
+  breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } }
+});
 
-const VisualDashboard = () => {
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => setProgress((prev) => (prev >= 100 ? 0 : prev + 1)), 100);
-    return () => clearInterval(timer);
-  }, []);
+/* ─── Deterministic stars ────────────────────────── */
+const STARS = Array.from({ length: 40 }, (_, i) => ({
+  id: i,
+  size: i % 5 === 0 ? 3 : 2,
+  top: ((i * 41 + 17) % 88) + '%',
+  left: ((i * 67 + 11) % 100) + '%',
+  opacity: 0.2 + ((i * 19) % 40) / 100,
+  dur: 2.5 + ((i * 13) % 30) / 10,
+  del: ((i * 7) % 25) / 10
+}));
 
+/* ─── SVG Rocket ─────────────────────────────────── */
+function Rocket() {
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 260 340" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+      <defs>
+        <linearGradient id="rBody" x1="90" y1="55" x2="175" y2="275" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#c4b5fd" />
+          <stop offset="50%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#5b21b6" />
+        </linearGradient>
+        <linearGradient id="rNose" x1="90" y1="10" x2="175" y2="85" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#fb923c" />
+          <stop offset="100%" stopColor="#ea580c" />
+        </linearGradient>
+        <linearGradient id="rFin" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#3b0764" />
+        </linearGradient>
+        <radialGradient id="rWindow" cx="35%" cy="30%" r="65%">
+          <stop offset="0%" stopColor="#7dd3fc" />
+          <stop offset="100%" stopColor="#0369a1" />
+        </radialGradient>
+        <linearGradient id="rFlameA" x1="130" y1="288" x2="130" y2="338" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#fbbf24" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="rFlameB" x1="130" y1="290" x2="130" y2="330" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="50%" stopColor="#fde68a" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* Flame outer */}
+      <ellipse cx="130" cy="308" rx="30" ry="24" fill="url(#rFlameA)" opacity="0.9">
+        <animate attributeName="ry" values="24;32;24" dur="0.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.9;1;0.9" dur="0.5s" repeatCount="indefinite" />
+      </ellipse>
+      {/* Flame inner */}
+      <ellipse cx="130" cy="300" rx="15" ry="16" fill="url(#rFlameB)">
+        <animate attributeName="ry" values="16;22;16" dur="0.35s" repeatCount="indefinite" />
+      </ellipse>
+
+      {/* Left fin */}
+      <path d="M88 215 L52 292 L100 262 Z" fill="url(#rFin)" filter="url(#glow)" />
+      {/* Right fin */}
+      <path d="M172 215 L208 292 L160 262 Z" fill="url(#rFin)" filter="url(#glow)" />
+
+      {/* Body */}
+      <path
+        d="M130 48 C103 92 90 152 90 210 C90 248 108 268 130 268 C152 268 170 248 170 210 C170 152 157 92 130 48 Z"
+        fill="url(#rBody)"
+      />
+      {/* Body highlight */}
+      <path
+        d="M130 48 C117 92 110 152 110 210 C110 238 117 255 130 268 C108 268 90 248 90 210 C90 152 103 92 130 48 Z"
+        fill="rgba(255,255,255,0.09)"
+      />
+
+      {/* Nose cone */}
+      <path d="M130 16 C116 36 104 62 104 86 C104 97 115 105 130 105 C145 105 156 97 156 86 C156 62 144 36 130 16 Z" fill="url(#rNose)" />
+
+      {/* Window ring */}
+      <circle cx="130" cy="148" r="29" fill="#1e1b4b" stroke="#a78bfa" strokeWidth="3" />
+      {/* Window glass */}
+      <circle cx="130" cy="148" r="23" fill="url(#rWindow)" />
+      {/* Window glare */}
+      <ellipse cx="122" cy="140" rx="8" ry="5.5" fill="rgba(255,255,255,0.3)" />
+
+      {/* Detail lines */}
+      <path d="M102 182 Q130 191 158 182" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d="M98 208 Q130 217 162 208" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+
+      {/* Engine nozzle */}
+      <rect x="113" y="262" width="34" height="18" rx="5" fill="#3b0764" stroke="#7c3aed" strokeWidth="1.5" />
+
+      {/* Sparkles */}
+      {[
+        [42, 75],
+        [218, 55],
+        [28, 188],
+        [230, 200],
+        [58, 288],
+        [205, 272]
+      ].map(([cx, cy], i) => (
+        <circle key={i} cx={cx} cy={cy} r={i % 2 === 0 ? 2 : 1.5} fill="white" opacity={0.45 + (i % 3) * 0.15}>
+          <animate
+            attributeName="opacity"
+            values={`${0.35 + (i % 3) * 0.15};0.95;${0.35 + (i % 3) * 0.15}`}
+            dur={`${1.3 + i * 0.28}s`}
+            repeatCount="indefinite"
+          />
+        </circle>
+      ))}
+    </svg>
+  );
+}
+
+/* ─── Planet ─────────────────────────────────────── */
+function Planet({ size = 90 }) {
   return (
     <Box
       sx={{
-        position: 'relative',
-        width: '100%',
-        height: { xs: '320px', sm: '400px', md: '500px' },
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: { xs: 0, sm: 2, md: 4 }
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        overflow: 'hidden',
+        boxShadow: `0 0 40px rgba(251,146,60,0.5), 0 0 80px rgba(251,146,60,0.2)`,
+        flexShrink: 0,
+        animation: 'pltFlt 6s ease-in-out infinite',
+        '@keyframes pltFlt': {
+          '0%,100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-14px)' }
+        }
       }}
     >
-      {/* 1. TERMINAL PRINCIPAL */}
-      <Box
-        sx={{
-          width: { xs: '85%', sm: '80%', md: '90%' },
-          maxWidth: '560px',
-          height: { xs: '200px', sm: '260px', md: '340px' },
-          bgcolor: '#0f172a',
-          borderRadius: { xs: '16px', sm: '22px', md: '28px' },
-          p: { xs: 2, sm: 3, md: 4 },
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          zIndex: 2,
-          border: '1px solid rgba(255,255,255,0.08)',
-          backdropFilter: 'blur(10px)',
-          animation: 'float 6s ease-in-out infinite',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <Stack direction="row" spacing={1.5} mb={{ xs: 1.5, md: 3 }}>
-          <Box sx={{ width: { xs: 8, md: 10 }, height: { xs: 8, md: 10 }, borderRadius: '50%', bgcolor: '#FF5F56' }} />
-          <Box sx={{ width: { xs: 8, md: 10 }, height: { xs: 8, md: 10 }, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
-          <Box sx={{ width: { xs: 8, md: 10 }, height: { xs: 8, md: 10 }, borderRadius: '50%', bgcolor: '#27C93F' }} />
-        </Stack>
-
-        <Typography sx={{ color: '#6366f1', fontFamily: 'JetBrains Mono', fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' }, fontWeight: 700, mb: { xs: 1, md: 1.5 } }}>
-          root@abbsium:~${' '}
-          <Box component="span" sx={{ color: '#fff' }}>
-            deploy --prod
-          </Box>
-        </Typography>
-
-        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem' }, fontFamily: 'JetBrains Mono', lineHeight: { xs: 1.6, md: 2 } }}>
-          <Box component="span" sx={{ color: '#22c55e' }}>
-            [OK]
-          </Box>{' '}
-          Analyzing cluster...
-          <br />
-          <Box component="span" sx={{ color: '#22c55e' }}>
-            [OK]
-          </Box>{' '}
-          SSL validated.
-          <br />
-          <Box component="span" sx={{ color: '#6366f1' }}>
-            [WAIT]
-          </Box>{' '}
-          Syncing edge nodes...
-        </Typography>
-
-        <Box sx={{ mt: 'auto', pt: { xs: 2, md: 4 } }}>
-          <Stack direction="row" justifyContent="space-between" mb={1}>
-            <Typography sx={{ color: '#6366f1', fontSize: { xs: '0.6rem', md: '0.7rem' }, fontWeight: 800, letterSpacing: 1 }}>
-              REPLICATION
-            </Typography>
-            <Typography sx={{ color: '#fff', fontSize: { xs: '0.6rem', md: '0.7rem' }, fontWeight: 700 }}>{progress}%</Typography>
-          </Stack>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: { xs: 6, md: 8 },
-              borderRadius: 4,
-              bgcolor: 'rgba(255,255,255,0.05)',
-              '& .MuiLinearProgress-bar': { bgcolor: '#6366f1', borderRadius: 4 }
-            }}
-          />
-        </Box>
-      </Box>
-
-      {/* 2. WIDGET SUPERIOR */}
-      <Paper
-        sx={{
-          position: 'absolute',
-          top: { xs: '2%', sm: '8%', md: '12%' },
-          right: { xs: '2%', sm: '0%', md: '-2%' },
-          width: { xs: '140px', sm: '160px', md: '190px' },
-          bgcolor: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: { xs: '14px', md: '22px' },
-          p: { xs: 1.5, sm: 2, md: 2.5 },
-          boxShadow: '0 15px 40px rgba(0,0,0,0.1)',
-          border: '1px solid #fff',
-          zIndex: 3,
-          animation: 'float 7s ease-in-out infinite reverse'
-        }}
-      >
-        <Stack spacing={0.5}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22c55e', animation: 'pulse 2s infinite' }} />
-            <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.6rem', md: '0.7rem' }, color: '#64748b', textTransform: 'uppercase' }}>Live Traffic</Typography>
-          </Stack>
-          <Typography sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            2.4k{' '}
-            <Box component="span" sx={{ fontSize: { xs: '0.6rem', md: '0.7rem' }, color: '#22c55e' }}>
-              req/s
-            </Box>
-          </Typography>
-        </Stack>
-      </Paper>
-
-      {/* 3. WIDGET INFERIOR */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: { xs: '2%', sm: '8%', md: '12%' },
-          left: { xs: '2%', sm: '0%', md: '-2%' },
-          bgcolor: '#fff',
-          borderRadius: { xs: '14px', md: '20px' },
-          p: { xs: 1.5, sm: 2, md: 2.5 },
-          display: 'flex',
-          alignItems: 'center',
-          gap: { xs: 1.5, md: 2 },
-          boxShadow: '0 20px 50px rgba(99, 102, 241, 0.12)',
-          border: '1px solid rgba(255,255,255,1)',
-          zIndex: 4
-        }}
-      >
+      {Array.from({ length: 7 }).map((_, i) => (
         <Box
+          key={i}
           sx={{
-            width: { xs: 36, md: 44 },
-            height: { xs: 36, md: 44 },
-            borderRadius: { xs: '10px', md: '14px' },
-            bgcolor: 'rgba(99, 102, 241, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            height: `${100 / 7}%`,
+            background: i % 2 === 0 ? '#f97316' : '#fb923c'
           }}
-        >
-          <BoltIcon sx={{ color: '#6366f1', fontSize: { xs: '1.2rem', md: '1.6rem' } }} />
-        </Box>
-        <Box>
-          <Typography sx={{ fontSize: { xs: '0.7rem', md: '0.8rem' }, fontWeight: 900, color: '#0f172a' }}>Verified Layer</Typography>
-          <Typography sx={{ fontSize: { xs: '0.55rem', md: '0.65rem' }, color: '#22c55e', fontWeight: 700 }}>AES-256 Active</Typography>
-        </Box>
-      </Box>
-
-      {/* Efecto de resplandor de fondo */}
-      <Box
-        sx={{
-          position: 'absolute',
-          width: { xs: '100%', md: '130%' },
-          height: { xs: '100%', md: '130%' },
-          background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 65%)',
-          zIndex: 0
-        }}
-      />
+        />
+      ))}
     </Box>
   );
-};
+}
 
-export default function AdvancedHero() {
-  const navigate = useNavigate();
+/* ─── Main Hero ──────────────────────────────────── */
+export default function HeroSection() {
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   return (
-    <>
-      <style>{KEYFRAMES}</style>
+    <ThemeProvider theme={theme}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+      `}</style>
+
       <Box
         sx={{
-          minHeight: { xs: 'auto', md: '100vh' },
-          display: 'flex',
-          alignItems: { xs: 'flex-start', md: 'center' },
+          width: '100%',
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 35%, #6d28d9 60%, #4c1d95 100%)',
           position: 'relative',
-          bgcolor: 'transparent',
-          pt: { xs: 12, sm: 14, md: 8 },
-          pb: { xs: 8, sm: 10, md: 12 },
           overflow: 'hidden'
         }}
       >
-        <Container maxWidth="lg">
-          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
-            {/* LADO IZQUIERDO: TEXTO */}
-            <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'flex', md: 'block' }, justifyContent: 'center' }}>
-              <Box sx={{ pr: { md: 4 }, textAlign: { xs: 'center', md: 'left' }, mx: { xs: 'auto', md: 0 }, maxWidth: { xs: '480px', md: '100%' } }}>
-                <Chip
-                  label="v2.0 Infrastructure"
+        {/* ── Stars ── */}
+        {STARS.map((s) => (
+          <Box
+            key={s.id}
+            sx={{
+              position: 'absolute',
+              width: s.size,
+              height: s.size,
+              borderRadius: '50%',
+              background: 'white',
+              top: s.top,
+              left: s.left,
+              opacity: s.opacity,
+              zIndex: 0,
+              animation: `twkl ${s.dur}s ease-in-out ${s.del}s infinite`,
+              '@keyframes twkl': {
+                '0%,100%': { opacity: s.opacity * 0.3 },
+                '50%': { opacity: Math.min(s.opacity * 2.8, 1) }
+              }
+            }}
+          />
+        ))}
+
+        {/* ── White organic wave blob ── */}
+        <Box
+          component="svg"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 1,
+            pointerEvents: 'none'
+          }}
+        >
+          <path
+            fill="white"
+            d="
+              M -10 900
+              L -10 560
+              C 60 500, 160 460, 280 500
+              C 400 540, 460 580, 560 540
+              C 660 500, 700 440, 800 440
+              C 900 440, 950 480, 1000 480
+              C 1100 480, 1200 500, 1280 540
+              C 1340 570, 1380 620, 1440 720
+              Z
+            "
+          />
+          <path
+            fill="rgba(255,255,255,0.18)"
+            d="
+              M -10 900
+              L -10 620
+              C 80 570, 200 540, 330 570
+              C 460 600, 510 630, 620 600
+              C 730 570, 780 530, 870 525
+              C 960 520, 1020 545, 1100 560
+              C 1200 580, 1300 620, 1380 680
+              C 1420 710, 1460 760, 1500 900
+              Z
+            "
+          />
+        </Box>
+
+        {/* ── Floating ring ── */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '38%',
+            right: '18%',
+            width: 52,
+            height: 52,
+            borderRadius: '50%',
+            border: '3px solid rgba(255,255,255,0.4)',
+            zIndex: 2,
+            animation: 'ringFlt 5s ease-in-out 0.4s infinite',
+            '@keyframes ringFlt': {
+              '0%,100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' }
+            }
+          }}
+        />
+        {/* Small dot */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '15%',
+            right: '10%',
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.5)',
+            zIndex: 2,
+            animation: 'ringFlt 4s ease-in-out 1s infinite'
+          }}
+        />
+
+        {/* ── Content ── */}
+        <Container
+          maxWidth="lg"
+          sx={{
+            position: 'relative',
+            zIndex: 3,
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              alignItems: 'center',
+              pt: { xs: 5, md: 7 },
+              pb: { xs: 22, md: 18 },
+              gap: { xs: 4, md: 2 }
+            }}
+          >
+            {/* LEFT */}
+            <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+              <Typography
+                component="h1"
+                sx={{
+                  fontFamily: "'Nunito', sans-serif",
+                  fontWeight: 400,
+                  fontSize: { xs: '1.9rem', sm: '2.4rem', md: '2.8rem' },
+                  color: 'white',
+                  lineHeight: 1.2,
+                  animation: 'fadeUp 0.6s ease both',
+                  '@keyframes fadeUp': {
+                    from: { opacity: 0, transform: 'translateY(20px)' },
+                    to: { opacity: 1, transform: 'translateY(0)' }
+                  }
+                }}
+              >
+                We help you to
+              </Typography>
+              <Typography
+                component="h1"
+                sx={{
+                  fontFamily: "'Nunito', sans-serif",
+                  fontWeight: 800,
+                  fontSize: { xs: '2.2rem', sm: '2.9rem', md: '3.4rem' },
+                  color: 'white',
+                  lineHeight: 1.1,
+                  mb: 2,
+                  animation: 'fadeUp 0.6s ease 0.1s both'
+                }}
+              >
+                Grow Your Business
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontFamily: "'Nunito', sans-serif",
+                  fontWeight: 400,
+                  color: 'rgba(255,255,255,0.75)',
+                  fontSize: { xs: '0.88rem', md: '0.95rem' },
+                  lineHeight: 1.75,
+                  maxWidth: 400,
+                  mx: { xs: 'auto', md: 0 },
+                  mb: 3.5,
+                  animation: 'fadeUp 0.6s ease 0.2s both'
+                }}
+              >
+                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
+                dummy text ever since the 1500s.
+              </Typography>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  flexWrap: 'wrap',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  mb: 4,
+                  animation: 'fadeUp 0.6s ease 0.3s both'
+                }}
+              >
+                <Button
                   sx={{
-                    bgcolor: 'rgba(99, 102, 241, 0.08)',
-                    mb: 2.5,
-                    fontWeight: 800,
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                    color: '#6366f1',
-                    border: '1px solid rgba(99, 102, 241, 0.2)',
-                    px: 1
-                  }}
-                />
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontFamily: 'Syne',
-                    fontWeight: 800,
-                    fontSize: { xs: '2.2rem', sm: '3rem', md: '4rem', lg: '4.5rem' },
-                    color: '#0f172a',
-                    mb: 2.5,
-                    lineHeight: 1.05,
-                    letterSpacing: '-0.04em'
+                    background: 'linear-gradient(135deg, #f97316, #ef4444)',
+                    color: 'white',
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    textTransform: 'none',
+                    px: 3,
+                    py: 1.2,
+                    borderRadius: '50px',
+                    boxShadow: '0 6px 20px rgba(249,115,22,0.45)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #ef4444, #f97316)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 10px 28px rgba(249,115,22,0.55)'
+                    },
+                    transition: 'all 0.25s ease'
                   }}
                 >
-                  Engineer Your <br />
-                  <Box
-                    component="span"
-                    sx={{
-                      color: '#6366f1',
-                      fontSize: { xs: '2.2rem', sm: '3rem', md: '4rem', lg: '4.5rem' }
-                    }}
-                  >
-                    Digital
-                  </Box>{' '}
-                  Vision.
-                </Typography>
-
-                <Typography
+                  Ideal project
+                </Button>
+                <Button
                   sx={{
-                    fontSize: { xs: '0.95rem', sm: '1.05rem', md: '1.15rem' },
-                    color: '#475569',
-                    lineHeight: 1.7,
-                    mb: 4,
-                    maxWidth: { xs: '100%', md: '500px' },
-                    mx: { xs: 'auto', md: 0 },
-                    fontWeight: 500
+                    background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    color: 'white',
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    textTransform: 'none',
+                    px: 3,
+                    py: 1.2,
+                    borderRadius: '50px',
+                    boxShadow: '0 6px 20px rgba(6,182,212,0.4)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #0891b2, #06b6d4)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 10px 28px rgba(6,182,212,0.5)'
+                    },
+                    transition: 'all 0.25s ease'
                   }}
                 >
-                  The standard for modern data architecture. Build, scale, and deploy global infrastructures with absolute precision and
-                  security.
-                </Typography>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent={{ xs: 'center', md: 'flex-start' }} alignItems="center">
-                  <Button
-                    onClick={() => navigate('/authenticate')}
-                    variant="contained"
-                    disableElevation
-                    sx={{
-                      bgcolor: '#0f172a',
-                      px: { xs: 4, sm: 5 },
-                      py: { xs: 1.5, sm: 2 },
-                      borderRadius: '14px',
-                      fontWeight: 800,
-                      textTransform: 'none',
-                      fontSize: { xs: '0.9rem', sm: '1rem' },
-                      width: { xs: '100%', sm: 'auto' },
-                      '&:hover': { bgcolor: '#6366f1' }
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                  <Button
-                    startIcon={<TerminalIcon />}
-                    sx={{
-                      color: '#0f172a',
-                      fontWeight: 800,
-                      textTransform: 'none',
-                      fontSize: { xs: '0.9rem', sm: '1rem' }
-                    }}
-                  >
-                    Documentation
-                  </Button>
-                </Stack>
+                  Contact us
+                </Button>
               </Box>
-            </Grid>
 
-            {/* LADO DERECHO: VISUALIZACIÓN (solo desktop) */}
-            <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'none', md: 'block' } }}>
-              <VisualDashboard />
-            </Grid>
-          </Grid>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  animation: 'fadeUp 0.6s ease 0.4s both'
+                }}
+              >
+                {[FacebookIcon, InstagramIcon, TwitterIcon].map((Icon, i) => (
+                  <IconButton
+                    key={i}
+                    size="small"
+                    sx={{
+                      color: 'rgba(255,255,255,0.7)',
+                      p: 0.8,
+                      '&:hover': { color: 'white', transform: 'translateY(-3px)' },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <Icon sx={{ fontSize: '1.15rem' }} />
+                  </IconButton>
+                ))}
+              </Box>
+            </Box>
+
+            {/* RIGHT */}
+            <Box
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: { xs: '-20px', md: '-30px' },
+                  right: { xs: '10%', md: '12%' },
+                  zIndex: 2
+                }}
+              >
+                <Planet size={isMobile ? 68 : 88} />
+              </Box>
+
+              <Box
+                sx={{
+                  width: { xs: 190, sm: 230, md: 270 },
+                  height: { xs: 240, sm: 290, md: 340 },
+                  animation: 'rktBob 5s ease-in-out infinite',
+                  filter: 'drop-shadow(0 20px 44px rgba(109,40,217,0.45))',
+                  '@keyframes rktBob': {
+                    '0%,100%': { transform: 'translateY(0px) rotate(-6deg)' },
+                    '50%': { transform: 'translateY(-26px) rotate(6deg)' }
+                  },
+                  mt: { xs: 4, md: 2 }
+                }}
+              >
+                <Rocket />
+              </Box>
+            </Box>
+          </Box>
+
+          {/* SERVICES label */}
+          <Box sx={{ position: 'relative', zIndex: 4, textAlign: 'center', pb: 3 }}>
+            <Typography
+              sx={{
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 800,
+                fontSize: '1rem',
+                letterSpacing: '0.22em',
+                color: '#4c1d95'
+              }}
+            >
+              SERVICES
+            </Typography>
+          </Box>
         </Container>
       </Box>
-    </>
+    </ThemeProvider>
   );
 }

@@ -49,12 +49,12 @@ const EmojiPicker = ({ anchorEl, onClose, onEmojiSelect }) => {
             onClick={() => setActiveCategory(idx)}
             sx={{
               px: 1, py: 0.5, borderRadius: '6px', cursor: 'pointer',
-              bgcolor: activeCategory === idx ? '#E0F2FE' : 'transparent',
+              bgcolor: activeCategory === idx ? '#F3E8FF' : 'transparent',
               fontSize: '0.75rem', whiteSpace: 'nowrap',
-              color: activeCategory === idx ? '#0EA5E9' : '#64748b',
-              fontWeight: activeCategory === idx ? 600 : 400,
+              color: activeCategory === idx ? '#8B5CF6' : '#475569',
+              fontWeight: activeCategory === idx ? 600 : 500,
               transition: 'all 0.15s ease',
-              '&:hover': { bgcolor: '#f1f5f9' },
+              '&:hover': { bgcolor: '#F3E8FF' },
             }}
           >
             {cat.label}
@@ -76,7 +76,7 @@ const EmojiPicker = ({ anchorEl, onClose, onEmojiSelect }) => {
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: '8px', cursor: 'pointer', fontSize: '1.25rem',
               transition: 'all 0.15s ease',
-              '&:hover': { bgcolor: '#E0F2FE', transform: 'scale(1.2)' },
+              '&:hover': { bgcolor: '#F3E8FF', transform: 'scale(1.2)' },
             }}
           >
             {emoji}

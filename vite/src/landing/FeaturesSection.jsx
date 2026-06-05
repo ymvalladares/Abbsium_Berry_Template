@@ -75,8 +75,8 @@ const features = [
     title: 'Real-time Analytics',
     desc: "Live dashboards, cohort analysis, and anomaly detection. See what's happening the moment it happens — no SQL required.",
     icon: IconChartLine,
-    color: '#0ea5e9',
-    bg: '#e0f2fe',
+    color: '#7c3aed',
+    bg: '#ede9fe',
     tags: ['Dashboards', 'Cohorts']
   },
   {
@@ -84,8 +84,8 @@ const features = [
     title: 'Secure Infrastructure',
     desc: 'SOC 2 Type II certified. End-to-end encryption at rest and in transit. Your data never leaves your defined boundaries.',
     icon: IconShieldLock,
-    color: '#10b981',
-    bg: '#d1fae5',
+    color: '#8b5cf6',
+    bg: '#ede9fe',
     tags: ['SOC 2', 'E2E']
   },
   {
@@ -93,8 +93,8 @@ const features = [
     title: 'Easy Integration',
     desc: 'Connect in minutes, not months. 200+ native connectors plus a REST API and webhooks for everything else.',
     icon: IconPlugConnected,
-    color: '#f59e0b',
-    bg: '#fef3c7',
+    color: '#6d28d9',
+    bg: '#ede9fe',
     tags: ['REST API', '200+ Apps']
   },
   {
@@ -102,8 +102,8 @@ const features = [
     title: 'Custom Workflows',
     desc: 'Build processes that fit your team. Visual editor, version history, and branch-based testing before you ship.',
     icon: IconGitMerge,
-    color: '#ec4899',
-    bg: '#fce7f3',
+    color: '#5b21b6',
+    bg: '#ede9fe',
     tags: ['Visual', 'Version Control']
   },
   {
@@ -111,7 +111,7 @@ const features = [
     title: '24/7 Support',
     desc: 'Engineers on call around the clock. Median first response under 4 minutes. Dedicated Slack channel for Pro teams.',
     icon: IconHeadset,
-    color: '#8b5cf6',
+    color: '#4c1d95',
     bg: '#ede9fe',
     tags: ['< 4 min', 'Slack']
   }
@@ -174,7 +174,7 @@ export default function FeaturesSection() {
   };
 
   return (
-    <Box ref={sectionRef} component="section" sx={{ py: { xs: 8 }, background: 'transparent', overflow: 'hidden' }}>
+    <Box ref={sectionRef} component="section" id="features" sx={{ py: { xs: 8, md: 10 }, background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 50%, #F1F5FE 100%)', overflow: 'hidden', mt: { xs: '-60px', md: '-80px' }, position: 'relative', zIndex: 5 }}>
       <Container maxWidth="lg">
         {/* ── Header ── */}
         <Box
@@ -194,7 +194,7 @@ export default function FeaturesSection() {
                 fontSize: '10.5px',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                bgcolor: '#4285F4',
+                bgcolor: '#7c3aed',
                 color: '#fff',
                 height: 26,
                 borderRadius: '6px',
@@ -217,7 +217,7 @@ export default function FeaturesSection() {
           >
             Powerful Features for
             <br />
-            <Box component="span" sx={{ color: '#4285F4' }}>
+            <Box component="span" sx={{ color: '#7c3aed' }}>
               Your Business
             </Box>
           </Typography>
@@ -437,7 +437,7 @@ export default function FeaturesSection() {
               fontFamily: "'DM Sans', sans-serif",
               letterSpacing: '-0.01em',
               boxShadow: 'none',
-              '&:hover': { bgcolor: '#4285F4', boxShadow: '0 12px 28px rgba(66,133,244,0.3)' }
+              '&:hover': { bgcolor: '#7c3aed', boxShadow: '0 12px 28px rgba(124,58,237,0.3)' }
             }}
           >
             Let's talk about your project

@@ -112,6 +112,53 @@ export const socialAPI = {
       .catch((err) => { console.error('Facebook connection error:', err); showSnackbar('Failed to start Facebook connection', 'error'); onComplete(false); });
   },
 
+  connectInstagram: (onComplete) => {
+    api.post('/SocialAuth/instagram/connect')
+      .then((res) => openPopup(res.data.url, 'Instagram', onComplete))
+      .catch((err) => { console.error('Instagram connection error:', err); showSnackbar('Failed to start Instagram connection', 'error'); onComplete(false); });
+  },
+
+  connectYouTube: (onComplete) => {
+    api.post('/SocialAuth/youtube/connect')
+      .then((res) => openPopup(res.data.url, 'YouTube', onComplete))
+      .catch((err) => { console.error('YouTube connection error:', err); showSnackbar('Failed to start YouTube connection', 'error'); onComplete(false); });
+  },
+
+  connectTikTok: (onComplete) => {
+    api.post('/SocialAuth/tiktok/connect')
+      .then((res) => openPopup(res.data.url, 'TikTok', onComplete))
+      .catch((err) => { console.error('TikTok connection error:', err); showSnackbar('Failed to start TikTok connection', 'error'); onComplete(false); });
+  },
+
+  connectMultiple: (platforms, onProgress, onComplete) => {
+    const results = {};
+    let completed = 0;
+
+    const finishOne = (platform, success) => {
+      results[platform] = success;
+      completed++;
+      onProgress(platform, success, completed, platforms.length);
+      if (completed === platforms.length) {
+        onComplete(results);
+      }
+    };
+
+    platforms.forEach((platform) => {
+      const methods = {
+        Facebook: socialAPI.connectFacebook,
+        Instagram: socialAPI.connectInstagram,
+        YouTube: socialAPI.connectYouTube,
+        TikTok: socialAPI.connectTikTok,
+      };
+      const method = methods[platform];
+      if (method) {
+        method((success) => finishOne(platform, success));
+      } else {
+        finishOne(platform, false);
+      }
+    });
+  },
+
   facebookProfile: () => axiosInstance.get('/SocialAuth/facebook/test-profile'),
   postFacebookText: (message, pageId) => {
     const data = { message };
@@ -124,9 +171,6 @@ export const socialAPI = {
     return api.post('/SocialAuth/facebook/photo', data);
   },
 
-  connectInstagram: (onComplete) => openPopup(`${import.meta.env.VITE_API_URL}SocialAuth/instagram/connect`, 'Instagram', onComplete),
-  connectYouTube: (onComplete) => openPopup(`${import.meta.env.VITE_API_URL}SocialAuth/youtube/connect`, 'YouTube', onComplete),
-  connectTikTok: (onComplete) => openPopup(`${import.meta.env.VITE_API_URL}SocialAuth/tiktok/connect`, 'TikTok', onComplete),
   disconnect: (provider) => axiosInstance.delete(`/SocialAuth/disconnect/${provider}`)
 };
 
@@ -152,6 +196,7 @@ function openPopup(url, platform, onComplete) {
     clearTimeout(maxTimeout);
     window.removeEventListener('storage', handleStorage);
     try { popup.close(); } catch {}
+    try { localStorage.removeItem('social_auth_result'); } catch {}
     if (message) showSnackbar(message, success ? 'success' : 'error');
     onComplete(success);
   };
@@ -161,6 +206,9 @@ function openPopup(url, platform, onComplete) {
     try {
       const result = JSON.parse(e.newValue);
       if (!result || !result.ts || Date.now() - result.ts > 30000) return;
+
+      const resultProvider = result.data?.provider || '';
+      if (resultProvider && resultProvider.toLowerCase() !== platform.toLowerCase()) return;
 
       if (result.type === 'AUTH_SUCCESS') {
         finish(true, `${result.data?.provider || platform} connected successfully`);

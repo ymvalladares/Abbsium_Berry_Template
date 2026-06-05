@@ -98,10 +98,11 @@ const ContactSection = () => {
     <>
       <style>{KEYFRAMES}</style>
       <Box
+        id="contact"
         sx={{
           py: { xs: 10, md: 16 },
           position: 'relative',
-          bgcolor: 'transparent',
+          background: 'linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 50%, #ffffff 100%)',
           overflow: 'hidden'
         }}
       >

@@ -46,7 +46,7 @@ const Footer = ({
     <Box
       component="footer"
       sx={{
-        background: colors.bg,
+        background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%)',
         color: colors.textPrimary,
         borderTop: `1px solid ${colors.borderColor}`,
         pt: { xs: 6, sm: 8, md: 10 },

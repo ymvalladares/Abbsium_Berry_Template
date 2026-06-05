@@ -13,7 +13,7 @@ const ChatLayout = () => {
   const showWindow = !isMobile || !showChatList;
 
   return (
-    <Box sx={{ height: { xs: 'calc(100dvh - 165px)', sm: 'calc(100vh - 175px)' }, display: 'flex', p: { xs: 1, sm: 2.5 }, overflow: 'hidden' }}>
+    <Box sx={{ height: { xs: 'calc(100dvh - 64px)', sm: 'calc(100vh - 175px)' }, display: 'flex', p: { xs: 0, sm: 2.5 }, overflow: 'hidden' }}>
       <Box sx={{ width: '100%', height: '100%', display: 'flex', mx: 'auto', gap: 0 }}>
         {showSidebar && <ChatSidebar isMobile={isMobile} />}
         {showWindow && <ChatWindow isMobile={isMobile} />}

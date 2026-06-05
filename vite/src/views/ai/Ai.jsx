@@ -748,6 +748,8 @@ export default function Ai() {
                 flexWrap: 'nowrap',
                 overflowX: 'auto',
                 scrollbarWidth: 'none',
+                pt: 1,
+                pb: 0.5,
                 '&::-webkit-scrollbar': { display: 'none' }
               }}
             >
@@ -776,13 +778,14 @@ export default function Ai() {
                       minHeight: 32,
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        borderColor: '#7C3AED',
+                        border: '1.5px solid #7C3AED',
                         bgcolor: '#F5F3FF',
                         transform: 'translateY(-1px)',
                         boxShadow: '0 3px 10px rgba(124,58,237,0.1)'
                       },
                       '&:active': {
-                        transform: 'translateY(0)'
+                        transform: 'translateY(0)',
+                        border: '1.5px solid #7C3AED'
                       }
                     }}
                   >

@@ -78,7 +78,7 @@ const PriceCardsComp = () => {
   };
 
   return (
-    <Box sx={{ py: 10 }}>
+    <Box sx={{ py: 10, background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 50%, #F1F5FE 100%)' }}>
       <Container maxWidth="lg">
         {/* --- HEADER --- */}
         <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 10 } }}>
