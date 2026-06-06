@@ -38,28 +38,28 @@ const Navbar = () => {
 
   return (
     <>
-      <AppBar
-        elevation={0}
-        sx={{
-          position: 'fixed',
-          top: scrolled ? 15 : 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: scrolled ? { xs: '94%', sm: '88%', md: '68%' } : '100%',
-          maxWidth: scrolled ? 1140 : '100%',
-          height: scrolled ? 62 : 80,
-          background: scrolled ? 'rgba(15, 12, 41, 0.82)' : 'transparent',
-          backgroundImage: 'none',
-          backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-          border: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
-          borderRadius: scrolled ? '22px' : '0px',
-          boxShadow: scrolled ? '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
-          transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-          zIndex: 2000,
-          overflow: 'hidden'
-        }}
-      >
+        <AppBar
+          elevation={0}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: scrolled ? { xs: '94%', sm: '88%', md: '68%' } : '100%',
+            maxWidth: scrolled ? 1140 : '100%',
+            height: scrolled ? 62 : 80,
+            background: scrolled ? 'rgba(15, 12, 41, 0.82)' : 'transparent',
+            backgroundImage: 'none',
+            backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+            WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+            border: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+            borderRadius: scrolled ? '22px' : '0px',
+            boxShadow: scrolled ? '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
+            transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+            zIndex: 2000,
+            pt: 'env(safe-area-inset-top, 0px)'
+          }}
+        >
         {/* ── Scroll progress bar ── */}
         {scrolled && (
           <Box
@@ -227,7 +227,7 @@ const Navbar = () => {
         <Box
           sx={{
             position: 'fixed',
-            top: scrolled ? 80 : 72,
+            top: 8,
             left: '50%',
             transform: mobileOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-10px)',
             width: '92%',

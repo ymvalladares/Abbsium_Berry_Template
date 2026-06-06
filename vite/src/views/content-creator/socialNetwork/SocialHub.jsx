@@ -367,8 +367,8 @@ export default function SocialHub() {
   if (loading) return <Loader />;
 
   return (
-    <Box sx={{ py: { xs: 3, sm: 5 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: { xs: '100%', lg: '80%' }, px: { xs: 2, sm: 4, md: 6 } }}>
+    <Box sx={{ py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Stack direction="row" spacing={1} alignItems="center">
             <Chip

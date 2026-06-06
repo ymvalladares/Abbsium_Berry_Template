@@ -23,7 +23,7 @@ const Authentication = () => {
       sx={{
         minHeight: '100vh',
         width: '100%',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 35%, #6d28d9 60%, #4c1d95 100%)',
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',

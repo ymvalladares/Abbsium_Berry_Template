@@ -4,12 +4,10 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 
-/* ─── Theme ─────────────────────────────────────── */
 const theme = createTheme({
   breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } }
 });
 
-/* ─── Deterministic stars ────────────────────────── */
 const STARS = Array.from({ length: 40 }, (_, i) => ({
   id: i,
   size: i % 5 === 0 ? 3 : 2,
@@ -20,7 +18,6 @@ const STARS = Array.from({ length: 40 }, (_, i) => ({
   del: ((i * 7) % 25) / 10
 }));
 
-/* ─── SVG Rocket ─────────────────────────────────── */
 function Rocket() {
   return (
     <svg width="100%" height="100%" viewBox="0 0 260 340" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
@@ -59,51 +56,30 @@ function Rocket() {
           </feMerge>
         </filter>
       </defs>
-
-      {/* Flame outer */}
       <ellipse cx="130" cy="308" rx="30" ry="24" fill="url(#rFlameA)" opacity="0.9">
         <animate attributeName="ry" values="24;32;24" dur="0.5s" repeatCount="indefinite" />
         <animate attributeName="opacity" values="0.9;1;0.9" dur="0.5s" repeatCount="indefinite" />
       </ellipse>
-      {/* Flame inner */}
       <ellipse cx="130" cy="300" rx="15" ry="16" fill="url(#rFlameB)">
         <animate attributeName="ry" values="16;22;16" dur="0.35s" repeatCount="indefinite" />
       </ellipse>
-
-      {/* Left fin */}
       <path d="M88 215 L52 292 L100 262 Z" fill="url(#rFin)" filter="url(#glow)" />
-      {/* Right fin */}
       <path d="M172 215 L208 292 L160 262 Z" fill="url(#rFin)" filter="url(#glow)" />
-
-      {/* Body */}
       <path
         d="M130 48 C103 92 90 152 90 210 C90 248 108 268 130 268 C152 268 170 248 170 210 C170 152 157 92 130 48 Z"
         fill="url(#rBody)"
       />
-      {/* Body highlight */}
       <path
         d="M130 48 C117 92 110 152 110 210 C110 238 117 255 130 268 C108 268 90 248 90 210 C90 152 103 92 130 48 Z"
         fill="rgba(255,255,255,0.09)"
       />
-
-      {/* Nose cone */}
       <path d="M130 16 C116 36 104 62 104 86 C104 97 115 105 130 105 C145 105 156 97 156 86 C156 62 144 36 130 16 Z" fill="url(#rNose)" />
-
-      {/* Window ring */}
       <circle cx="130" cy="148" r="29" fill="#1e1b4b" stroke="#a78bfa" strokeWidth="3" />
-      {/* Window glass */}
       <circle cx="130" cy="148" r="23" fill="url(#rWindow)" />
-      {/* Window glare */}
       <ellipse cx="122" cy="140" rx="8" ry="5.5" fill="rgba(255,255,255,0.3)" />
-
-      {/* Detail lines */}
       <path d="M102 182 Q130 191 158 182" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
       <path d="M98 208 Q130 217 162 208" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-
-      {/* Engine nozzle */}
       <rect x="113" y="262" width="34" height="18" rx="5" fill="#3b0764" stroke="#7c3aed" strokeWidth="1.5" />
-
-      {/* Sparkles */}
       {[
         [42, 75],
         [218, 55],
@@ -125,8 +101,7 @@ function Rocket() {
   );
 }
 
-/* ─── Planet ─────────────────────────────────────── */
-function Planet({ size = 90 }) {
+function Planet({ size = 88 }) {
   return (
     <Box
       sx={{
@@ -134,7 +109,7 @@ function Planet({ size = 90 }) {
         height: size,
         borderRadius: '50%',
         overflow: 'hidden',
-        boxShadow: `0 0 40px rgba(251,146,60,0.5), 0 0 80px rgba(251,146,60,0.2)`,
+        boxShadow: '0 0 40px rgba(251,146,60,0.5), 0 0 80px rgba(251,146,60,0.2)',
         flexShrink: 0,
         animation: 'pltFlt 6s ease-in-out infinite',
         '@keyframes pltFlt': {
@@ -144,21 +119,15 @@ function Planet({ size = 90 }) {
       }}
     >
       {Array.from({ length: 7 }).map((_, i) => (
-        <Box
-          key={i}
-          sx={{
-            height: `${100 / 7}%`,
-            background: i % 2 === 0 ? '#f97316' : '#fb923c'
-          }}
-        />
+        <Box key={i} sx={{ height: `${100 / 7}%`, background: i % 2 === 0 ? '#f97316' : '#fb923c' }} />
       ))}
     </Box>
   );
 }
 
-/* ─── Main Hero ──────────────────────────────────── */
 export default function HeroSection() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isXL = useMediaQuery(theme.breakpoints.up('xl'));
 
   return (
     <ThemeProvider theme={theme}>
@@ -176,7 +145,7 @@ export default function HeroSection() {
           overflow: 'hidden'
         }}
       >
-        {/* ── Stars ── */}
+        {/* Stars */}
         {STARS.map((s) => (
           <Box
             key={s.id}
@@ -199,56 +168,61 @@ export default function HeroSection() {
           />
         ))}
 
-        {/* ── White organic wave blob ── */}
+        {/* White wave — fills bottom, purple shows on top */}
+        {/* Uses padding-bottom trick so wave scales with viewport */}
         <Box
           component="svg"
           viewBox="0 0 1440 900"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="none"
           sx={{
             position: 'absolute',
-            inset: 0,
+            bottom: 0,
+            left: 0,
             width: '100%',
             height: '100%',
             zIndex: 1,
             pointerEvents: 'none'
           }}
         >
+          {/* Main white blob */}
           <path
             fill="white"
             d="
-              M -10 900
-              L -10 560
-              C 60 500, 160 460, 280 500
-              C 400 540, 460 580, 560 540
-              C 660 500, 700 440, 800 440
-              C 900 440, 950 480, 1000 480
-              C 1100 480, 1200 500, 1280 540
-              C 1340 570, 1380 620, 1440 720
+              M 0 900
+              L 0 580
+              C 60 520, 160 475, 290 515
+              C 420 555, 465 595, 570 555
+              C 675 515, 710 450, 815 448
+              C 920 446, 965 488, 1015 488
+              C 1115 488, 1210 510, 1295 552
+              C 1355 582, 1400 700, 1440 860
+              L 1440 900
               Z
             "
           />
+          {/* Second semi-transparent wave for depth */}
           <path
-            fill="rgba(255,255,255,0.18)"
+            fill="rgba(255,255,255,0.16)"
             d="
-              M -10 900
-              L -10 620
-              C 80 570, 200 540, 330 570
-              C 460 600, 510 630, 620 600
-              C 730 570, 780 530, 870 525
-              C 960 520, 1020 545, 1100 560
-              C 1200 580, 1300 620, 1380 680
-              C 1420 710, 1460 760, 1500 900
+              M 0 900
+              L 0 640
+              C 85 590, 205 558, 338 588
+              C 471 618, 515 648, 628 618
+              C 741 588, 788 545, 880 540
+              C 972 535, 1028 558, 1108 572
+              C 1208 590, 1308 628, 1388 688
+              C 1425 715, 1460 762, 1500 900
               Z
             "
           />
         </Box>
 
-        {/* ── Floating ring ── */}
+        {/* Floating ring */}
         <Box
           sx={{
             position: 'absolute',
-            top: '38%',
-            right: '18%',
+            top: '35%',
+            right: '16%',
             width: 52,
             height: 52,
             borderRadius: '50%',
@@ -261,12 +235,13 @@ export default function HeroSection() {
             }
           }}
         />
+
         {/* Small dot */}
         <Box
           sx={{
             position: 'absolute',
-            top: '15%',
-            right: '10%',
+            top: '14%',
+            right: '9%',
             width: 14,
             height: 14,
             borderRadius: '50%',
@@ -276,29 +251,21 @@ export default function HeroSection() {
           }}
         />
 
-        {/* ── Content ── */}
-        <Container
-          maxWidth="lg"
-          sx={{
-            position: 'relative',
-            zIndex: 3,
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
+        {/* Main content */}
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 3, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Box
             sx={{
               flex: 1,
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
               alignItems: 'center',
-              pt: { xs: 5, md: 7 },
-              pb: { xs: 22, md: 18 },
+              pt: { xs: 20, sm: 18, md: 20, lg: 22 },
+              // bottom padding reserves space so text never overlaps the wave
+              pb: { xs: '38vw', sm: '28vw', md: '18vw', lg: '14vw', xl: '12vw' },
               gap: { xs: 4, md: 2 }
             }}
           >
-            {/* LEFT */}
+            {/* LEFT: text */}
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
               <Typography
                 component="h1"
@@ -331,7 +298,6 @@ export default function HeroSection() {
               >
                 Grow Your Business
               </Typography>
-
               <Typography
                 sx={{
                   fontFamily: "'Nunito', sans-serif",
@@ -345,8 +311,7 @@ export default function HeroSection() {
                   animation: 'fadeUp 0.6s ease 0.2s both'
                 }}
               >
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-                dummy text ever since the 1500s.
+                Turn Your Streams Into Viral Clips Our AI finds your best moments and turns them into ready-to-post content in seconds.
               </Typography>
 
               <Box
@@ -430,57 +395,48 @@ export default function HeroSection() {
               </Box>
             </Box>
 
-            {/* RIGHT */}
+            {/* RIGHT: planet + rocket — clipped so nothing bleeds out */}
             <Box
               sx={{
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                // clip so planet never bleeds off-screen on any size
+                overflow: 'hidden',
+                // enough height for planet + rocket stack
+                minHeight: { xs: 280, sm: 340, md: 380 }
               }}
             >
+              {/* Planet — absolutely placed top-right of this cell */}
               <Box
                 sx={{
                   position: 'absolute',
-                  top: { xs: '-20px', md: '-30px' },
-                  right: { xs: '10%', md: '12%' },
+                  top: { xs: '12px', md: '20px' },
+                  right: { xs: '5%', sm: '8%', md: '6%', lg: '4%' },
                   zIndex: 2
                 }}
               >
-                <Planet size={isMobile ? 68 : 88} />
+                <Planet size={isMobile ? 64 : isXL ? 100 : 88} />
               </Box>
 
+              {/* Rocket — centred in cell */}
               <Box
                 sx={{
-                  width: { xs: 190, sm: 230, md: 270 },
-                  height: { xs: 240, sm: 290, md: 340 },
+                  width: { xs: 180, sm: 220, md: 260, xl: 300 },
+                  height: { xs: 228, sm: 278, md: 328, xl: 380 },
                   animation: 'rktBob 5s ease-in-out infinite',
                   filter: 'drop-shadow(0 20px 44px rgba(109,40,217,0.45))',
                   '@keyframes rktBob': {
                     '0%,100%': { transform: 'translateY(0px) rotate(-6deg)' },
                     '50%': { transform: 'translateY(-26px) rotate(6deg)' }
                   },
-                  mt: { xs: 4, md: 2 }
+                  mt: { xs: 5, md: 3 }
                 }}
               >
                 <Rocket />
               </Box>
             </Box>
-          </Box>
-
-          {/* SERVICES label */}
-          <Box sx={{ position: 'relative', zIndex: 4, textAlign: 'center', pb: 3 }}>
-            <Typography
-              sx={{
-                fontFamily: "'Nunito', sans-serif",
-                fontWeight: 800,
-                fontSize: '1rem',
-                letterSpacing: '0.22em',
-                color: '#4c1d95'
-              }}
-            >
-              SERVICES
-            </Typography>
           </Box>
         </Container>
       </Box>

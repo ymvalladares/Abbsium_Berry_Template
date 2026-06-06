@@ -1,7 +1,20 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Container, Typography, Stack, Chip, Button } from '@mui/material';
 import { keyframes, styled } from '@mui/system';
-import { IconBolt, IconChartLine, IconShieldLock, IconPlugConnected, IconGitMerge, IconHeadset, IconArrowRight } from '@tabler/icons-react';
+import {
+  IconBolt,
+  IconChartLine,
+  IconShieldLock,
+  IconPlugConnected,
+  IconGitMerge,
+  IconHeadset,
+  IconArrowRight,
+  IconCloud,
+  IconBrain,
+  IconClock,
+  IconWorld,
+  IconDeviceMobile
+} from '@tabler/icons-react';
 
 // ─── Animations ──────────────────────────────────────────────────────────────
 const fadeUp = keyframes`
@@ -12,17 +25,21 @@ const fadeUp = keyframes`
 // ─── Styled card ─────────────────────────────────────────────────────────────
 const FeatureCard = styled(Box)(({ bordercolor }) => ({
   flexShrink: 0,
-  width: 280,
+  width: 300,
   background: 'rgba(255,255,255,0.85)',
   backdropFilter: 'blur(20px)',
   borderRadius: '24px',
   border: '1px solid rgba(218,220,224,0.5)',
-  padding: '28px 24px',
+  padding: '32px 28px',
   position: 'relative',
   overflow: 'hidden',
   transition: 'all 0.45s cubic-bezier(0.2,1,0.3,1)',
-  scrollSnapAlign: 'start',
+  scrollSnapAlign: 'center',
   cursor: 'default',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  textAlign: 'center',
   '&:hover': {
     transform: 'translateY(-8px)',
     borderColor: bordercolor,
@@ -42,13 +59,13 @@ const FeatureCard = styled(Box)(({ bordercolor }) => ({
 }));
 
 const IconBox = styled(Box)(({ iconbg }) => ({
-  width: 50,
-  height: 50,
-  borderRadius: '16px',
+  width: 56,
+  height: 56,
+  borderRadius: '18px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  marginBottom: '20px',
+  marginBottom: '24px',
   background: `linear-gradient(135deg, ${iconbg}, ${iconbg}cc)`,
   position: 'relative',
   transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
@@ -114,10 +131,55 @@ const features = [
     color: '#4c1d95',
     bg: '#ede9fe',
     tags: ['< 4 min', 'Slack']
+  },
+  {
+    id: 6,
+    title: 'Cloud Native',
+    desc: 'Built for the cloud from day one. Auto-scaling, multi-region deployment, and zero-downtime updates out of the box.',
+    icon: IconCloud,
+    color: '#0ea5e9',
+    bg: '#e0f2fe',
+    tags: ['Auto-scale', 'Multi-region']
+  },
+  {
+    id: 7,
+    title: 'AI Powered',
+    desc: 'Machine learning models that adapt to your data. Predictive insights, smart recommendations, and automated decisions.',
+    icon: IconBrain,
+    color: '#8b5cf6',
+    bg: '#ede9fe',
+    tags: ['ML', 'Predictions']
+  },
+  {
+    id: 8,
+    title: 'Time Tracking',
+    desc: 'Built-in time tracking for every project. Automatic reports, billable hours, and team productivity analytics.',
+    icon: IconClock,
+    color: '#f59e0b',
+    bg: '#fef3c7',
+    tags: ['Reports', 'Billing']
+  },
+  {
+    id: 9,
+    title: 'Global CDN',
+    desc: 'Content delivered from edge servers worldwide. Sub-100ms latency for your users no matter where they are.',
+    icon: IconWorld,
+    color: '#10b981',
+    bg: '#d1fae5',
+    tags: ['Edge', '< 100ms']
+  },
+  {
+    id: 10,
+    title: 'Mobile Ready',
+    desc: 'Fully responsive design with native mobile apps for iOS and Android. Your team stays connected everywhere.',
+    icon: IconDeviceMobile,
+    color: '#ec4899',
+    bg: '#fce7f3',
+    tags: ['iOS', 'Android']
   }
 ];
 
-const CARD_W = 280;
+const CARD_W = 300;
 const GAP = 16;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -146,13 +208,17 @@ export default function FeaturesSection() {
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const idx = Math.round(el.scrollLeft / (CARD_W + GAP));
+    const cardWidth = window.innerWidth < 600 ? el.clientWidth : CARD_W + GAP;
+    const idx = Math.round(el.scrollLeft / cardWidth);
     setActiveIdx(Math.min(idx, features.length - 1));
   }, []);
 
   // Snap to card
   const goTo = (idx) => {
-    scrollRef.current?.scrollTo({ left: idx * (CARD_W + GAP), behavior: 'smooth' });
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = window.innerWidth < 600 ? el.clientWidth : CARD_W + GAP;
+    el.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
   };
 
   // Drag scroll
@@ -174,7 +240,19 @@ export default function FeaturesSection() {
   };
 
   return (
-    <Box ref={sectionRef} component="section" id="features" sx={{ py: { xs: 8, md: 10 }, background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 50%, #F1F5FE 100%)', overflow: 'hidden', mt: { xs: '-60px', md: '-80px' }, position: 'relative', zIndex: 5 }}>
+    <Box
+      ref={sectionRef}
+      component="section"
+      id="features"
+      sx={{
+        py: { xs: 8, md: 10 },
+        background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 50%, #F1F5FE 100%)',
+        overflow: 'hidden',
+        mt: { xs: 0, md: '-40px' },
+        position: 'relative',
+        zIndex: 5
+      }}
+    >
       <Container maxWidth="lg">
         {/* ── Header ── */}
         <Box
@@ -238,7 +316,7 @@ export default function FeaturesSection() {
 
         {/* ── Scroll track ── */}
         <Box sx={{ position: 'relative' }}>
-          {/* Fade edges */}
+          {/* Fade edges — hidden on mobile since cards are full-width */}
           <Box
             sx={{
               position: 'absolute',
@@ -248,7 +326,8 @@ export default function FeaturesSection() {
               width: 48,
               zIndex: 2,
               pointerEvents: 'none',
-              background: 'linear-gradient(to right, rgba(248,247,255,1), transparent)'
+              background: 'linear-gradient(to right, rgba(248,247,255,1), transparent)',
+              display: { xs: 'none', sm: 'block' }
             }}
           />
           <Box
@@ -260,7 +339,8 @@ export default function FeaturesSection() {
               width: 48,
               zIndex: 2,
               pointerEvents: 'none',
-              background: 'linear-gradient(to left, rgba(248,247,255,1), transparent)'
+              background: 'linear-gradient(to left, rgba(248,247,255,1), transparent)',
+              display: { xs: 'none', sm: 'block' }
             }}
           />
 
@@ -280,7 +360,7 @@ export default function FeaturesSection() {
               cursor: 'grab',
               userSelect: 'none',
               pb: 2,
-              px: '4px',
+              px: { xs: '16px', sm: '4px' },
               scrollbarWidth: 'none',
               '&::-webkit-scrollbar': { display: 'none' }
             }}
@@ -292,6 +372,7 @@ export default function FeaturesSection() {
                   key={f.id}
                   bordercolor={f.color}
                   sx={{
+                    width: { xs: 'calc(100vw - 32px)', sm: `${CARD_W}px` },
                     opacity: visible ? 1 : 0,
                     animation: visible ? `${fadeUp} 0.6s ease-out ${index * 0.08}s forwards` : 'none'
                   }}
@@ -313,7 +394,7 @@ export default function FeaturesSection() {
                   />
 
                   <IconBox className="icon-box" iconbg={f.bg}>
-                    <Icon size={22} color={f.color} stroke={1.5} />
+                    <Icon size={24} color={f.color} stroke={1.5} />
                   </IconBox>
 
                   {/* Number */}
@@ -356,7 +437,7 @@ export default function FeaturesSection() {
                   </Typography>
 
                   {/* Tags + arrow */}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <Stack direction="row" spacing={0.75}>
                       {f.tags.map((tag) => (
                         <Typography
@@ -416,7 +497,7 @@ export default function FeaturesSection() {
             letterSpacing: '0.02em'
           }}
         >
-          Drag or tap to explore
+          Swipe to explore
         </Typography>
 
         {/* ── CTA ── */}

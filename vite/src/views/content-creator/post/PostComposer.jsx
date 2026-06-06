@@ -285,8 +285,8 @@ export default function PostComposer() {
   const successCount = results ? Object.values(results).filter((v) => v === 'ok').length : 0;
 
   return (
-    <Box sx={{ py: 3, px: { xs: 1, sm: 2 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: { xs: '100%', lg: '75%' }, maxWidth: { sm: 900, md: 1100, lg: 1200 } }}>
+    <Box sx={{ py: 3, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
         {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1.4rem' }}>Create Post</Typography>
