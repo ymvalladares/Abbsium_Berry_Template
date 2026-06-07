@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AppBar, Stack, Button, Box, Typography, Container, useMediaQuery, IconButton } from '@mui/material';
-import { Bolt, Menu, Close } from '@mui/icons-material';
+import { Bolt, Menu, Close, Rocket, Layers, Star, Mail, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
@@ -25,10 +25,10 @@ const Navbar = () => {
   }, []);
 
   const navItems = [
-    { label: 'Features', id: 'features' },
-    { label: 'Solutions', id: 'solutions' },
-    { label: 'Pricing', id: 'pricing' },
-    { label: 'Contact', id: 'contact' }
+    { label: 'Features', id: 'features', icon: <Rocket fontSize="small" /> },
+    { label: 'Solutions', id: 'solutions', icon: <Layers fontSize="small" /> },
+    { label: 'Pricing', id: 'pricing', icon: <Star fontSize="small" /> },
+    { label: 'Contact', id: 'contact', icon: <Mail fontSize="small" /> }
   ];
 
   const scrollTo = (id) => {
@@ -122,13 +122,33 @@ const Navbar = () => {
             )}
 
             {!isMobile && (
-              <Button
-                variant="contained"
-                onClick={() => navigate('/authenticate')}
-                sx={{ borderRadius: '12px', textTransform: 'none', background: '#6366f1' }}
-              >
-                Get Started
-              </Button>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/authenticate')}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: 'rgba(99, 102, 241, 0.5)',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    px: 2,
+                    '&:hover': {
+                      borderColor: '#6366f1',
+                      background: 'rgba(99, 102, 241, 0.1)'
+                    }
+                  }}
+                >
+                  Log In
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/authenticate')}
+                  sx={{ borderRadius: '12px', textTransform: 'none', background: '#6366f1', fontWeight: 600 }}
+                >
+                  Get Started
+                </Button>
+              </Stack>
             )}
 
             {isMobile && (
@@ -140,26 +160,130 @@ const Navbar = () => {
         </Container>
       </AppBar>
 
-      {/* Mobile menu - ahora con animación de escala para más fluidez */}
+      {/* Mobile menu */}
       {isMobile && (
         <Box
           sx={{
             position: 'fixed',
-            top: 90,
+            top: 86,
             left: '4%',
             width: '92%',
-            background: 'rgba(15, 12, 41, 0.95)',
+            background: 'linear-gradient(180deg, rgba(15, 12, 41, 0.98) 0%, rgba(10, 8, 30, 0.98) 100%)',
             borderRadius: '20px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            transform: mobileOpen ? 'scale(1)' : 'scale(0.95)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            transform: mobileOpen ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
             opacity: mobileOpen ? 1 : 0,
             pointerEvents: mobileOpen ? 'auto' : 'none',
-            transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease',
-            p: 2,
-            zIndex: 1999
+            transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            p: 1.5,
+            zIndex: 1999,
+            boxShadow: mobileOpen ? '0 20px 60px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(99, 102, 241, 0.1)' : 'none',
+            backdropFilter: 'blur(20px)'
           }}
         >
-          {/* Tu contenido de menú móvil aquí */}
+          {/* Glow effect */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '60%',
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), transparent)',
+              opacity: mobileOpen ? 1 : 0,
+              transition: 'opacity 0.5s ease 0.2s'
+            }}
+          />
+
+          <Stack spacing={0.5}>
+            {navItems.map((item, index) => (
+              <Button
+                key={item.label}
+                onClick={() => { scrollTo(item.id); setMobileOpen(false); }}
+                startIcon={item.icon}
+                endIcon={<ArrowForward sx={{ fontSize: '0.9rem', opacity: 0.4 }} />}
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.85)',
+                  textTransform: 'none',
+                  borderRadius: '12px',
+                  justifyContent: 'space-between',
+                  py: 1.2,
+                  px: 1.5,
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                  transition: 'all 0.2s ease',
+                  transform: mobileOpen ? 'translateY(0)' : 'translateY(-8px)',
+                  opacity: mobileOpen ? 1 : 0,
+                  transitionDelay: mobileOpen ? `${index * 0.06}s` : '0s',
+                  '&:hover': {
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    color: '#fff',
+                    '& .MuiSvgIcon-root': { opacity: 1 }
+                  },
+                  '& .MuiButton-startIcon': { mr: 1.5, color: 'rgba(99, 102, 241, 0.8)' }
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
+
+            {/* Divider */}
+            <Box sx={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)', my: 0.5 }} />
+
+            <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => { navigate('/authenticate'); setMobileOpen(false); }}
+                sx={{
+                  borderRadius: '14px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1.2,
+                  fontSize: '0.95rem',
+                  borderColor: 'rgba(99, 102, 241, 0.4)',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  transform: mobileOpen ? 'translateY(0)' : 'translateY(-8px)',
+                  opacity: mobileOpen ? 1 : 0,
+                  transition: 'all 0.3s ease',
+                  transitionDelay: mobileOpen ? '0.3s' : '0s',
+                  '&:hover': {
+                    borderColor: '#6366f1',
+                    background: 'rgba(99, 102, 241, 0.1)'
+                  }
+                }}
+              >
+                Log In
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => { navigate('/authenticate'); setMobileOpen(false); }}
+                endIcon={<ArrowForward sx={{ fontSize: '1rem' }} />}
+                sx={{
+                  borderRadius: '14px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1.2,
+                  fontSize: '0.95rem',
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35)',
+                  transform: mobileOpen ? 'translateY(0)' : 'translateY(-8px)',
+                  opacity: mobileOpen ? 1 : 0,
+                  transition: 'all 0.3s ease',
+                  transitionDelay: mobileOpen ? '0.25s' : '0s',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5558e6, #7c4feb)',
+                    boxShadow: '0 6px 28px rgba(99, 102, 241, 0.45)',
+                    transform: 'translateY(-1px)'
+                  }
+                }}
+              >
+                Get Started
+              </Button>
+            </Stack>
+          </Stack>
         </Box>
       )}
     </>

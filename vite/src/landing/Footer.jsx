@@ -1,4 +1,4 @@
-import { Container, Box, Typography, Link, Grid, Stack } from '@mui/material';
+import { Container, Box, Typography, Link, Grid, Stack, Button } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -172,7 +172,55 @@ const Footer = ({
             © {currentYear} {brandName}. All rights reserved.
           </Typography>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 3 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 3 }} alignItems="center">
+            {/* Mobile buttons - side by side and centered */}
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{
+                display: { xs: 'flex', sm: 'none' },
+                width: '100%',
+                justifyContent: 'center'
+              }}
+            >
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/authenticate')}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  px: 2,
+                  borderColor: 'rgba(99, 102, 241, 0.4)',
+                  color: 'rgba(99, 102, 241, 0.9)',
+                  '&:hover': {
+                    borderColor: '#6366f1',
+                    background: 'rgba(99, 102, 241, 0.08)'
+                  }
+                }}
+              >
+                Log In
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/authenticate')}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  px: 2,
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5558e6, #7c4feb)'
+                  }
+                }}
+              >
+                Get Started
+              </Button>
+            </Stack>
+
             <Typography
               onClick={() => navigate('/privacy-policy')}
               sx={{

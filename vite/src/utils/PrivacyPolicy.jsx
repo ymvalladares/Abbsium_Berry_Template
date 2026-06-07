@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Stack, Link, Divider } from '@mui/material';
+import Navbar from '../landing/Navbar';
+import Footer from '../landing/Footer';
 
 const policyData = [
   {
@@ -66,7 +68,10 @@ export const PrivacyPolicy = () => {
   }, []);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 10, minHeight: '100vh' }}>
+    <>
+      <Navbar />
+      <Box sx={{ pt: { xs: 10, sm: 12 } }}>
+        <Container maxWidth="lg" sx={{ py: 10, minHeight: '100vh' }}>
       <Box sx={{ display: 'flex', gap: { xs: 0, md: 16 }, alignItems: 'flex-start' }}>
         {/* Navigation */}
         <Box sx={{ width: 240, position: 'sticky', top: 120, display: { xs: 'none', md: 'block' } }}>
@@ -129,6 +134,9 @@ export const PrivacyPolicy = () => {
           </Box>
         </Box>
       </Box>
-    </Container>
+        </Container>
+      </Box>
+      <Footer />
+    </>
   );
 };
