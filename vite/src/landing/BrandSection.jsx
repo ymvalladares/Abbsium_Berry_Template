@@ -34,10 +34,10 @@ const BrandSection = () => {
     <Box
       id="solutions"
       sx={{
-        py: { xs: 8 },
+        py: { xs: 6, md: 8 },
         position: 'relative',
         overflow: 'hidden',
-        background: 'linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 40%, #ffffff 100%)'
+        background: 'transparent'
       }}
     >
       {/* Luces de profundidad de fondo */}
@@ -68,14 +68,14 @@ const BrandSection = () => {
         <Grid container spacing={10} alignItems="center">
           {/* COLUMNA IZQUIERDA: Mantenemos el estilo minimalista y potente */}
           <Grid size={{ xs: 12, md: 5.5 }}>
-            <Stack spacing={4}>
+            <Stack spacing={{ xs: 3, md: 4 }}>
               <Box>
                 <Typography
                   sx={{
                     fontWeight: 900,
                     fontSize: { xs: '2.8rem', md: '3.8rem' },
                     lineHeight: 1.05,
-                    mb: 3,
+                    mb: { xs: 2, md: 3 },
                     letterSpacing: '-2.5px',
                     color: '#0f172a'
                   }}

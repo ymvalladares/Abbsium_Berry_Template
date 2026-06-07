@@ -10,6 +10,7 @@ import ResetPassword from '../authentication/ResetPassword.jsx';
 import { PrivacyPolicy } from '../utils/PrivacyPolicy.jsx';
 import { TermsOfService } from '../utils/TermsOfService.jsx';
 import AuthCallback from '../views/content-creator/socialNetwork/AuthCallback.jsx';
+import NotFound from '../views/common/NotFound.jsx';
 
 const router = createBrowserRouter(
   [
@@ -27,7 +28,9 @@ const router = createBrowserRouter(
       path: '/platform',
       element: <ProtectedRoute>{MainRoutes.element}</ProtectedRoute>,
       children: [...MainRoutes.children, AdminRoutes]
-    }
+    },
+
+    { path: '*', element: <NotFound /> }
   ],
   {
     basename: import.meta.env.VITE_APP_BASE_NAME

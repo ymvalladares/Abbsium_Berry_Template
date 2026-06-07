@@ -46,7 +46,7 @@ const Footer = ({
     <Box
       component="footer"
       sx={{
-        background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%)',
+        background: 'transparent',
         color: colors.textPrimary,
         borderTop: `1px solid ${colors.borderColor}`,
         pt: { xs: 6, sm: 8, md: 10 },
@@ -55,7 +55,7 @@ const Footer = ({
       }}
     >
       <Container maxWidth="lg">
-        <Grid container spacing={{ xs: 6, sm: 8, md: 8 }} sx={{ mb: { xs: 8, md: 10 } }}>
+        <Grid container spacing={{ xs: 5, sm: 8, md: 8 }} sx={{ mb: { xs: 6, md: 10 } }}>
           {/* LEFT COLUMN BIGGER */}
           <Grid size={{ xs: 12, sm: 12, md: 5 }}>
             <Stack spacing={3}>
@@ -157,7 +157,7 @@ const Footer = ({
           ))}
         </Grid>
 
-        <Box sx={{ height: '1px', bgcolor: colors.borderColor, mb: 4 }} />
+        <Box sx={{ height: '1px', bgcolor: colors.borderColor, mb: { xs: 2, md: 4 } }} />
 
         <Box
           sx={{

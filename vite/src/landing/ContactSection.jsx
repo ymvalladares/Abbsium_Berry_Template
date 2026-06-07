@@ -100,9 +100,9 @@ const ContactSection = () => {
       <Box
         id="contact"
         sx={{
-          py: { xs: 10, md: 16 },
+          py: { xs: 8, md: 16 },
           position: 'relative',
-          background: 'linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 50%, #ffffff 100%)',
+          background: 'transparent',
           overflow: 'hidden'
         }}
       >
@@ -122,55 +122,59 @@ const ContactSection = () => {
           <Box
             sx={{
               textAlign: 'center',
-              mb: { xs: 6, md: 10 },
+              mb: { xs: 5, md: 10 },
               px: { xs: 2, sm: 0 },
               opacity: mounted ? 1 : 0,
               transform: mounted ? 'translateY(0)' : 'translateY(20px)',
               transition: 'all 0.6s ease'
             }}
           >
-            <Chip
-              label="GET IN TOUCH"
+            <Typography
               sx={{
-                bgcolor: 'rgba(99, 102, 241, 0.08)',
-                mb: 2,
-                fontWeight: 800,
-                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.75rem',
                 color: '#6366f1',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
-                letterSpacing: '0.1em',
-                height: { xs: 26, sm: 28 }
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                mb: 1.5
               }}
-            />
+            >
+              GET IN TOUCH
+            </Typography>
             <Typography
               variant="h2"
               component="h2"
               sx={{
+                fontFamily: "'Nunito', sans-serif",
                 fontWeight: 900,
                 lineHeight: { xs: 1.15, md: 1.1 },
                 letterSpacing: '-0.03em',
                 mb: 1.5,
-                fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3.5rem' }
+                fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3.5rem' },
+                color: '#0f172a'
               }}
             >
-              Start a{' '}
+              Let's Build Something{' '}
               <Box
                 component="span"
                 sx={{
-                  color: 'transparent',
-                  WebkitTextStroke: { xs: '1px', md: '1.5px' },
-                  WebkitTextStrokeColor: '#6366f1'
+                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
                 }}
               >
-                Conversation
+                Amazing
               </Box>
             </Typography>
             <Typography
               sx={{
+                fontFamily: "'Nunito', sans-serif",
                 color: '#64748b',
                 maxWidth: '480px',
                 mx: 'auto',
                 fontSize: { xs: '0.9rem', sm: '1rem' },
+                lineHeight: 1.7,
                 px: { xs: 1, sm: 0 }
               }}
             >

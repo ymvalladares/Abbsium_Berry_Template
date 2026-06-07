@@ -245,10 +245,10 @@ export default function FeaturesSection() {
       component="section"
       id="features"
       sx={{
-        py: { xs: 8, md: 10 },
-        background: 'linear-gradient(180deg, #ffffff 0%, #f7f9ff 50%, #F1F5FE 100%)',
+        py: { xs: 6, md: 10 },
+        background: 'transparent',
         overflow: 'hidden',
-        mt: { xs: 0, md: '-40px' },
+        mt: { xs: '-20px', md: '-40px' },
         position: 'relative',
         zIndex: 5
       }}
@@ -258,7 +258,7 @@ export default function FeaturesSection() {
         <Box
           sx={{
             textAlign: 'center',
-            mb: 7,
+            mb: { xs: 5, md: 7 },
             opacity: visible ? 1 : 0,
             animation: visible ? `${fadeUp} 0.7s ease-out forwards` : 'none'
           }}
@@ -501,7 +501,7 @@ export default function FeaturesSection() {
         </Typography>
 
         {/* ── CTA ── */}
-        <Box sx={{ mt: 8, textAlign: 'center' }}>
+        <Box sx={{ mt: { xs: 6, md: 8 }, textAlign: 'center' }}>
           <Button
             variant="contained"
             size="large"

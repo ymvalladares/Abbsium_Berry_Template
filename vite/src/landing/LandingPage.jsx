@@ -16,7 +16,7 @@ const LandingPage = () => {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        background: 'linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 40%, #ffffff 100%)',
+        background: '#ffffff',
         overflow: 'hidden'
       }}
     >
@@ -30,7 +30,7 @@ const LandingPage = () => {
           background: `
             radial-gradient(ellipse 60% 40% at 95% 5%,  rgba(139, 92, 246, 0.04) 0%, transparent 60%),
             radial-gradient(ellipse 50% 35% at 5% 10%, rgba(99, 102, 241, 0.03) 0%, transparent 55%),
-            linear-gradient(180deg, #F1F5FE 0%, #f7f9ff 40%, #ffffff 100%)
+            linear-gradient(180deg, #ffffff 0%, #ffffff 40%, #ffffff 100%)
           `
         }}
       />
