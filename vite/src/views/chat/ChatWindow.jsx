@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Avatar, Typography, IconButton, TextField,
   CircularProgress, Badge, Paper, Fade,
-  Tooltip,
+  Tooltip, Skeleton,
 } from '@mui/material';
 import {
   ArrowBack, SendRounded, AttachFileOutlined, Close,
@@ -222,13 +222,42 @@ const ChatWindow = ({ isMobile }) => {
   if (isLoading) {
     return (
       <Paper elevation={0} sx={{
-        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flex: 1, display: 'flex', flexDirection: 'column',
         height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
         border: isMobile ? 'none' : '1px solid #e2e8f0',
         boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
-        background: 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
+        overflow: 'hidden',
       }}>
-        <CircularProgress size={28} thickness={4} sx={{ color: primaryColor }} />
+        <Box sx={{ px: 2.25, py: 0.8, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Skeleton variant="circular" width={38} height={38} />
+          <Box>
+            <Skeleton width={100} height={14} sx={{ mb: 0.5 }} />
+            <Skeleton width={60} height={10} />
+          </Box>
+        </Box>
+        <Box sx={{ flex: 1, px: 1.25, py: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Box key={i} sx={{
+              display: 'flex',
+              flexDirection: i % 3 === 0 ? 'row' : 'row-reverse',
+              alignItems: 'flex-end',
+              gap: 0.5,
+            }}>
+              <Skeleton variant="circular" width={24} height={24} />
+              <Skeleton
+                variant="rounded"
+                width={i % 2 === 0 ? '60%' : '45%'}
+                height={36 + (i % 3) * 12}
+                sx={{ borderRadius: i % 3 === 0 ? '14px 14px 14px 4px' : '14px 14px 4px 14px' }}
+              />
+            </Box>
+          ))}
+        </Box>
+        <Box sx={{ px: 2.25, py: 1, borderTop: '1px solid', borderColor: 'divider', display: 'flex', gap: 0.5, alignItems: 'center' }}>
+          <Skeleton variant="circular" width={32} height={32} />
+          <Skeleton width="100%" height={36} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="circular" width={32} height={32} />
+        </Box>
       </Paper>
     );
   }

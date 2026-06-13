@@ -1,10 +1,11 @@
-import { IconPhotoShare, IconCut, IconBroadcast } from '@tabler/icons-react';
+import { IconPhotoShare, IconCut, IconBroadcast, IconCalendar } from '@tabler/icons-react';
 
 // constant
 const icons = {
   IconPhotoShare,
   IconCut,
-  IconBroadcast
+  IconBroadcast,
+  IconCalendar
 };
 
 // ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
@@ -37,6 +38,14 @@ const contentCreator = {
       type: 'item',
       url: '/platform/content/social-networks',
       icon: icons.IconBroadcast,
+      breadcrumbs: false
+    },
+    {
+      id: 'calendar',
+      title: 'Calendar',
+      type: 'item',
+      url: '/platform/content/calendar',
+      icon: icons.IconCalendar,
       breadcrumbs: false
     }
   ]

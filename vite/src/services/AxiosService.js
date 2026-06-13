@@ -25,6 +25,50 @@ const saveTokens = (access, refresh) => {
   if (refresh) localStorage.setItem('refreshToken', refresh);
 };
 
+// ─── Shared refresh function ──────────────────────────────────────────────────
+export async function refreshAccessToken() {
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+
+  try {
+    const currentToken = getToken();
+    const currentRefreshToken = getRefreshToken();
+
+    if (!currentRefreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const result = await axios.post(`${import.meta.env.VITE_API_URL}account/refresh-token`, {
+      token: currentToken,
+      refreshToken: currentRefreshToken
+    });
+
+    const newAccess = result.data.token;
+    const newRefresh = result.data.refreshToken;
+
+    saveTokens(newAccess, newRefresh);
+    axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + newAccess;
+    processQueue(null, newAccess);
+
+    return newAccess;
+  } catch (e) {
+    processQueue(e, null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    window.location.href = '/authenticate';
+    throw e;
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+// ─── Interceptors ─────────────────────────────────────────────────────────────
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -48,38 +92,13 @@ axiosInstance.interceptors.response.use(
     }
 
     if (status === 401 && !originalRequest?._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => { originalRequest.headers['Authorization'] = 'Bearer ' + token; return axiosInstance(originalRequest); })
-          .catch((err) => Promise.reject(err));
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
 
       try {
-        const currentToken = getToken();
-        const currentRefreshToken = getRefreshToken();
-        const result = await axios.post(`${import.meta.env.VITE_API_URL}account/refresh-token`, { token: currentToken, refreshToken: currentRefreshToken });
-
-        const newAccess = result.data.token;
-        const newRefresh = result.data.refreshToken;
-        saveTokens(newAccess, newRefresh);
-        axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + newAccess;
-        processQueue(null, newAccess);
-        isRefreshing = false;
-
-        originalRequest.headers['Authorization'] = 'Bearer ' + newAccess;
+        const newToken = await refreshAccessToken();
+        originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
         return axiosInstance(originalRequest);
       } catch (e) {
-        processQueue(e, null);
-        isRefreshing = false;
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/authenticate';
         return Promise.reject(e);
       }
     }
@@ -91,6 +110,7 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// ─── API helpers ──────────────────────────────────────────────────────────────
 const api = {
   get: (url, config = {}) => axiosInstance.get(url, config),
   post: (url, data, config = {}) => axiosInstance.post(url, data, config),
@@ -160,6 +180,16 @@ export const socialAPI = {
   },
 
   facebookProfile: () => axiosInstance.get('/SocialAuth/facebook/test-profile'),
+  postFacebook: (data) => {
+    return api.post('/SocialPost/publish', data);
+  },
+
+  getPostHistory: (page = 1, pageSize = 20) => {
+    return axiosInstance.get(`/SocialPost/history?page=${page}&pageSize=${pageSize}`);
+  },
+  cleanupHistory: (daysToKeep = 30) => {
+    return axiosInstance.post(`/SocialPost/history/cleanup?daysToKeep=${daysToKeep}`);
+  },
   postFacebookText: (message, pageId) => {
     const data = { message };
     if (pageId) data.pageId = pageId;
@@ -171,7 +201,27 @@ export const socialAPI = {
     return api.post('/SocialAuth/facebook/photo', data);
   },
 
-  disconnect: (provider) => axiosInstance.delete(`/SocialAuth/disconnect/${provider}`)
+  disconnect: (provider) => axiosInstance.delete(`/SocialAuth/disconnect/${provider}`),
+
+  getPresignedUrl: (fileName, contentType) => {
+    return api.post('/socialpost/s3/presigned', { fileName, contentType });
+  },
+
+  publishAsync: (data) => {
+    return api.post('/socialpost/publish', data);
+  },
+
+  uploadToS3: async (url, file, contentType, onProgress) => {
+    return axios.put(url, file, {
+      headers: { 'Content-Type': contentType },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percentCompleted);
+        }
+      }
+    });
+  }
 };
 
 function openPopup(url, platform, onComplete) {

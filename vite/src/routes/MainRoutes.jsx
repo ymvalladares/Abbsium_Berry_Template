@@ -11,6 +11,7 @@ const UserDashboard = Loadable(lazy(() => import('views/userDashboard/Dashboard'
 const Post = Loadable(lazy(() => import('views/content-creator/post')));
 const SocialNetwork = Loadable(lazy(() => import('views/content-creator/socialNetwork')));
 const ClippingsAgent = Loadable(lazy(() => import('views/content-creator/clippingAgent')));
+const Calendar = Loadable(lazy(() => import('views/content-creator/calendar/Calendar')));
 
 //AI
 const Ai = Loadable(lazy(() => import('views/ai/Ai')));
@@ -32,6 +33,7 @@ const MainRoutes = {
     { path: 'content/create-post', element: <Post /> },
     { path: 'content/clippings-agent', element: <ClippingsAgent /> },
     { path: 'content/social-networks', element: <SocialNetwork /> },
+    { path: 'content/calendar', element: <Calendar /> },
 
     { path: 'chat-ai', element: <Ai /> },
 

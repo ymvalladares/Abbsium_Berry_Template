@@ -68,7 +68,7 @@ const Auth_Form = ({ onSuccess }) => {
       googleLogin(res.data);
       onSuccess?.(res.data.email);
     } catch (err) {
-      setAuthError('Google sign-in failed. Please try again.');
+      setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
       setGoogleLoading(false);
       if (googleTimeoutRef.current) clearTimeout(googleTimeoutRef.current);
@@ -139,7 +139,7 @@ const Auth_Form = ({ onSuccess }) => {
     } else {
       setAuthMessage(null);
       setAttemptCount((prev) => prev + 1);
-      setAuthError('Invalid credentials. Please try again.');
+      setAuthError(result?.message || 'Invalid credentials. Please try again.');
     }
   };
 

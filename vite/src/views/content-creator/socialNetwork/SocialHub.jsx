@@ -14,7 +14,8 @@ import {
   IconButton,
   alpha,
   Dialog,
-  Fade
+  Fade,
+  Skeleton
 } from '@mui/material';
 import {
   IconBrandFacebook,
@@ -364,7 +365,46 @@ export default function SocialHub() {
     return matchesSearch;
   });
 
-  if (loading) return <Loader />;
+  if (loading) {
+    return (
+      <Box sx={{ py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Skeleton width={100} height={28} />
+            <Skeleton width={80} height={28} />
+          </Box>
+          <Skeleton variant="rounded" width="100%" height={80} sx={{ mb: 3, borderRadius: 3 }} />
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+            <Skeleton width={320} height={38} />
+            <Skeleton width={200} height={38} />
+          </Box>
+          <Box sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  py: 1.5,
+                  px: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  borderBottom: idx < 4 ? '1px solid' : 'none',
+                  borderColor: 'divider'
+                }}
+              >
+                <Skeleton variant="circular" width={36} height={36} />
+                <Box sx={{ flex: 1 }}>
+                  <Skeleton width={100} height={16} sx={{ mb: 0.5 }} />
+                  <Skeleton width={140} height={12} />
+                </Box>
+                <Skeleton width={90} height={32} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
@@ -652,7 +692,12 @@ export default function SocialHub() {
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography
                           variant="caption"
-                          sx={{ fontWeight: 600, fontSize: '0.85rem', display: 'block', color: conn?.isActive ? 'text.primary' : 'text.disabled' }}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            display: 'block',
+                            color: conn?.isActive ? 'text.primary' : 'text.disabled'
+                          }}
                         >
                           {conn?.isActive ? 'Active' : 'Inactive'}
                         </Typography>
@@ -662,9 +707,7 @@ export default function SocialHub() {
                       </Box>
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.85rem', display: 'block' }}>
-                          {conn?.expiresAt
-                            ? new Date(conn.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                            : '—'}
+                          {conn?.expiresAt ? new Date(conn.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem' }}>
                           Expires

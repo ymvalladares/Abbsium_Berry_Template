@@ -5,7 +5,6 @@ import {
   Stack,
   Button,
   TextField,
-  Chip,
   LinearProgress,
   IconButton,
   useMediaQuery,
@@ -16,8 +15,7 @@ import {
   StepLabel,
   Dialog,
   DialogContent,
-  Divider,
-  Grid
+  Divider
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useDropzone } from 'react-dropzone';
@@ -41,16 +39,11 @@ import {
   IconRefresh,
   IconChevronRight,
   IconChevronLeft,
-  IconConfetti,
-  IconClock,
-  IconCalendar,
-  IconGlobe,
-  IconHash,
-  IconEye,
-  IconDeviceDesktop
+  IconConfetti
 } from '@tabler/icons-react';
 import { socialAPI } from '../../../services/AxiosService';
 import { showSnackbar } from '../../../utils/snackbarNotif';
+import publishingSignalR from '../../../services/PublishingSignalRService';
 
 const PLATFORMS = [
   { id: 'facebook', name: 'Facebook', icon: IconBrandFacebook, color: '#1877F2' },
@@ -132,6 +125,7 @@ export default function PostComposer() {
   const [posting, setPosting] = useState(false);
   const [progress, setProgress] = useState({});
   const [results, setResults] = useState(null);
+  const [serverResponse, setServerResponse] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [scheduleType, setScheduleType] = useState('now');
   const [scheduledDate, setScheduledDate] = useState('');
@@ -142,6 +136,10 @@ export default function PostComposer() {
   const [pages, setPages] = useState({});
   const [selectedPages, setSelectedPages] = useState({});
   const [loadingPages, setLoadingPages] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [networkStatuses, setNetworkStatuses] = useState({});
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [publishSummary, setPublishSummary] = useState(null);
 
   const fetchPages = useCallback(async () => {
     setLoadingPages(true);
@@ -194,13 +192,69 @@ export default function PostComposer() {
 
   useEffect(() => {
     fetchPages();
+    return () => {
+      publishingSignalR.stop();
+    };
   }, [fetchPages]);
 
   const toggle = (id) => setPlatforms((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
   const selectAll = () => setPlatforms(connectedPlatforms);
   const clearAll = () => setPlatforms([]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ accept: ACCEPTED, multiple: false, onDrop: setFiles });
+  const [fileError, setFileError] = useState(null);
+
+  const validateFile = (f) => {
+    if (!f) {
+      setFileError(null);
+      return true;
+    }
+
+    const isVideo = f.type.startsWith('video');
+    const isImage = f.type.startsWith('image');
+
+    if (!isVideo && !isImage) {
+      setFileError('Only image and video files are allowed');
+      return false;
+    }
+
+    if (isVideo) {
+      if (f.type !== 'video/mp4' && !f.name.toLowerCase().endsWith('.mp4')) {
+        setFileError('Video must be MP4 format');
+        return false;
+      }
+
+      const maxSize = 256 * 1024 * 1024;
+      if (f.size > maxSize) {
+        setFileError('Video must be under 256MB');
+        return false;
+      }
+    }
+
+    if (isImage) {
+      const maxSize = 10 * 1024 * 1024;
+      if (f.size > maxSize) {
+        setFileError('Images must be under 10MB');
+        return false;
+      }
+    }
+
+    setFileError(null);
+    return true;
+  };
+
+  const handleFileDrop = (acceptedFiles) => {
+    const f = acceptedFiles[0];
+    if (validateFile(f)) {
+      setFiles([f]);
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: ACCEPTED,
+    multiple: false,
+    onDrop: handleFileDrop,
+    noClick: false
+  });
   const file = files[0];
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
 
@@ -208,54 +262,193 @@ export default function PostComposer() {
 
   const publish = async () => {
     if (posting) return;
-    setPosting(true);
-    setResults(null);
-    setShowModal(false);
-    const r = {};
-    const text = `${title}${caption ? '\n\n' + caption : ''}`;
 
-    for (const p of platforms) {
-      setProgress((prev) => ({ ...prev, [p]: 0 }));
-      try {
-        if (p === 'facebook') {
-          let response;
-          const targetPage = selectedPages.facebook;
-          if (file) {
-            const photoUrl = await toBase64(file);
-            response = await socialAPI.postFacebookPhoto(text, photoUrl, caption, targetPage);
-          } else {
-            response = await socialAPI.postFacebookText(text, targetPage);
-          }
-
-          const data = response?.data;
-          if (data && (data.status === 'Photo published' || data.status === 'Post published' || data.message || data.id)) {
-            r[p] = 'ok';
-            setProgress((prev) => ({ ...prev, [p]: 100 }));
-          } else {
-            r[p] = 'err';
-            setProgress((prev) => ({ ...prev, [p]: -1 }));
-          }
-        } else {
-          await new Promise((ok) => setTimeout(ok, 1200));
-          r[p] = 'ok';
-          setProgress((prev) => ({ ...prev, [p]: 100 }));
-        }
-      } catch (err) {
-        setProgress((prev) => ({ ...prev, [p]: -1 }));
-        r[p] = 'err';
-      }
+    if (file && !validateFile(file)) {
+      showSnackbar(fileError, 'error');
+      return;
     }
 
-    setResults(r);
-    setPosting(false);
+    setPosting(true);
+    setResults(null);
+    setServerResponse(null);
+    setShowModal(false);
+    setSessionId(null);
+    setNetworkStatuses({});
+    setUploadProgress(0);
+    setPublishSummary(null);
+    setFileError(null);
 
-    const ok = Object.values(r).filter((v) => v === 'ok').length;
-    if (ok === 0) {
-      showSnackbar('Publish failed', 'error');
-    } else {
+    const SUPPORTED_PLATFORMS = ['Facebook', 'Instagram', 'YouTube', 'TikTok'];
+    const platformNames = platforms
+      .map((id) => PLATFORMS.find((p) => p.id === id)?.name)
+      .filter(Boolean)
+      .filter((name) => SUPPORTED_PLATFORMS.includes(name));
+
+    if (platformNames.length === 0) {
+      showSnackbar('Select at least one supported platform (Facebook, Instagram, YouTube, TikTok)', 'warning');
+      setPosting(false);
+      return;
+    }
+
+    try {
+      let s3Url = null;
+      let s3Key = null;
+
+      if (file) {
+        setUploadProgress(0);
+        const presignedResponse = await socialAPI.getPresignedUrl(file.name, file.type);
+        const data = presignedResponse.data;
+
+        const uploadUrl = data.url || data.Url;
+        const key = data.key || data.Key;
+        const contentType = data.contentType || data.ContentType || file.type;
+
+        if (!uploadUrl || !key) {
+          showSnackbar('Failed to get upload URL from server', 'error');
+          setPosting(false);
+          return;
+        }
+
+        s3Key = key;
+
+        await socialAPI.uploadToS3(uploadUrl, file, contentType, (percent) => {
+          setUploadProgress(percent);
+        });
+
+        s3Url = data.publicUrl || data.PublicUrl;
+        if (!s3Url) {
+          const baseUrl = import.meta.env.VITE_S3_PUBLIC_URL || 'https://s3.amazonaws.com/abbsiumapp/';
+          s3Url = `${baseUrl}${key}`;
+        }
+        setUploadProgress(100);
+      }
+
+      const token = localStorage.getItem('token');
+
+      const handlePublishStarted = (data) => {
+        console.log('Publish started:', data);
+      };
+
+      const handleNetworkStatus = (data) => {
+        console.log('Network status:', data);
+        const platformId = PLATFORMS.find((p) => p.name === data.network)?.id || data.network.toLowerCase();
+        setNetworkStatuses((prev) => ({
+          ...prev,
+          [platformId]: {
+            status: data.status,
+            message: data.message,
+            network: data.network,
+            postId: data.postId,
+            postUrl: data.postUrl,
+            error: data.error,
+            progress: data.status === 'success' ? 100 : data.status === 'error' ? 0 : (prev[platformId]?.progress || 0)
+          }
+        }));
+
+        if (data.status === 'success') {
+          setProgress((prev) => ({ ...prev, [platformId]: 100 }));
+        } else if (data.status === 'error') {
+          setProgress((prev) => ({ ...prev, [platformId]: -1 }));
+        }
+      };
+
+      const handlePublishFinished = (data) => {
+        console.log('Publish finished:', data);
+        setPublishSummary(data);
+        setPosting(false);
+
+        const ok = data.successful;
+        if (ok === 0) {
+          showSnackbar('Publish failed on all platforms', 'error');
+        } else if (ok === data.total) {
+          showSnackbar(`Published on ${ok} platform${ok > 1 ? 's' : ''}`, 'success');
+        } else {
+          showSnackbar(`Published on ${ok} of ${data.total} platforms`, 'warning');
+        }
+
+        const r = {};
+        platformNames.forEach((name) => {
+          const platformId = PLATFORMS.find((p) => p.name === name)?.id || name.toLowerCase();
+          const status = networkStatuses[platformId]?.status;
+          r[platformId] = status === 'success' ? 'ok' : 'err';
+        });
+        setResults(r);
+
+        publishingSignalR.off('publish_started', handlePublishStarted);
+        publishingSignalR.off('network_status', handleNetworkStatus);
+        publishingSignalR.off('publish_finished', handlePublishFinished);
+      };
+
+      const handleError = (error) => {
+        console.error('SignalR error:', error);
+        setPosting(false);
+        showSnackbar('Real-time connection error', 'error');
+      };
+
+      publishingSignalR.on('publish_started', handlePublishStarted);
+      publishingSignalR.on('network_status', handleNetworkStatus);
+      publishingSignalR.on('publish_finished', handlePublishFinished);
+      publishingSignalR.on('error', handleError);
+
+      await publishingSignalR.start(token);
+
+      const initialStatuses = {};
+      platformNames.forEach((name) => {
+        const platformId = PLATFORMS.find((p) => p.name === name)?.id || name.toLowerCase();
+        initialStatuses[platformId] = { status: 'uploading', message: 'Starting...', network: name, progress: 0 };
+      });
+      setNetworkStatuses(initialStatuses);
       setShowModal(true);
-      if (ok === platforms.length) showSnackbar(`Published on ${ok} platform${ok > 1 ? 's' : ''}`, 'success');
-      else showSnackbar(`Published on ${ok} of ${platforms.length} platforms`, 'warning');
+
+      const payload = {
+        videoUrl: s3Url,
+        caption: caption || undefined,
+        platforms: platformNames,
+        isShort: type === 'reel'
+      };
+
+      Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
+
+      const publishResponse = await socialAPI.publishAsync(payload);
+      const { sessionId: newSessionId } = publishResponse.data;
+      setSessionId(newSessionId);
+
+      const progressInterval = setInterval(() => {
+        setNetworkStatuses((prev) => {
+          const updated = {};
+          Object.entries(prev).forEach(([id, statusData]) => {
+            if (statusData.status === 'uploading') {
+              updated[id] = {
+                ...statusData,
+                progress: Math.min((statusData.progress || 0) + 5, 95)
+              };
+            } else {
+              updated[id] = statusData;
+            }
+          });
+          return updated;
+        });
+      }, 500);
+
+      const cleanupInterval = () => clearInterval(progressInterval);
+
+      const handlePublishFinishedWithCleanup = (data) => {
+        cleanupInterval();
+        handlePublishFinished(data);
+      };
+
+      publishingSignalR.off('publish_finished', handlePublishFinished);
+      publishingSignalR.on('publish_finished', handlePublishFinishedWithCleanup);
+    } catch (err) {
+      console.error('Publish error:', err);
+      setPosting(false);
+      showSnackbar(err.response?.data?.errorMessage || err.response?.data?.message || 'Publish failed', 'error');
+      const r = {};
+      platforms.forEach((p) => {
+        r[p] = 'err';
+        setProgress((prev) => ({ ...prev, [p]: -1 }));
+      });
+      setResults(r);
     }
   };
 
@@ -275,10 +468,15 @@ export default function PostComposer() {
     setCaption('');
     setPrompt('');
     setResults(null);
+    setServerResponse(null);
     setProgress({});
     setStep(0);
     setShowModal(false);
     setSelectedPages({});
+    setSessionId(null);
+    setNetworkStatuses({});
+    setUploadProgress(0);
+    setPublishSummary(null);
   };
 
   const plat = (id) => PLATFORMS.find((p) => p.id === id);
@@ -515,6 +713,7 @@ export default function PostComposer() {
             {/* Step 1 */}
             {step === 1 && (
               <Stack spacing={2}>
+                {/* Type selector */}
                 <Stack direction="row" spacing={1}>
                   {TYPES.map((t) => {
                     const a = type === t.id;
@@ -524,49 +723,26 @@ export default function PostComposer() {
                         key={t.id}
                         onClick={() => setType(t.id)}
                         sx={{
+                          flex: 1,
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
-                          gap: 0.75,
-                          px: 2,
-                          py: 0.75,
-                          borderRadius: 2,
-                          border: '1px solid',
+                          gap: 0.5,
+                          p: 1.5,
+                          borderRadius: 2.5,
+                          border: '2px solid',
                           borderColor: a ? '#5E35B1' : 'divider',
-                          bgcolor: a ? alpha('#5E35B1', 0.06) : 'transparent',
-                          cursor: 'pointer'
+                          bgcolor: a ? alpha('#5E35B1', 0.04) : 'white',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          '&:hover': { borderColor: a ? '#5E35B1' : alpha('#5E35B1', 0.2) }
                         }}
                       >
-                        <Icon size={15} style={{ color: a ? '#5E35B1' : '#999' }} />
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: a ? '#5E35B1' : 'inherit' }}>{t.label}</Typography>
+                        <Icon size={20} style={{ color: a ? '#5E35B1' : '#999' }} />
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: a ? '#5E35B1' : 'text.secondary' }}>{t.label}</Typography>
                       </Box>
                     );
                   })}
-                </Stack>
-
-                <Stack direction="row" spacing={1}>
-                  {[
-                    { k: 'manual', l: 'Upload', i: IconUpload },
-                    { k: 'ai', l: 'AI', i: IconSparkles }
-                  ].map((m) => (
-                    <Button
-                      key={m.k}
-                      size="small"
-                      startIcon={<m.i size={15} />}
-                      onClick={() => setMode(m.k)}
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        px: 2,
-                        ...(mode === m.k
-                          ? { bgcolor: '#5E35B1', color: '#fff' }
-                          : { border: '1px solid', borderColor: 'divider', color: 'text.secondary' })
-                      }}
-                    >
-                      {m.l}
-                    </Button>
-                  ))}
                 </Stack>
 
                 {mode === 'manual' ? (
@@ -575,61 +751,71 @@ export default function PostComposer() {
                       <Box
                         {...getRootProps()}
                         sx={{
-                          borderRadius: 2,
+                          borderRadius: 2.5,
                           border: '2px dashed',
-                          borderColor: isDragActive ? '#5E35B1' : 'divider',
-                          bgcolor: isDragActive ? alpha('#5E35B1', 0.04) : 'grey.50',
+                          borderColor: isDragActive ? '#5E35B1' : fileError ? '#f44336' : 'divider',
+                          bgcolor: isDragActive ? alpha('#5E35B1', 0.03) : fileError ? alpha('#f44336', 0.02) : 'white',
                           cursor: 'pointer',
-                          p: 2.5,
-                          textAlign: 'center'
+                          p: 3,
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease'
                         }}
                       >
                         <input {...getInputProps()} />
-                        <IconUpload size={22} style={{ color: '#999', margin: '0 auto 6px' }} />
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>Drop media or click</Typography>
+                        <IconUpload size={24} style={{ color: fileError ? '#f44336' : '#bbb', margin: '0 auto 8px' }} />
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mb: 0.25 }}>Drop media here or click to browse</Typography>
+                        <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>MP4 video or images</Typography>
                       </Box>
                     ) : (
-                      <Stack direction="row" spacing={2}>
-                        <Box
-                          sx={{
-                            width: 100,
-                            height: 70,
-                            borderRadius: 2,
-                            overflow: 'hidden',
-                            position: 'relative',
-                            bgcolor: 'grey.100',
-                            flexShrink: 0
-                          }}
-                        >
-                          {file.type.startsWith('image') ? (
-                            <Box component="img" src={preview} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <Box component="video" src={preview} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          )}
-                          <IconButton
-                            size="small"
-                            onClick={() => setFiles([])}
+                      <Box>
+                        <Stack direction="row" spacing={2}>
+                          <Box
                             sx={{
-                              position: 'absolute',
-                              top: 3,
-                              right: 3,
-                              bgcolor: 'rgba(0,0,0,0.5)',
-                              color: '#fff',
-                              width: 18,
-                              height: 18,
-                              minWidth: 0
+                              width: 100,
+                              height: 70,
+                              borderRadius: 2,
+                              overflow: 'hidden',
+                              position: 'relative',
+                              bgcolor: 'grey.100',
+                              flexShrink: 0
                             }}
                           >
-                            <IconX size={10} />
-                          </IconButton>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                          <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{file.name}</Typography>
-                          <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-                            {(file.size / 1024 / 1024).toFixed(1)} MB
-                          </Typography>
-                        </Box>
-                      </Stack>
+                            {file.type.startsWith('image') ? (
+                              <Box component="img" src={preview} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <Box component="video" src={preview} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            )}
+                            <IconButton
+                              size="small"
+                              onClick={() => { setFiles([]); setFileError(null); }}
+                              sx={{
+                                position: 'absolute',
+                                top: 3,
+                                right: 3,
+                                bgcolor: 'rgba(0,0,0,0.5)',
+                                color: '#fff',
+                                width: 18,
+                                height: 18,
+                                minWidth: 0
+                              }}
+                            >
+                              <IconX size={10} />
+                            </IconButton>
+                          </Box>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+                            <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{file.name}</Typography>
+                            <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                              {(file.size / 1024 / 1024).toFixed(1)} MB · {file.type.startsWith('video') ? 'Video' : 'Image'}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        {fileError && (
+                          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 1, p: 1, borderRadius: 1.5, bgcolor: alpha('#f44336', 0.04), border: '1px solid', borderColor: alpha('#f44336', 0.12) }}>
+                            <IconAlertCircle size={14} style={{ color: '#f44336' }} />
+                            <Typography sx={{ fontSize: '0.75rem', color: '#f44336' }}>{fileError}</Typography>
+                          </Stack>
+                        )}
+                      </Box>
                     )}
                     <TextField
                       size="small"
@@ -683,148 +869,93 @@ export default function PostComposer() {
 
             {/* Step 2 - Review & Publish */}
             {step === 2 && (
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'stretch' }}>
-                {/* Left - Facebook Post Preview */}
-                <Box sx={{ flex: '0 0 280px' }}>
-                  <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', height: '100%' }}>
-                    {/* Post header */}
-                    <Box sx={{ p: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: alpha('#1877F2', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <IconBrandFacebook size={16} style={{ color: '#1877F2' }} />
-                        </Box>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {selectedPages.facebook && pages.facebook ? pages.facebook.accountName || 'Your Account' : 'Your Account'}
-                          </Typography>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <IconGlobe size={10} style={{ color: 'text.disabled' }} />
-                            <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled' }}>Just now</Typography>
-                          </Stack>
-                        </Box>
-                      </Stack>
-                    </Box>
-
-                    {/* Post content */}
-                    <Box sx={{ p: 1.25 }}>
-                      {title && <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>{title}</Typography>}
-                      <Typography sx={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', mb: 1 }}>
-                        {caption || 'No caption'}
-                      </Typography>
-
-                      {/* Media */}
-                      {file ? (
-                        <Box sx={{ borderRadius: 1, overflow: 'hidden', bgcolor: 'grey.100', mb: 1 }}>
-                          {file.type.startsWith('image') ? (
-                            <Box component="img" src={preview} sx={{ width: '100%', display: 'block' }} />
-                          ) : (
-                            <Box sx={{ width: '100%', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                              <IconVideo size={24} style={{ color: '#999' }} />
-                            </Box>
-                          )}
-                        </Box>
-                      ) : (
-                        <Box sx={{ borderRadius: 1, bgcolor: 'grey.50', border: '1px dashed', borderColor: 'divider', p: 1.5, textAlign: 'center', mb: 1 }}>
-                          <IconPhoto size={20} style={{ color: '#ccc', margin: '0 auto 4px' }} />
-                          <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled' }}>No media</Typography>
-                        </Box>
-                      )}
-
-                      {/* Action buttons */}
-                      <Divider sx={{ mb: 0.75 }} />
-                      <Stack direction="row" justifyContent="space-around">
-                        {['Like', 'Comment', 'Share'].map((action) => (
-                          <Typography key={action} sx={{ fontSize: '0.65rem', fontWeight: 600, color: 'text.disabled' }}>{action}</Typography>
-                        ))}
-                      </Stack>
-                    </Box>
-                  </Box>
-                </Box>
-
-                {/* Right - Details */}
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  {/* Platforms */}
-                  <Box sx={{ borderRadius: 1.5, border: '1px solid', borderColor: 'divider', p: 1.25, mb: 1 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.65rem', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, mb: 1 }}>Publishing to</Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75 }}>
-                      {platforms.map((id) => {
-                        const p = plat(id);
-                        if (!p) return null;
-                        const Icon = p.icon;
-                        const account = pages[id];
-
-                        return (
-                          <Box key={id} sx={{ p: 0.75, borderRadius: 1, border: '1px solid', borderColor: alpha(p.color, 0.1), bgcolor: alpha(p.color, 0.02) }}>
-                            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.25 }}>
-                              <Box sx={{ width: 18, height: 18, borderRadius: 1, bgcolor: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon size={10} style={{ color: '#fff' }} />
-                              </Box>
-                              <Typography sx={{ fontWeight: 600, fontSize: '0.7rem' }}>{p.name}</Typography>
-                            </Stack>
-                            <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {account ? account.accountName : 'Personal profile'}
+              <Stack spacing={1.5}>
+                {/* Platforms row */}
+                <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: 'white' }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Publishing to</Typography>
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    {platforms.map((id) => {
+                      const p = plat(id);
+                      if (!p) return null;
+                      const Icon = p.icon;
+                      const account = pages[id];
+                      return (
+                        <Stack key={id} direction="row" alignItems="center" spacing={1} sx={{ p: '6px 12px', borderRadius: 1.5, border: '1px solid', borderColor: alpha(p.color, 0.15), bgcolor: alpha(p.color, 0.03) }}>
+                          <Box sx={{ width: 20, height: 20, borderRadius: 1, bgcolor: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Icon size={11} style={{ color: '#fff' }} />
+                          </Box>
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem' }}>{p.name}</Typography>
+                            <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                              {account ? account.accountName : 'Personal'}
                             </Typography>
                           </Box>
-                        );
-                      })}
-                    </Box>
-                  </Box>
+                        </Stack>
+                      );
+                    })}
+                  </Stack>
+                </Box>
 
-                  {/* Details row */}
-                  <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                    {/* Content info */}
-                    <Box sx={{ flex: 1, borderRadius: 1.5, border: '1px solid', borderColor: 'divider', p: 1.25 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.65rem', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, mb: 1 }}>Details</Typography>
-                      <Stack spacing={0.75}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Type</Typography>
-                          <Chip label={TYPES.find((t) => t.id === type)?.label} size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 600, bgcolor: 'grey.100' }} />
-                        </Stack>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Visibility</Typography>
-                          <Chip label={visibility} size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 600, bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50' }} />
-                        </Stack>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Schedule</Typography>
-                          <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: scheduleType === 'later' ? 'text.primary' : '#4CAF50' }}>
-                            {scheduleType === 'later' ? `${scheduledDate} ${scheduledTime}` : 'Now'}
-                          </Typography>
-                        </Stack>
-                        {file && (
-                          <Stack direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>File</Typography>
-                            <Typography sx={{ fontSize: '0.65rem', fontWeight: 600 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</Typography>
-                          </Stack>
+                {/* Content + Details in compact row */}
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ alignItems: 'stretch' }}>
+                  {/* Content */}
+                  <Box sx={{ flex: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: 'white' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Content</Typography>
+                    {title && <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>{title}</Typography>}
+                    {caption && (
+                      <Typography sx={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'text.secondary', mb: 1 }}>
+                        {caption}
+                      </Typography>
+                    )}
+                    {!title && !caption && (
+                      <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled', mb: 1 }}>No text content</Typography>
+                    )}
+                    {file && (
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 1, borderRadius: 1.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
+                        {file.type.startsWith('image') ? (
+                          <Box component="img" src={preview} sx={{ width: 48, height: 48, borderRadius: 1.5, objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                          <Box sx={{ width: 48, height: 48, borderRadius: 1.5, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <IconVideo size={18} style={{ color: '#999' }} />
+                          </Box>
                         )}
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography sx={{ fontWeight: 600, fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</Typography>
+                          <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>{(file.size / 1024 / 1024).toFixed(1)} MB</Typography>
+                        </Box>
                       </Stack>
-                    </Box>
-
-                    {/* Tags */}
-                    {tags.length > 0 && (
-                      <Box sx={{ flex: '0 0 140px', borderRadius: 1.5, border: '1px solid', borderColor: 'divider', p: 1.25 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.65rem', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, mb: 1 }}>Tags</Typography>
-                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                          {tags.slice(0, 6).map((tag) => (
-                            <Chip key={tag} label={`#${tag}`} size="small" sx={{ height: 18, fontSize: '0.55rem', fontWeight: 600, bgcolor: alpha('#5E35B1', 0.08), color: '#5E35B1', borderRadius: 1 }} />
-                          ))}
-                          {tags.length > 6 && (
-                            <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', alignSelf: 'center' }}>+{tags.length - 6}</Typography>
-                          )}
-                        </Stack>
-                      </Box>
+                    )}
+                    {!file && (
+                      <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled' }}>No media attached</Typography>
                     )}
                   </Box>
 
-                  {/* Fill space to match left height */}
-                  <Box sx={{ flex: 1, borderRadius: 1.5, border: '1px dashed', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha('#5E35B1', 0.01) }}>
-                    <Stack direction="column" alignItems="center" spacing={0.5}>
-                      <IconSend size={24} style={{ color: alpha('#5E35B1', 0.2) }} />
-                      <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: alpha('#5E35B1', 0.3) }}>Ready to publish</Typography>
-                      <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled' }}>Click the button below</Typography>
+                  {/* Details */}
+                  <Box sx={{ flex: '0 0 160px', borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: 'white' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Details</Typography>
+                    <Stack spacing={1}>
+                      <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: 'grey.50' }}>
+                        <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Type</Typography>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{TYPES.find((t) => t.id === type)?.label}</Typography>
+                      </Box>
+                      <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: 'grey.50' }}>
+                        <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Schedule</Typography>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#4CAF50' }}>Now</Typography>
+                      </Box>
+                      {file && (
+                        <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: 'grey.50' }}>
+                          <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>File size</Typography>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{(file.size / 1024 / 1024).toFixed(1)} MB</Typography>
+                        </Box>
+                      )}
+                      <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: 'grey.50' }}>
+                        <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Platforms</Typography>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{platforms.length}</Typography>
+                      </Box>
                     </Stack>
                   </Box>
-                </Box>
-              </Box>
+                </Stack>
+              </Stack>
             )}
           </Box>
 
@@ -835,135 +966,58 @@ export default function PostComposer() {
               borderColor: 'divider',
               p: { xs: 1.5, sm: 2, md: 2.5 },
               display: 'flex',
-              justifyContent: 'space-between'
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              gap: 1
             }}
           >
-            <Box>
-              {step > 0 && !results && (
-                <Button
-                  size="small"
-                  startIcon={<IconChevronLeft size={16} />}
-                  onClick={() => setStep((s) => s - 1)}
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
-                >
-                  Back
-                </Button>
-              )}
-            </Box>
-            <Box>
-              {step < 2 && !results ? (
-                <Button
-                  size="small"
-                  endIcon={<IconChevronRight size={16} />}
-                  onClick={() => setStep((s) => s + 1)}
-                  disabled={!canNext}
-                  variant="contained"
-                  sx={{ textTransform: 'none', fontWeight: 600, bgcolor: '#5E35B1', '&:disabled': { bgcolor: alpha('#5E35B1', 0.3) } }}
-                >
-                  Next
-                </Button>
-              ) : !results ? (
-                <Button
-                  size="small"
-                  startIcon={posting ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : <IconSend size={16} />}
-                  disabled={!canNext || posting}
-                  onClick={publish}
-                  variant="contained"
-                  sx={{ px: 2.5, textTransform: 'none', fontWeight: 600, background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)' }}
-                >
-                  {posting ? 'Publishing...' : 'Publish'}
-                </Button>
-              ) : null}
-            </Box>
+            {step > 0 && !results && (
+              <Button
+                size="small"
+                startIcon={<IconChevronLeft size={16} />}
+                onClick={() => setStep((s) => s - 1)}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                Back
+              </Button>
+            )}
+            {step < 2 && !results ? (
+              <Button
+                size="small"
+                endIcon={<IconChevronRight size={16} />}
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canNext}
+                variant="contained"
+                sx={{ textTransform: 'none', fontWeight: 600, bgcolor: '#5E35B1', '&:disabled': { bgcolor: alpha('#5E35B1', 0.3) } }}
+              >
+                Next
+              </Button>
+            ) : !results ? (
+              <Button
+                size="small"
+                startIcon={posting ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : <IconSend size={16} />}
+                disabled={!canNext || posting}
+                onClick={publish}
+                variant="contained"
+                sx={{ px: 2.5, textTransform: 'none', fontWeight: 600, background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)' }}
+              >
+                {posting ? 'Publishing...' : 'Publish'}
+              </Button>
+            ) : null}
           </Box>
         </Box>
-
-        {/* Results inline */}
-        {results && Object.entries(results).length > 0 && (
-          <Box
-            sx={{ mt: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', overflow: 'hidden' }}
-          >
-            {Object.entries(results).map(([id, st], i, arr) => {
-              const p = plat(id);
-              const Icon = p?.icon || IconAlertCircle;
-              const pr = progress[id];
-              const ok = st === 'ok';
-              const err = pr === -1;
-              return (
-                <Box key={id}>
-                  <Box sx={{ p: 1.5 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box
-                        sx={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 1.5,
-                          bgcolor: ok ? alpha('#4CAF50', 0.1) : err ? alpha('#f44336', 0.1) : alpha('#5E35B1', 0.1),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        {ok ? (
-                          <IconCheck size={14} color="#4CAF50" />
-                        ) : err ? (
-                          <IconAlertCircle size={14} color="#f44336" />
-                        ) : (
-                          <CircularProgress size={14} sx={{ color: '#5E35B1' }} />
-                        )}
-                      </Box>
-                      <Box sx={{ flex: 1 }}>
-                        <Stack direction="row" alignItems="center" spacing={0.75}>
-                          <Icon size={14} style={{ color: p?.color }} />
-                          <Box>
-                            <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{p?.name}</Typography>
-                            {(() => {
-                              const account = pages[id];
-                              return account ? (
-                                <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {account.accountName}
-                                </Typography>
-                              ) : null;
-                            })()}
-                          </Box>
-                        </Stack>
-                        <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-                          {ok ? 'Published' : err ? 'Failed' : `Publishing... ${pr}%`}
-                        </Typography>
-                        {!ok && !err && (
-                          <LinearProgress
-                            variant="determinate"
-                            value={pr}
-                            sx={{
-                              mt: 0.5,
-                              height: 3,
-                              borderRadius: 1.5,
-                              bgcolor: alpha('#5E35B1', 0.1),
-                              '& .MuiLinearProgress-bar': { borderRadius: 1.5, bgcolor: '#5E35B1' }
-                            }}
-                          />
-                        )}
-                      </Box>
-                    </Stack>
-                  </Box>
-                  {i < arr.length - 1 && <Divider sx={{ ml: 'calc(28px + 12px)' }} />}
-                </Box>
-              );
-            })}
-          </Box>
-        )}
       </Box>
 
       {/* Success Modal */}
       <Dialog
         open={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => !posting && setShowModal(false)}
         maxWidth="xs"
         fullWidth
         PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden', position: 'relative' } }}
       >
         <DialogContent sx={{ p: 0 }}>
-          <Confetti />
+          {publishSummary && (publishSummary.successful === publishSummary.total) ? <Confetti /> : null}
 
           <Box sx={{ p: 4, textAlign: 'center', position: 'relative', zIndex: 1 }}>
             <Box
@@ -971,7 +1025,7 @@ export default function PostComposer() {
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                bgcolor: alpha('#4CAF50', 0.1),
+                bgcolor: posting ? alpha('#5E35B1', 0.1) : (publishSummary && publishSummary.successful === publishSummary.total) ? alpha('#4CAF50', 0.1) : alpha('#FF9800', 0.1),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -979,81 +1033,150 @@ export default function PostComposer() {
                 mb: 2
               }}
             >
-              <IconConfetti size={32} style={{ color: '#4CAF50' }} />
+              {posting ? (
+                <CircularProgress size={32} sx={{ color: '#5E35B1' }} />
+              ) : publishSummary && publishSummary.successful === publishSummary.total ? (
+                <IconConfetti size={32} style={{ color: '#4CAF50' }} />
+              ) : (
+                <IconAlertCircle size={32} style={{ color: '#FF9800' }} />
+              )}
             </Box>
 
-            <Typography sx={{ fontWeight: 700, fontSize: '1.25rem', mb: 0.5 }}>Post Published!</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '1.25rem', mb: 0.5 }}>
+              {posting ? 'Publishing...' : (publishSummary && publishSummary.successful === publishSummary.total) ? 'Post Published!' : 'Partial Success'}
+            </Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', mb: 3 }}>
-              {successCount === platforms.length
-                ? `Successfully published on all ${successCount} platforms`
-                : `Published on ${successCount} of ${platforms.length} platforms`}
+              {posting
+                ? `Publishing to ${platforms.length} platform${platforms.length > 1 ? 's' : ''}...`
+                : publishSummary
+                  ? `${publishSummary.successful} of ${publishSummary.total} platforms successful`
+                  : `${successCount} of ${platforms.length} platforms successful`}
             </Typography>
 
             <Stack spacing={1} sx={{ mb: 3 }}>
-              {results &&
-                Object.entries(results).map(([id, st]) => {
-                  const p = plat(id);
-                  const ok = st === 'ok';
-                  const Icon = p?.icon || IconAlertCircle;
-                  const account = pages[id];
-                  return (
-                    <Stack
-                      key={id}
-                      direction="row"
-                      spacing={1.5}
-                      alignItems="center"
+              {Object.entries(networkStatuses).map(([id, statusData]) => {
+                const p = plat(id);
+                const Icon = p?.icon || IconAlertCircle;
+                const ok = statusData.status === 'success';
+                const err = statusData.status === 'error';
+                const progress = statusData.progress || 0;
+                return (
+                  <Stack
+                    key={id}
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="flex-start"
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      bgcolor: ok ? alpha('#4CAF50', 0.04) : err ? alpha('#f44336', 0.04) : alpha('#5E35B1', 0.04),
+                      border: '1px solid',
+                      borderColor: ok ? alpha('#4CAF50', 0.15) : err ? alpha('#f44336', 0.15) : alpha('#5E35B1', 0.15)
+                    }}
+                  >
+                    <Box
                       sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: ok ? alpha('#4CAF50', 0.04) : alpha('#f44336', 0.04),
-                        border: '1px solid',
-                        borderColor: ok ? alpha('#4CAF50', 0.15) : alpha('#f44336', 0.15)
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        bgcolor: ok ? alpha('#4CAF50', 0.1) : err ? alpha('#f44336', 0.1) : alpha('#5E35B1', 0.1),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
                       }}
                     >
-                      <Box
-                        sx={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: '50%',
-                          bgcolor: ok ? alpha('#4CAF50', 0.1) : alpha('#f44336', 0.1),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        {ok ? <IconCheck size={14} color="#4CAF50" /> : <IconAlertCircle size={14} color="#f44336" />}
-                      </Box>
-                      <Icon size={16} style={{ color: p?.color }} />
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{p?.name}</Typography>
-                        {account && (
-                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {account.accountName}
+                      {ok ? (
+                        <IconCheck size={14} color="#4CAF50" />
+                      ) : err ? (
+                        <IconAlertCircle size={14} color="#f44336" />
+                      ) : (
+                        <CircularProgress size={14} sx={{ color: '#5E35B1' }} />
+                      )}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25 }}>
+                        <Icon size={16} style={{ color: p?.color, flexShrink: 0 }} />
+                        <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{statusData.network || p?.name}</Typography>
+                      </Stack>
+                      {ok ? (
+                        <>
+                          {statusData.postUrl && (
+                            <Typography
+                              sx={{ fontSize: '0.75rem', color: '#1877F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                              component="a"
+                              href={statusData.postUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View post
+                            </Typography>
+                          )}
+                          {statusData.postId && !statusData.postUrl && (
+                            <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Post ID: {statusData.postId}</Typography>
+                          )}
+                        </>
+                      ) : err ? (
+                        <Typography sx={{ fontSize: '0.75rem', color: '#f44336' }}>
+                          {statusData.error || 'Failed to publish'}
+                        </Typography>
+                      ) : (
+                        <>
+                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 0.5 }}>
+                            {statusData.message || 'Publishing...'}
                           </Typography>
-                        )}
-                      </Box>
-                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: ok ? '#4CAF50' : '#f44336' }}>
-                        {ok ? 'Published' : 'Failed'}
-                      </Typography>
-                    </Stack>
-                  );
-                })}
+                          <LinearProgress
+                            variant="determinate"
+                            value={progress}
+                            sx={{
+                              height: 4,
+                              borderRadius: 2,
+                              bgcolor: alpha('#5E35B1', 0.1),
+                              '& .MuiLinearProgress-bar': { borderRadius: 2, bgcolor: '#5E35B1' }
+                            }}
+                          />
+                          <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: 0.25, textAlign: 'right' }}>
+                            {progress}%
+                          </Typography>
+                        </>
+                      )}
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: ok ? '#4CAF50' : err ? '#f44336' : '#5E35B1',
+                        bgcolor: ok ? alpha('#4CAF50', 0.1) : err ? alpha('#f44336', 0.1) : alpha('#5E35B1', 0.1),
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: 1,
+                        flexShrink: 0,
+                        alignSelf: 'center'
+                      }}
+                    >
+                      {ok ? 'Published' : err ? 'Failed' : '...'}
+                    </Typography>
+                  </Stack>
+                );
+              })}
             </Stack>
 
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={reset}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                py: 1.25,
-                background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)'
-              }}
-            >
-              Create Another Post
-            </Button>
+            {!posting && (
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={reset}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1.25,
+                  background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)'
+                }}
+              >
+                Create Another Post
+              </Button>
+            )}
           </Box>
         </DialogContent>
       </Dialog>

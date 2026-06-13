@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Box, TextField, InputAdornment, Typography, IconButton, CircularProgress, Badge, Paper } from '@mui/material';
+import { Box, TextField, InputAdornment, Typography, IconButton, CircularProgress, Badge, Paper, Skeleton } from '@mui/material';
 import { Search, Close, Chat, People, Forum } from '@mui/icons-material';
 import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
@@ -133,8 +133,20 @@ const ChatSidebar = ({ isMobile }) => {
         }}
       >
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress size={28} thickness={4} sx={{ color: primaryColor }} />
+          <Box sx={{ px: 1.25, py: 1 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Box key={i} sx={{
+                display: 'flex', alignItems: 'center', gap: 0.75,
+                px: 1, py: 0.75, mx: 0.25, my: 0.6, borderRadius: 2.5,
+              }}>
+                <Skeleton variant="circular" width={38} height={38} />
+                <Box sx={{ flex: 1 }}>
+                  <Skeleton width={100} height={14} sx={{ mb: 0.5 }} />
+                  <Skeleton width={140} height={12} />
+                </Box>
+                <Skeleton width={30} height={14} />
+              </Box>
+            ))}
           </Box>
         ) : displayList.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 8, px: 3 }}>
