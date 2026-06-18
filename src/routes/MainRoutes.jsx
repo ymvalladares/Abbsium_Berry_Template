@@ -1,0 +1,52 @@
+import { lazy } from 'react';
+import MainLayout from 'layout/MainLayout';
+import Loadable from 'ui-component/Loadable';
+import PricingComponent from '../landing/PricingComponent';
+import PaymentResult from '../views/utilities/PaymentResult';
+
+//User
+const UserDashboard = Loadable(lazy(() => import('views/userDashboard/Dashboard')));
+
+//Content Creator
+const Post = Loadable(lazy(() => import('views/content-creator/post')));
+const SocialNetwork = Loadable(lazy(() => import('views/content-creator/socialNetwork')));
+const ClippingsAgent = Loadable(lazy(() => import('views/content-creator/clippingAgent')));
+const Calendar = Loadable(lazy(() => import('views/content-creator/calendar/Calendar')));
+
+//AI
+const Ai = Loadable(lazy(() => import('views/ai/Ai')));
+
+const Chat = Loadable(lazy(() => import('views/chat')));
+
+const Settings = Loadable(lazy(() => import('views/user-settings')));
+
+const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
+
+const MainRoutes = {
+  path: '/platform',
+  element: <MainLayout />,
+  children: [
+    { path: '', element: <UserDashboard /> },
+    { path: 'dashboard', element: <UserDashboard /> },
+
+    { path: 'color', element: <UtilsColor /> },
+    { path: 'content/create-post', element: <Post /> },
+    { path: 'content/clippings-agent', element: <ClippingsAgent /> },
+    { path: 'content/social-networks', element: <SocialNetwork /> },
+    { path: 'content/calendar', element: <Calendar /> },
+
+    { path: 'chat-ai', element: <Ai /> },
+
+    { path: 'chat', element: <Chat /> },
+
+    { path: 'settings', element: <Settings /> },
+
+    { path: 'pricing', element: <PricingComponent /> },
+
+    { path: 'success-payment', element: <PaymentResult /> },
+
+    { path: 'payment-denied', element: <PaymentResult /> }
+  ]
+};
+
+export default MainRoutes;

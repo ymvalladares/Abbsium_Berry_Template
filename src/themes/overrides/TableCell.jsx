@@ -1,0 +1,19 @@
+// ==============================|| OVERRIDES - TABLE CELL ||============================== //
+
+export default function TableCell(theme) {
+  return {
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderColor: theme.vars.palette.divider,
+
+          '&.MuiTableCell-head': {
+            fontSize: '0.875rem',
+            color: theme.vars.palette.text.primary,
+            fontWeight: 500
+          }
+        }
+      }
+    }
+  };
+}
