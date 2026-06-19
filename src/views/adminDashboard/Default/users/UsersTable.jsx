@@ -90,7 +90,7 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
                       {user.avatar ? (
                         <Avatar sx={{ bgcolor: '#9b87f5' }}>{user.avatar}</Avatar>
                       ) : (
-                        <Avatar src={`https://i.pravatar.cc/150?u=${user.id}`} />
+                        <Avatar>{user.name?.charAt(0) || '?'}</Avatar>
                       )}
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>

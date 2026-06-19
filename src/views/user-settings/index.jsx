@@ -28,7 +28,7 @@ export default function SettingsPage() {
 
   const fileInputRef = useRef(null);
   const [avatarPreview, setAvatarPreview] = useState(
-    user?.avatarUrl || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200'
+    user?.avatarUrl || ''
   );
 
   useEffect(() => {
