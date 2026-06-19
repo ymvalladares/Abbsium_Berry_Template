@@ -53,11 +53,13 @@ function Sidebar() {
     if (drawerOpen) drawerSX = { px: 2.5, mt: 0 };
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0, ...drawerSX }}>
-        <SimpleBar sx={{ flexGrow: 1, p: 0 }}>
-          <MenuList />
+      <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+        <SimpleBar sx={{ flexGrow: 1, p: 0, pt: 1.5, '& .simplebar-track.simplebar-vertical': { top: 12 } }}>
+          <Box sx={drawerSX}>
+            <MenuList />
+            {drawerOpen && <Box sx={{ mt: 2 }}>{drawerContent}</Box>}
+          </Box>
         </SimpleBar>
-        {drawerOpen && <Box sx={{ mt: 2 }}>{drawerContent}</Box>}
       </Box>
     );
   }, [downMD, drawerOpen]);
