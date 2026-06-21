@@ -131,7 +131,7 @@ export default function StatsCards() {
   ];
 
   return (
-    <Box sx={{ py: 3, px: { xs: 2, md: 8 } }}>
+    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: 3, px: { xs: 2, md: 8 } }}>
       <Box sx={{ mb: 4 }}>
         <Typography
           sx={{
@@ -378,7 +378,7 @@ export default function StatsCards() {
                 </Box>
 
                 <Button
-                  onClick={() => navigate('/platform/content/create-post')}
+                  onClick={() => navigate('/platform/content/post')}
                   startIcon={<CreateIcon />}
                   sx={{
                     px: 4,

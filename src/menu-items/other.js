@@ -1,22 +1,50 @@
 // assets
-import { IconBrandChrome, IconHelp } from '@tabler/icons-react';
+import { IconBrandPnpm } from '@tabler/icons-react';
+// assets
 
 // constant
-const icons = { IconBrandChrome, IconHelp };
+const icons = {
+  IconBrandPnpm
+};
 
-// ==============================|| SAMPLE PAGE & DOCUMENTATION MENU ITEMS ||============================== //
+// ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
 
 const other = {
-  id: 'sample-docs-roadmap',
+  id: 'other',
+  title: 'Other',
+  icon: icons.IconBrandPnpm,
   type: 'group',
   children: [
     {
-      id: 'util-color',
-      title: 'Color',
-      type: 'item',
-      url: '/platform/color',
-      icon: icons.IconBrandChrome,
-      breadcrumbs: false
+      id: 'admin',
+      title: 'Admin',
+      type: 'collapse',
+      icon: icons.IconBrandPnpm,
+      children: [
+        {
+          id: 'dashboard',
+          title: 'Dashboard',
+          type: 'item',
+          url: '/platform/admin/dashboard',
+          breadcrumbs: false
+        },
+
+        {
+          id: 'users',
+          title: 'Users',
+          type: 'item',
+          url: '/platform/admin/users',
+          breadcrumbs: false
+        },
+
+        {
+          id: 'orders',
+          title: 'Orders',
+          type: 'item',
+          url: '/platform/admin/orders',
+          breadcrumbs: false
+        }
+      ]
     }
   ]
 };

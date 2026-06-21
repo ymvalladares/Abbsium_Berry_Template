@@ -30,14 +30,14 @@ const MainRoutes = {
     { path: 'dashboard', element: <UserDashboard /> },
 
     { path: 'color', element: <UtilsColor /> },
-    { path: 'content/create-post', element: <Post /> },
+    { path: 'content/post', element: <Post /> },
     { path: 'content/clippings-agent', element: <ClippingsAgent /> },
     { path: 'content/social-networks', element: <SocialNetwork /> },
     { path: 'content/calendar', element: <Calendar /> },
 
-    { path: 'chat-ai', element: <Ai /> },
+    { path: 'chat/ai', element: <Ai /> },
 
-    { path: 'chat', element: <Chat /> },
+    { path: 'chat/admin', element: <Chat /> },
 
     { path: 'settings', element: <Settings /> },
 

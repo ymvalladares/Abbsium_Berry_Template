@@ -7,7 +7,7 @@ import contentCreator from './contentCreator';
 import chat from './chat';
 
 const menuItems = ({ role }) => {
-  const items = [dashboard, contentCreator, utilities, chat];
+  const items = [dashboard, contentCreator, chat];
 
   if (role === 'Admin') items.push(admin);
 

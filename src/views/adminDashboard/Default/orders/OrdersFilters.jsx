@@ -14,6 +14,7 @@ import {
   Stack,
   alpha
 } from '@mui/material';
+import { useColorScheme } from '@mui/material/styles';
 
 import SearchIcon from '@mui/icons-material/Search';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -27,31 +28,34 @@ import { useFilters } from '../../../../contexts/FiltersContext';
 
 const radius = 2.5; // Tu firma visual
 
-const toggleGroupStyle = {
-  '& .MuiToggleButton-root': {
-    borderRadius: radius,
-    textTransform: 'none',
-    border: '1px solid #e2e8f0',
-    py: 1,
-    fontSize: '13px',
-    color: '#64748b',
-    fontWeight: 500,
-    ml: 2,
-    '&.Mui-selected': {
-      bgcolor: alpha('#6366f1', 0.08),
-      borderColor: '#6366f1',
-      color: '#6366f1',
-      fontWeight: 700,
-      '&:hover': { bgcolor: alpha('#6366f1', 0.12) }
-    }
-  }
-};
-
 const OrdersFilters = ({ onAddOrder }) => {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { filters, updateFilter, clearFilters } = useFilters();
 
   // Contador real de filtros aplicados
   const activeCount = [filters.status, filters.priority, filters.search].filter(Boolean).length;
+
+  const toggleGroupStyle = {
+    '& .MuiToggleButton-root': {
+      borderRadius: radius,
+      textTransform: 'none',
+      border: '1px solid',
+      borderColor: isDark ? '#374151' : '#e2e8f0',
+      py: 1,
+      fontSize: '13px',
+      color: isDark ? '#94a3b8' : '#64748b',
+      fontWeight: 500,
+      ml: 2,
+      '&.Mui-selected': {
+        bgcolor: alpha('#6366f1', 0.08),
+        borderColor: '#6366f1',
+        color: '#6366f1',
+        fontWeight: 700,
+        '&:hover': { bgcolor: alpha('#6366f1', 0.12) }
+      }
+    }
+  };
 
   return (
     <Card
@@ -59,8 +63,9 @@ const OrdersFilters = ({ onAddOrder }) => {
       sx={{
         borderRadius: radius,
         mb: 3,
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+        border: '1px solid',
+        borderColor: isDark ? '#374151' : '#e2e8f0',
+        boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.02)'
       }}
     >
       <Box sx={{ p: 3 }}>
@@ -68,7 +73,7 @@ const OrdersFilters = ({ onAddOrder }) => {
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Box>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.1rem', color: isDark ? '#f1f5f9' : '#0f172a' }}>
                 Orders
               </Typography>
               {activeCount > 0 && (
@@ -86,7 +91,7 @@ const OrdersFilters = ({ onAddOrder }) => {
                 />
               )}
             </Stack>
-            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 500 }}>
+            <Typography variant="caption" sx={{ color: isDark ? '#64748b' : '#94a3b8', fontWeight: 500 }}>
               Filter and export your logistics data
             </Typography>
           </Box>
@@ -99,8 +104,8 @@ const OrdersFilters = ({ onAddOrder }) => {
               sx={{
                 borderRadius: radius,
                 textTransform: 'none',
-                borderColor: '#e2e8f0',
-                color: '#64748b',
+                borderColor: isDark ? '#475569' : '#e2e8f0',
+                color: isDark ? '#cbd5e1' : '#64748b',
                 fontWeight: 700,
                 px: 2,
                 display: { xs: 'none', sm: 'flex' }
@@ -116,8 +121,8 @@ const OrdersFilters = ({ onAddOrder }) => {
               onClick={onAddOrder}
               size="small"
               sx={{
-                bgcolor: '#0f172a',
-                '&:hover': { bgcolor: '#000' },
+                bgcolor: isDark ? '#6366f1' : '#0f172a',
+                '&:hover': { bgcolor: isDark ? '#4f46e5' : '#000' },
                 borderRadius: radius,
                 textTransform: 'none',
                 fontWeight: 700,
@@ -140,29 +145,29 @@ const OrdersFilters = ({ onAddOrder }) => {
             mb: 3,
             '& .MuiOutlinedInput-root': {
               borderRadius: radius,
-              bgcolor: '#fafafa',
+              bgcolor: isDark ? '#0f172a' : '#fafafa',
               transition: '0.2s',
-              '& fieldset': { borderColor: '#e2e8f0' },
-              '&:hover': { bgcolor: '#fff' },
-              '&.Mui-focused': { bgcolor: '#fff', '& fieldset': { borderColor: '#6366f1' } }
+              '& fieldset': { borderColor: isDark ? '#374151' : '#e2e8f0' },
+              '&:hover': { bgcolor: isDark ? '#1e293b' : '#fff' },
+              '&.Mui-focused': { bgcolor: isDark ? '#1e293b' : '#fff', '& fieldset': { borderColor: '#6366f1' } }
             }
           }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                <SearchIcon sx={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: 20 }} />
               </InputAdornment>
             )
           }}
         />
 
-        <Divider sx={{ mb: 3, borderStyle: 'dashed' }} />
+        <Divider sx={{ mb: 3, borderStyle: 'dashed', borderColor: isDark ? '#374151' : undefined }} />
 
         {/* ===== FILTER GRID ===== */}
         <Grid container spacing={3}>
           {/* STATUS FILTER */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', mb: 1, display: 'block', letterSpacing: '0.05em' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#94a3b8' : '#475569', mb: 1, display: 'block', letterSpacing: '0.05em' }}>
               ORDER STATUS
             </Typography>
             <ToggleButtonGroup
@@ -185,7 +190,7 @@ const OrdersFilters = ({ onAddOrder }) => {
 
           {/* PRIORITY FILTER */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', mb: 1, display: 'block', letterSpacing: '0.05em' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#94a3b8' : '#475569', mb: 1, display: 'block', letterSpacing: '0.05em' }}>
               PRIORITY LEVEL
             </Typography>
             <ToggleButtonGroup
@@ -218,7 +223,7 @@ const OrdersFilters = ({ onAddOrder }) => {
               startIcon={<TuneIcon sx={{ fontSize: 14 }} />}
               sx={{
                 textTransform: 'none',
-                color: '#94a3b8',
+                color: isDark ? '#64748b' : '#94a3b8',
                 fontWeight: 700,
                 fontSize: '12px',
                 '&:hover': { color: '#6366f1', bgcolor: 'transparent' }

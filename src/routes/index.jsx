@@ -10,7 +10,7 @@ import ResetPassword from '../authentication/ResetPassword.jsx';
 import { PrivacyPolicy } from '../utils/PrivacyPolicy.jsx';
 import { TermsOfService } from '../utils/TermsOfService.jsx';
 import AuthCallback from '../views/content-creator/socialNetwork/AuthCallback.jsx';
-import NotFound from '../views/common/NotFound.jsx';
+import { NotFound, ErrorPage } from './error-pages';
 
 const router = createBrowserRouter(
   [
@@ -27,6 +27,7 @@ const router = createBrowserRouter(
     {
       path: '/platform',
       element: <ProtectedRoute>{MainRoutes.element}</ProtectedRoute>,
+      errorElement: <ErrorPage />,
       children: [...MainRoutes.children, AdminRoutes]
     },
 

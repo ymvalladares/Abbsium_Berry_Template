@@ -372,8 +372,8 @@ export default function SocialHub() {
 
   if (loading) {
     return (
-      <Box sx={{ py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
+      <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
+        <Box sx={{ width: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Skeleton width={100} height={28} />
             <Skeleton width={80} height={28} />
@@ -412,9 +412,9 @@ export default function SocialHub() {
   }
 
   return (
-    <Box sx={{ py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+      <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: { xs: 3, sm: 5 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
+        <Box sx={{ width: '100%' }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Stack direction="row" spacing={1} alignItems="center">
             <Chip
               label={`${connectedCount}/${PLATFORMS.length} connected`}

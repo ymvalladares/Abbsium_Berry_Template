@@ -1,7 +1,7 @@
 // 404 Page - Material UI + React
 // Dependencies: @mui/material @mui/icons-material @emotion/react @emotion/styled
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, Button, Chip, Stack, useTheme, ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { HomeRounded, RefreshRounded, SearchRounded, WifiOffRounded, ErrorOutlineRounded } from '@mui/icons-material';
 
@@ -237,7 +237,6 @@ function NotFoundPage() {
       <ScanLine />
       <Particles />
 
-      {/* Corner decoration */}
       {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map((pos) => (
         <Box
           key={pos}
@@ -256,14 +255,12 @@ function NotFoundPage() {
         />
       ))}
 
-      {/* Status chips row */}
       <Stack direction="row" spacing={1} sx={{ mb: 5, zIndex: 1, flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
         <StatusChip icon={<WifiOffRounded />} label="CONNECTION LOST" color="#6366f1" />
         <StatusChip icon={<ErrorOutlineRounded />} label="ERROR 404" color="#8b5cf6" />
         <StatusChip icon={<SearchRounded />} label="PAGE NOT FOUND" color="#6b7280" />
       </Stack>
 
-      {/* Giant 404 */}
       <Box
         sx={{
           zIndex: 1,
@@ -277,7 +274,6 @@ function NotFoundPage() {
           }
         }}
       >
-        {/* Glow blob behind numbers */}
         <Box
           sx={{
             position: 'absolute',
@@ -294,7 +290,6 @@ function NotFoundPage() {
         <GlitchText>404</GlitchText>
       </Box>
 
-      {/* Divider line */}
       <Box
         sx={{
           width: { xs: 200, md: 340 },
@@ -310,7 +305,6 @@ function NotFoundPage() {
         }}
       />
 
-      {/* Message */}
       <Box
         sx={{
           zIndex: 1,
@@ -351,7 +345,6 @@ function NotFoundPage() {
         </Typography>
       </Box>
 
-      {/* Auto-redirect countdown bar */}
       <Box
         sx={{
           zIndex: 1,
@@ -409,7 +402,6 @@ function NotFoundPage() {
         </Box>
       </Box>
 
-      {/* CTA Buttons */}
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
@@ -501,7 +493,6 @@ function NotFoundPage() {
         </Button>
       </Stack>
 
-      {/* Bottom error code */}
       <Typography
         sx={{
           position: 'fixed',
@@ -523,7 +514,7 @@ function NotFoundPage() {
 }
 
 // ─── Export wrapped with ThemeProvider ───────────────────────────────────────
-export default function App() {
+export default function NotFound() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

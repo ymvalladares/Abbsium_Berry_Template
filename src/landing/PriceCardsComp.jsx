@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Container, Grid, Card, CardContent, Typography, Button, Box, CircularProgress, Stack } from '@mui/material';
+import { useColorScheme } from '@mui/material/styles';
 import CheckIcon from '@mui/icons-material/Check';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import JoinRightIcon from '@mui/icons-material/JoinRight';
@@ -9,6 +10,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { showSnackbar } from '../utils/snackbarNotif';
 
 const PriceCardsComp = () => {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const [loadingPlanId, setLoadingPlanId] = useState(null);
   const [annual, setAnnual] = useState(true);
   const { isAuthenticated } = useAuth();
@@ -102,7 +105,7 @@ const PriceCardsComp = () => {
             sx={{
               fontWeight: 900,
               fontSize: { xs: '2.5rem', md: '3.8rem' },
-              color: '#0f172a',
+              color: isDark ? '#f1f5f9' : '#0f172a',
               mb: 2,
               letterSpacing: '-2.5px',
               lineHeight: 1
@@ -118,8 +121,7 @@ const PriceCardsComp = () => {
           <Typography
             sx={{
               fontSize: '1.1rem',
-              color: '#64748b',
-              //maxWidth: '600px',
+              color: isDark ? '#94a3b8' : '#64748b',
               mx: 'auto',
               mb: 5,
               lineHeight: 1.6
@@ -205,10 +207,10 @@ const PriceCardsComp = () => {
               <Card
                 sx={{
                   borderRadius: '24px',
-                  border: plan.isHighlighted ? '2px solid #6366f1' : '1px solid rgba(15, 23, 42, 0.1)',
-                  bgcolor: plan.isHighlighted ? '#0f172a' : '#fff',
-                  color: plan.isHighlighted ? '#fff' : '#0f172a',
-                  boxShadow: plan.isHighlighted ? '0 30px 60px -12px rgba(99,102,241,0.3)' : '0 10px 30px rgba(0,0,0,0.04)',
+                  border: plan.isHighlighted ? '2px solid #6366f1' : isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(15, 23, 42, 0.1)',
+                  bgcolor: plan.isHighlighted ? '#0f172a' : isDark ? '#1e293b' : '#fff',
+                  color: plan.isHighlighted ? '#fff' : isDark ? '#f1f5f9' : '#0f172a',
+                  boxShadow: plan.isHighlighted ? '0 30px 60px -12px rgba(99,102,241,0.3)' : isDark ? '0 10px 30px rgba(0,0,0,0.2)' : '0 10px 30px rgba(0,0,0,0.04)',
                   position: 'relative',
                   transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                   overflow: 'visible',
@@ -289,10 +291,10 @@ const PriceCardsComp = () => {
                       fontWeight: 800,
                       fontSize: '1rem',
                       transition: '0.3s',
-                      bgcolor: plan.isHighlighted ? '#fff' : '#0f172a',
+                      bgcolor: plan.isHighlighted ? '#fff' : isDark ? '#6366f1' : '#0f172a',
                       color: plan.isHighlighted ? '#0f172a' : '#fff',
                       '&:hover': {
-                        bgcolor: plan.isHighlighted ? '#e2e8f0' : '#1e293b',
+                        bgcolor: plan.isHighlighted ? '#e2e8f0' : isDark ? '#4f46e5' : '#1e293b',
                         transform: 'scale(1.02)'
                       },
                       ...(loadingPlanId === plan.id && {
@@ -333,7 +335,7 @@ const PriceCardsComp = () => {
           sx={{
             mt: 4,
             fontSize: '14px',
-            color: '#64748b',
+            color: isDark ? '#94a3b8' : '#64748b',
             fontWeight: 500,
             letterSpacing: '0.2px',
             fontStyle: 'italic'

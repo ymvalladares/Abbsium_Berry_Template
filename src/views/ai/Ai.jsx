@@ -301,9 +301,8 @@ export default function Ai() {
         flexDirection: 'column',
         flex: 1,
         minHeight: 0,
-        maxWidth: 960,
+        width: { xs: '100%', lg: 'var(--app-content-width)' },
         mx: 'auto',
-        width: '100%',
         px: { xs: 2, md: 4 },
         pt: 2
       }}
@@ -577,17 +576,17 @@ export default function Ai() {
           position: 'relative',
           padding: '1.5px',
           borderRadius: '20px',
-          background: isFocused
-            ? 'linear-gradient(135deg, #7C3AED 0%, #A78BFA 50%, #7C3AED 100%)'
-            : isDark
-              ? 'linear-gradient(135deg, #374151, #4B5563)'
+          background: isDark
+            ? 'linear-gradient(135deg, #374151, #4B5563)'
+            : isFocused
+              ? '#fff'
               : 'linear-gradient(135deg, #e5e7eb, #d1d5db)',
-          backgroundSize: '200% 200%',
           mb: { xs: 2, md: 4 },
           flexShrink: 0,
           transition: 'box-shadow 0.3s ease',
-          boxShadow: isFocused ? '0 0 24px rgba(124,58,237,0.12)' : '0 1px 3px rgba(0,0,0,0.02)',
-          animation: isFocused ? 'shimmer 3s ease infinite' : 'none'
+          boxShadow: isFocused
+            ? '0 0 0 2px #fff, 0 8px 32px rgba(0,0,0,0.1)'
+            : '0 1px 3px rgba(0,0,0,0.02)'
         }}
       >
         <Paper

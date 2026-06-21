@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { useColorScheme } from '@mui/material/styles';
 import { keyframes } from '@mui/system';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -34,7 +35,7 @@ const shake = keyframes`
   80%       { transform: translateX(4px); }
 `;
 
-const SuccessIllustration = () => (
+const SuccessIllustration = ({ isDark }) => (
   <Box sx={{ position: 'relative', width: 110, height: 110, mx: 'auto', mb: 3 }}>
     {[0, 1, 2].map((i) => (
       <Box
@@ -54,7 +55,7 @@ const SuccessIllustration = () => (
         position: 'absolute',
         inset: 12,
         borderRadius: '50%',
-        bgcolor: '#eef2ff',
+        bgcolor: isDark ? '#1e293b' : '#eef2ff',
         animation: `${floatUp} 3s ease-in-out infinite`
       }}
     />
@@ -82,14 +83,14 @@ const SuccessIllustration = () => (
   </Box>
 );
 
-const FailedIllustration = () => (
+const FailedIllustration = ({ isDark }) => (
   <Box sx={{ position: 'relative', width: 110, height: 110, mx: 'auto', mb: 3 }}>
     <Box
       sx={{
         position: 'absolute',
         inset: 12,
         borderRadius: '50%',
-        bgcolor: '#fff1f2'
+        bgcolor: isDark ? '#2d1a1e' : '#fff1f2'
       }}
     />
     <Box
@@ -108,6 +109,8 @@ const FailedIllustration = () => (
 );
 
 const PaymentResult = () => {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('loading');
@@ -151,7 +154,7 @@ const PaymentResult = () => {
         sx={{
           width: '100%',
           maxWidth: 420,
-          bgcolor: '#fff',
+          bgcolor: isDark ? '#1e293b' : '#fff',
           borderRadius: '20px',
           p: '40px 36px 32px',
           textAlign: 'center',
@@ -162,17 +165,17 @@ const PaymentResult = () => {
         {isLoading ? (
           <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <CircularProgress size={32} sx={{ color: '#6366f1' }} />
-            <Typography sx={{ fontSize: '14px', color: '#a0aec0' }}>Verifying payment...</Typography>
+            <Typography sx={{ fontSize: '14px', color: isDark ? '#94a3b8' : '#a0aec0' }}>Verifying payment...</Typography>
           </Box>
         ) : (
           <>
-            {isSuccess ? <SuccessIllustration /> : <FailedIllustration />}
+            {isSuccess ? <SuccessIllustration isDark={isDark} /> : <FailedIllustration isDark={isDark} />}
 
             <Typography
               sx={{
                 fontSize: '20px',
                 fontWeight: 700,
-                color: isSuccess ? '#1a202c' : '#f43f5e',
+                color: isSuccess ? (isDark ? '#f1f5f9' : '#1a202c') : '#f43f5e',
                 letterSpacing: '-.03em',
                 mb: '8px'
               }}
@@ -183,7 +186,7 @@ const PaymentResult = () => {
             <Typography
               sx={{
                 fontSize: '13.5px',
-                color: '#718096',
+                color: isDark ? '#94a3b8' : '#718096',
                 lineHeight: 1.6,
                 mb: '28px',
                 px: 1
@@ -194,7 +197,7 @@ const PaymentResult = () => {
                 : 'Something went wrong while processing your payment. You have not been charged. Please try again.'}
             </Typography>
 
-            <Box sx={{ height: '1px', bgcolor: '#f1f5f9', mb: '24px' }} />
+            <Box sx={{ height: '1px', bgcolor: isDark ? '#334155' : '#f1f5f9', mb: '24px' }} />
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {isSuccess ? (
@@ -225,7 +228,7 @@ const PaymentResult = () => {
                       fontSize: '13px',
                       borderRadius: '10px',
                       textTransform: 'none',
-                      '&:hover': { color: '#718096', bgcolor: '#f8fafc' }
+                      '&:hover': { color: isDark ? '#e2e8f0' : '#718096', bgcolor: isDark ? '#334155' : '#f8fafc' }
                     }}
                   >
                     Back to pricing
@@ -259,7 +262,7 @@ const PaymentResult = () => {
                       fontSize: '13px',
                       borderRadius: '10px',
                       textTransform: 'none',
-                      '&:hover': { color: '#718096', bgcolor: '#f8fafc' }
+                      '&:hover': { color: isDark ? '#e2e8f0' : '#718096', bgcolor: isDark ? '#334155' : '#f8fafc' }
                     }}
                   >
                     Back to home

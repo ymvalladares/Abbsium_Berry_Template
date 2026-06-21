@@ -120,7 +120,7 @@ export default function Calendar() {
   const isToday_ = (d, other) => !other && d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
   return (
-    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
+    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', p: { xs: 1.5, sm: 2, md: 3 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
         <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.6rem', sm: '2rem' }, letterSpacing: '-0.5px' }}>Calendar</Typography>
         <Button onClick={() => { setDialogDate(null); setScheduleOpen(true); }} variant="contained" startIcon={<Add />}

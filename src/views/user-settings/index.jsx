@@ -69,7 +69,7 @@ export default function SettingsPage() {
   };
 
   return (
-      <Box sx={{ width: { xs: '100%', lg: '80%' }, mx: 'auto' }}>
+      <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto' }}>
         <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2.5, sm: 3.5 } }}>
           <input type="file" ref={fileInputRef} onChange={handleAvatarChange} accept="image/*" style={{ display: 'none' }} />
 

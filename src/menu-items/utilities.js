@@ -1,13 +1,12 @@
 // assets
-import { IconTypography, IconPalette, IconShadow, IconWindmill, IconBubbleText } from '@tabler/icons-react';
+import { IconTypography, IconPalette, IconShadow, IconWindmill } from '@tabler/icons-react';
 
 // constant
 const icons = {
   IconTypography,
   IconPalette,
   IconShadow,
-  IconWindmill,
-  IconBubbleText
+  IconWindmill
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -16,16 +15,7 @@ const utilities = {
   id: 'utilities',
   title: 'Utilities',
   type: 'group',
-  children: [
-    {
-      id: 'ai',
-      title: 'Chat-AI',
-      type: 'item',
-      url: '/platform/chat-ai',
-      icon: icons.IconBubbleText,
-      breadcrumbs: false
-    }
-  ]
+  children: []
 };
 
 export default utilities;

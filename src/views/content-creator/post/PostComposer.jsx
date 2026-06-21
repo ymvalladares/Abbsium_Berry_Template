@@ -122,7 +122,7 @@ export default function PostComposer() {
   const [mode, setMode] = useState('manual');
   const [files, setFiles] = useState([]);
   const [title, setTitle] = useState('Summer Collection 2026');
-  const [caption, setCaption] = useState('New arrivals are here. Shop now and get 20% off.\n\n#Summer #NewCollection');
+  const [description, setDescription] = useState('New arrivals are here. Shop now and get 20% off.\n\n#Summer #NewCollection');
   const [prompt, setPrompt] = useState('');
   const [posting, setPosting] = useState(false);
   const [progress, setProgress] = useState({});
@@ -260,13 +260,19 @@ export default function PostComposer() {
   const file = files[0];
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
 
-  const canNext = step === 0 ? platforms.length > 0 : step === 1 ? mode === 'ai' || files.length > 0 : true;
+  const hasContent = title?.trim() || description?.trim();
+  const canNext = step === 0 ? platforms.length > 0 : step === 1 ? (mode === 'ai' || files.length > 0) && hasContent : true;
 
   const publish = async () => {
     if (posting) return;
 
     if (file && !validateFile(file)) {
       showSnackbar(fileError, 'error');
+      return;
+    }
+
+    if (!title?.trim() && !description?.trim()) {
+      showSnackbar('Add a title or description before publishing', 'error');
       return;
     }
 
@@ -404,7 +410,8 @@ export default function PostComposer() {
 
       const payload = {
         videoUrl: s3Url,
-        caption: caption || undefined,
+        title: title || undefined,
+        caption: description || undefined,
         platforms: platformNames,
         isShort: type === 'reel'
       };
@@ -485,8 +492,8 @@ export default function PostComposer() {
   const successCount = results ? Object.values(results).filter((v) => v === 'ok').length : 0;
 
   return (
-    <Box sx={{ py: 3, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
+    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: 3, px: { xs: 1.5, sm: 2, md: 3 } }}>
+      <Box sx={{ width: '100%' }}>
         {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1.4rem' }}>Create Post</Typography>
@@ -833,8 +840,8 @@ export default function PostComposer() {
                       multiline
                       minRows={2}
                       label="Caption"
-                      value={caption}
-                      onChange={(e) => setCaption(e.target.value)}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                     />
                   </>
@@ -904,12 +911,12 @@ export default function PostComposer() {
                   <Box sx={{ flex: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: isDark ? '#1e293b' : 'white' }}>
                     <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Content</Typography>
                     {title && <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>{title}</Typography>}
-                    {caption && (
+                    {description && (
                       <Typography sx={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'text.secondary', mb: 1 }}>
-                        {caption}
+                        {description}
                       </Typography>
                     )}
-                    {!title && !caption && (
+                    {!title && !description && (
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled', mb: 1 }}>No text content</Typography>
                     )}
                     {file && (

@@ -227,8 +227,8 @@ export default function ClippingAgent() {
   };
 
   return (
-    <Box sx={{ py: { xs: 2, sm: 3 }, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
+    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: { xs: 2, sm: 3 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
+      <Box sx={{ width: '100%' }}>
         {/* ── Header ── */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: { xs: 1.5, sm: 2 } }}>
           <Stack direction="row" spacing={1} alignItems="center">

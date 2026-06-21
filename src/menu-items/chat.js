@@ -1,29 +1,40 @@
 // assets
-import { IconTypography, IconPalette, IconShadow, IconWindmill, IconMessagePlus } from '@tabler/icons-react';
+import { IconMessagePlus, IconBubbleText } from '@tabler/icons-react';
 
 // constant
 const icons = {
-  IconTypography,
-  IconPalette,
-  IconShadow,
-  IconWindmill,
-  IconMessagePlus
+  IconMessagePlus,
+  IconBubbleText
 };
 
-// ==============================|| UTILITIES MENU ITEMS ||============================== //
+// ==============================|| CHAT MENU ITEMS ||============================== //
 
 const chat = {
   id: 'chat',
-  title: 'Chat',
+  title: 'Help & Support',
   type: 'group',
   children: [
     {
-      id: 'chat-admin',
-      title: 'Chat-To-Admin',
-      type: 'item',
-      url: '/platform/chat',
+      id: 'chat',
+      title: 'Chat',
+      type: 'collapse',
       icon: icons.IconMessagePlus,
-      breadcrumbs: false
+      children: [
+        {
+          id: 'chat-admin',
+          title: 'Chat-To-Admin',
+          type: 'item',
+          url: '/platform/chat/admin',
+          breadcrumbs: false
+        },
+        {
+          id: 'chat-ai',
+          title: 'Chat-AI',
+          type: 'item',
+          url: '/platform/chat/ai',
+          breadcrumbs: false
+        }
+      ]
     }
   ]
 };
