@@ -127,27 +127,47 @@ export const socialAPI = {
   getPages: () => axiosInstance.get('/SocialAuth/pages'),
 
   connectFacebook: (onComplete) => {
-    api.post('/SocialAuth/facebook/connect')
+    api
+      .post('/SocialAuth/facebook/connect')
       .then((res) => openPopup(res.data.url, 'Facebook', onComplete))
-      .catch((err) => { console.error('Facebook connection error:', err); showSnackbar('Failed to start Facebook connection', 'error'); onComplete(false); });
+      .catch((err) => {
+        console.error('Facebook connection error:', err);
+        showSnackbar('Failed to start Facebook connection', 'error');
+        onComplete(false);
+      });
   },
 
   connectInstagram: (onComplete) => {
-    api.post('/SocialAuth/instagram/connect')
+    api
+      .post('/SocialAuth/instagram/connect')
       .then((res) => openPopup(res.data.url, 'Instagram', onComplete))
-      .catch((err) => { console.error('Instagram connection error:', err); showSnackbar('Failed to start Instagram connection', 'error'); onComplete(false); });
+      .catch((err) => {
+        console.error('Instagram connection error:', err);
+        showSnackbar('Failed to start Instagram connection', 'error');
+        onComplete(false);
+      });
   },
 
   connectYouTube: (onComplete) => {
-    api.post('/SocialAuth/youtube/connect')
+    api
+      .post('/SocialAuth/youtube/connect')
       .then((res) => openPopup(res.data.url, 'YouTube', onComplete))
-      .catch((err) => { console.error('YouTube connection error:', err); showSnackbar('Failed to start YouTube connection', 'error'); onComplete(false); });
+      .catch((err) => {
+        console.error('YouTube connection error:', err);
+        showSnackbar('Failed to start YouTube connection', 'error');
+        onComplete(false);
+      });
   },
 
   connectTikTok: (onComplete) => {
-    api.post('/SocialAuth/tiktok/connect')
+    api
+      .post('/SocialAuth/tiktok/connect')
       .then((res) => openPopup(res.data.url, 'TikTok', onComplete))
-      .catch((err) => { console.error('TikTok connection error:', err); showSnackbar('Failed to start TikTok connection', 'error'); onComplete(false); });
+      .catch((err) => {
+        console.error('TikTok connection error:', err);
+        showSnackbar('Failed to start TikTok connection', 'error');
+        onComplete(false);
+      });
   },
 
   connectMultiple: (platforms, onProgress, onComplete) => {
@@ -168,7 +188,7 @@ export const socialAPI = {
         Facebook: socialAPI.connectFacebook,
         Instagram: socialAPI.connectInstagram,
         YouTube: socialAPI.connectYouTube,
-        TikTok: socialAPI.connectTikTok,
+        TikTok: socialAPI.connectTikTok
       };
       const method = methods[platform];
       if (method) {
@@ -224,6 +244,28 @@ export const socialAPI = {
   }
 };
 
+export const dealerAPI = {
+  getAll: () => api.get('/Dealer/All-Dealers'),
+  getById: (id) => api.get(`/Dealer/ById/${id}`),
+  getByDomain: (domain) => api.get(`/Dealer/ByDomain/${domain}`),
+  getMyDealer: () => api.get('/Dealer/My-Dealer'),
+  upsert: (data) => api.post('/Dealer/Upsert', data),
+  delete: (id) => api.delete(`/Dealer/Delete/${id}`),
+  deleteMultiple: (ids) => api.delete('/Dealer/Delete-Multiple', { data: ids })
+};
+
+export const carAPI = {
+  getAll: () => api.get('/Car/All-Cars'),
+  getByDealer: (dealerId) => api.get(`/Car/ByDealer/${dealerId}`),
+  getById: (id) => api.get(`/Car/ById/${id}`),
+  upsert: (data) => api.post('/Car/Upsert', data),
+  delete: (id) => api.delete(`/Car/Delete/${id}`),
+  deleteMultiple: (ids) => api.delete('/Car/Delete-Multiple', { data: ids }),
+  getPhotoPresignedUrl: (carId, fileName, contentType) => api.post(`/Car/photos/presigned/${carId}`, { fileName, contentType }),
+  registerPhoto: (carId, data) => api.post(`/Car/photos/register/${carId}`, data),
+  deletePhoto: (photoId) => api.delete(`/Car/photos/${photoId}`)
+};
+
 function openPopup(url, platform, onComplete) {
   const width = 600;
   const height = 700;
@@ -245,8 +287,12 @@ function openPopup(url, platform, onComplete) {
     resolved = true;
     clearTimeout(maxTimeout);
     window.removeEventListener('storage', handleStorage);
-    try { popup.close(); } catch {}
-    try { localStorage.removeItem('social_auth_result'); } catch {}
+    try {
+      popup.close();
+    } catch {}
+    try {
+      localStorage.removeItem('social_auth_result');
+    } catch {}
     if (message) showSnackbar(message, success ? 'success' : 'error');
     onComplete(success);
   };

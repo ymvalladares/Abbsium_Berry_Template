@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Box, Paper, Typography, Button, TextField, Divider, useMediaQuery, useTheme } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { VerifiedUser, Person, Mail, AlternateEmail } from '@mui/icons-material';
+import { useNotification } from 'contexts/NotificationContext';
 
 export default function Account({ user }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const notify = useNotification();
 
   const primaryColor = '#0399DF';
   const primaryHover = '#0288cc';
@@ -47,7 +49,7 @@ export default function Account({ user }) {
   };
 
   const handleSave = () => {
-    console.log('Saving:', formData);
+    notify.success('Account settings saved successfully', 'Settings Saved');
   };
 
   const handleCancel = () => {

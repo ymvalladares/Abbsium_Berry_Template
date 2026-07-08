@@ -52,8 +52,10 @@ const MainStyled = styled('main', {
     })
   },
   [theme.breakpoints.down('sm')]: {
-    marginLeft: 10,
-    marginRight: 10
+    marginLeft: 0,
+    marginRight: 0,
+    paddingLeft: 12,
+    paddingRight: 12
   }
 }));
 

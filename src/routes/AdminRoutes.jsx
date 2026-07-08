@@ -7,6 +7,8 @@ const AdminDashboard = Loadable(lazy(() => import('views/adminDashboard/Default'
 //const Earnings = Loadable(lazy(() => import('views/adminDashboard/Default/Earnings')));
 const Users = Loadable(lazy(() => import('views/adminDashboard/Default/users/UsersList')));
 const Orders = Loadable(lazy(() => import('views/adminDashboard/Default/orders/Orders')));
+const Dealers = Loadable(lazy(() => import('views/adminDashboard/Default/dealers/DealersList')));
+const MaintenanceSettings = Loadable(lazy(() => import('views/adminDashboard/Default/MaintenanceSettings')));
 
 const AdminRoutes = {
   path: 'admin',
@@ -22,6 +24,14 @@ const AdminRoutes = {
     {
       path: 'orders',
       element: <Orders />
+    },
+    {
+      path: 'dealers',
+      element: <Dealers />
+    },
+    {
+      path: 'maintenance',
+      element: <MaintenanceSettings />
     }
   ]
 };

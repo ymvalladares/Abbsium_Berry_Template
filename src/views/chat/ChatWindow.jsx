@@ -15,6 +15,7 @@ import {
 import MessageBubble from './MessageBubble';
 import EmojiPicker from './EmojiPicker';
 import { useChat } from '../../contexts/ChatContext';
+import { useNotification } from 'contexts/NotificationContext';
 
 const primaryColor = '#8B5CF6';
 const primaryHover = '#7C3AED';
@@ -58,6 +59,7 @@ const formatTime = (dateString) => {
 const ChatWindow = ({ isMobile }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const notify = useNotification();
 
   const iconClr = isDark ? iconColorDark : iconColor;
   const primLight = isDark ? primaryLightDark : primaryLight;
@@ -118,7 +120,10 @@ const ChatWindow = ({ isMobile }) => {
   };
 
   const handleSend = async () => {
-    if (!message.trim() || !isConnected || !selectedChat) return;
+    if (!message.trim() || !isConnected || !selectedChat) {
+      if (!isConnected) notify.error('Unable to send message. Connection lost.', 'Send Failed');
+      return;
+    }
     await sendMessage(message);
     setMessage('');
     setReplyTo(null);

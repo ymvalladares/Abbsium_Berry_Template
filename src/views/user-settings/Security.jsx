@@ -34,12 +34,13 @@ import {
   MoreVert
 } from '@mui/icons-material';
 import api from '../../services/AxiosService'; // Adjust path as needed
-import { showSnackbar } from '../../utils/snackbarNotif'; // Adjust path as needed
+import { useNotification } from 'contexts/NotificationContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Security = () => {
   const { user } = useAuth();
   const isDemoUser = user?.email === 'demo@gmail.com';
+  const notify = useNotification();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { colorScheme } = useColorScheme();
@@ -170,7 +171,7 @@ const Security = () => {
         confirmPassword
       });
 
-      showSnackbar('Password updated successfully', 'success');
+      notify.success('Password updated successfully', 'Password Changed');
 
       // Clear fields
       setCurrentPassword('');
@@ -190,7 +191,7 @@ const Security = () => {
           currentPassword: 'Current password is incorrect'
         }));
       } else {
-        showSnackbar('Failed to update password', 'error');
+        notify.error('Failed to update password', 'Password Update Failed');
       }
     } finally {
       setIsLoading(false);
@@ -207,7 +208,7 @@ const Security = () => {
       }
     } catch (error) {
       console.error('Error toggling MFA:', error);
-      showSnackbar('Failed to update MFA settings', 'error');
+      notify.error('Failed to update MFA settings', 'MFA Update Failed');
     }
   };
 

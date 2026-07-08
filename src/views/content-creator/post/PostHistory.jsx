@@ -185,8 +185,8 @@ export default function PostHistory() {
 
   if (loading && history.length === 0) {
     return (
-      <Box sx={{ py: 3, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
+      <Box sx={{ py: 3, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
             {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} variant="rounded" height={80} sx={{ borderRadius: 2 }} />
@@ -198,8 +198,7 @@ export default function PostHistory() {
   }
 
   return (
-    <Box sx={{ py: 3, px: { xs: 1.5, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 680, md: 900, lg: 1000 } }}>
+    <Box sx={{ py: 3 }}>
         {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -312,7 +311,6 @@ export default function PostHistory() {
             )}
           </>
         )}
-      </Box>
     </Box>
   );
 }

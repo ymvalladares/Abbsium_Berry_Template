@@ -53,6 +53,7 @@ import {
 } from '@tabler/icons-react';
 
 import GeneratedClipsQueue from './GeneratedClipsQueue';
+import { useNotification } from 'contexts/NotificationContext';
 
 /* ─── Data ───────────────────────────────────────── */
 const FORMATS = [
@@ -180,6 +181,7 @@ export default function ClippingAgent() {
   const isDark = colorScheme === 'dark';
   const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:900px)');
+  const notify = useNotification();
 
   const [step, setStep] = useState(0);
   const [url, setUrl] = useState('');
@@ -206,6 +208,7 @@ export default function ClippingAgent() {
     if (!isGenerating) {
       setStartGen(true);
       setIsGenerating(true);
+      notify.info('Clip generation started. This may take a few minutes.', 'Generating Clips');
     }
   };
 
@@ -227,8 +230,7 @@ export default function ClippingAgent() {
   };
 
   return (
-    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: { xs: 2, sm: 3 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
-      <Box sx={{ width: '100%' }}>
+    <Box sx={{ py: { xs: 1, sm: 2 }, width: '100%' }}>
         {/* ── Header ── */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: { xs: 1.5, sm: 2 } }}>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -1132,7 +1134,6 @@ export default function ClippingAgent() {
             />
           </Box>
         )}
-      </Box>
     </Box>
   );
 }

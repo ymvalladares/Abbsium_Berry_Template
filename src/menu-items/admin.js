@@ -1,17 +1,18 @@
-import { IconBrandPnpm } from '@tabler/icons-react';
-// assets
+import { IconBrandPnpm, IconTool, IconUsers } from '@tabler/icons-react';
 
 // constant
 const icons = {
-  IconBrandPnpm
+  IconBrandPnpm,
+  IconTool,
+  IconUsers
 };
 
-// ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
+// ==============================|| ADMIN MENU ITEMS ||============================== //
 
 const business = {
   id: 'buiness',
   title: 'Business',
-  icon: icons.IconKey,
+  icon: icons.IconTool,
   type: 'group',
   children: [
     {
@@ -42,6 +43,23 @@ const business = {
           type: 'item',
           url: '/platform/admin/orders',
           breadcrumbs: false
+        },
+
+        {
+          id: 'dealers',
+          title: 'Dealers',
+          type: 'item',
+          url: '/platform/admin/dealers',
+          breadcrumbs: false
+        },
+
+        {
+          id: 'maintenance',
+          title: 'Maintenance',
+          type: 'item',
+          url: '/platform/admin/maintenance',
+          breadcrumbs: false,
+          icon: icons.IconTool
         }
       ]
     }

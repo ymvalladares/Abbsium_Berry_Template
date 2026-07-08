@@ -4,7 +4,7 @@ import { useColorScheme } from '@mui/material/styles';
 import PeopleIcon from '@mui/icons-material/People';
 
 import api from '../../../../services/AxiosService';
-import { showSnackbar } from '../../../../utils/snackbarNotif';
+import { useNotification } from 'contexts/NotificationContext';
 
 import UsersFilters from './UsersFilters';
 import UsersTable from './UsersTable';
@@ -17,6 +17,7 @@ const UsersList = () => {
   const isDark = colorScheme === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const notify = useNotification();
 
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -57,11 +58,11 @@ const UsersList = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/User/All-Users'); // 🔹 filtros como query params
-      console.log('Fetched users:', response.data);
+      const response = await api.get('/User/All-Users');
       setUsers(response.data);
     } catch (err) {
       console.error('Error fetching users:', err);
+      notify.error('Could not load users. Please refresh the page.', 'Connection Error');
     }
   };
 
@@ -87,13 +88,22 @@ const UsersList = () => {
   const handleDeleteUser = async (id) => {
     try {
       await api.delete(`/User/Delete/${id}`);
-      showSnackbar('User deleted successfully', 'success');
-
+      notify.success('User has been removed from the system', 'User Deleted');
       fetchUsers();
       setSelectedUsers((prev) => prev.filter((x) => x !== id));
     } catch (err) {
       console.error('Delete user error:', err);
-      showSnackbar('Failed to delete user', 'error');
+      notify.error('Could not delete the user. Please try again.', 'Delete Failed');
+    }
+  };
+
+  const handleResetPassword = async (id) => {
+    try {
+      await api.post('/User/Admin-Reset-Password', { userId: id, newPassword: 'Abbsium.2020' });
+      notify.success('User password has been reset to default', 'Password Reset');
+    } catch (err) {
+      console.error('Reset password error:', err);
+      notify.error('Could not reset the password. Please try again.', 'Reset Failed');
     }
   };
 
@@ -167,6 +177,7 @@ const UsersList = () => {
           setOpenUpsert(true);
         }}
         onDeleteUser={handleDeleteUser}
+        onResetPassword={handleResetPassword}
       />
 
       {/* ===== ADD / EDIT ===== */}

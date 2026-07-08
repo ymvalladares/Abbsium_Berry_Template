@@ -25,11 +25,12 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import api from '../../../../services/AxiosService';
-import { showSnackbar } from '../../../../utils/snackbarNotif';
+import { useNotification } from 'contexts/NotificationContext';
 
 const ROLES = [
   { id: 'Admin', label: 'Administrator', desc: 'Full access to all system modules and settings.' },
-  { id: 'User', label: 'Standard User', desc: 'Limited access to personal data and basic tools.' }
+  { id: 'User', label: 'Standard User', desc: 'Limited access to personal data and basic tools.' },
+  { id: 'Dealer', label: 'Dealer', desc: 'Access to manage vehicle inventory and dealership operations.' }
 ];
 
 const inputStyle = {
@@ -61,6 +62,7 @@ const darkInputStyle = {
 const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSuccess }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const notify = useNotification();
   const [form, setForm] = useState({ id: '', username: '', email: '', role: null });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -83,7 +85,12 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
     const newErrors = {};
     if (!form.username.trim()) newErrors.username = 'Username is required';
     if (mode === 'create') {
-      if (!form.email.trim()) newErrors.email = 'Valid email is required';
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!form.email.trim()) {
+        newErrors.email = 'Email address is required';
+      } else if (!emailRegex.test(form.email)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
       if (!form.role) newErrors.role = 'Security role is required';
     }
     setErrors(newErrors);
@@ -97,14 +104,14 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
       const payload = { ...form, emailConfirmed: true };
       const result = await api.post('/User/Upsert', payload);
       if (result.status === 200) {
-        showSnackbar(mode === 'create' ? 'Member successfully added' : 'Profile updated', 'success');
+        notify.success(mode === 'create' ? 'Member successfully added' : 'Profile updated', mode === 'create' ? 'Member Added' : 'Profile Updated');
         if (onSuccess) onSuccess(result);
         onClose();
       }
     } catch (error) {
       console.error(error);
       const msg = error.response?.data;
-      showSnackbar(typeof msg === 'string' ? msg : msg?.message || 'Operation failed', 'error');
+      notify.error(typeof msg === 'string' ? msg : msg?.message || 'Operation failed', 'Operation Failed');
     } finally {
       setLoading(false);
     }

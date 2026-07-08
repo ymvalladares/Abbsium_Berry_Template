@@ -25,10 +25,11 @@ import { useColorScheme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import KeyIcon from '@mui/icons-material/Key';
 
 const getEmailVerifiedColor = (verified) => (verified ? 'success' : 'warning');
 
-const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onSelectUser, onEditUser, onDeleteUser }) => {
+const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onSelectUser, onEditUser, onDeleteUser, onResetPassword }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -38,6 +39,12 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
   const [openConfirm, setOpenConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
+  // =========================
+  // RESET PASSWORD STATE
+  // =========================
+  const [openReset, setOpenReset] = useState(false);
+  const [userToReset, setUserToReset] = useState(null);
+
   const handleAskDelete = (user) => {
     setUserToDelete(user);
     setOpenConfirm(true);
@@ -45,7 +52,7 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
   const handleConfirmDelete = () => {
     if (userToDelete) {
-      onDeleteUser(userToDelete.id); // 🔥 SOLO AQUÍ SE BORRA
+      onDeleteUser(userToDelete.id);
     }
     setOpenConfirm(false);
     setUserToDelete(null);
@@ -54,6 +61,24 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
   const handleCancelDelete = () => {
     setOpenConfirm(false);
     setUserToDelete(null);
+  };
+
+  const handleAskReset = (user) => {
+    setUserToReset(user);
+    setOpenReset(true);
+  };
+
+  const handleConfirmReset = () => {
+    if (userToReset) {
+      onResetPassword(userToReset.id);
+    }
+    setOpenReset(false);
+    setUserToReset(null);
+  };
+
+  const handleCancelReset = () => {
+    setOpenReset(false);
+    setUserToReset(null);
   };
 
   return (
@@ -121,18 +146,21 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
                     />
                   </TableCell>
 
-                  <TableCell align="right">
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                      <IconButton size="small" onClick={() => onEditUser(user)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
+                   <TableCell align="right">
+                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                       <IconButton size="small" onClick={() => onEditUser(user)}>
+                         <EditIcon fontSize="small" />
+                       </IconButton>
 
-                      {/* 👉 ahora primero pregunta */}
-                      <IconButton size="small" onClick={() => handleAskDelete(user)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
+                       <IconButton size="small" onClick={() => handleAskReset(user)}>
+                         <KeyIcon fontSize="small" />
+                       </IconButton>
+
+                       <IconButton size="small" onClick={() => handleAskDelete(user)}>
+                         <DeleteIcon fontSize="small" />
+                       </IconButton>
+                     </Box>
+                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -196,6 +224,66 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
           </Button>
           <Button onClick={handleConfirmDelete} variant="contained" color="error" size="small">
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* =========================
+          RESET PASSWORD DIALOG
+         ========================= */}
+      <Dialog
+        open={openReset}
+        onClose={handleCancelReset}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <KeyIcon color="warning" />
+            <Typography variant="h6">Reset password?</Typography>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to reset this user's password to the default?
+          </Typography>
+
+          {userToReset && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.5,
+                borderRadius: 2,
+                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {userToReset.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {userToReset.email}
+              </Typography>
+            </Box>
+          )}
+
+          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#6366f1', fontWeight: 600 }}>
+            New password: Abbsium.2020
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleCancelReset} variant="outlined" size="small">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmReset} variant="contained" color="warning" size="small">
+            Reset
           </Button>
         </DialogActions>
       </Dialog>

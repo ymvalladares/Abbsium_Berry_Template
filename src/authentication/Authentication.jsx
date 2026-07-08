@@ -23,7 +23,7 @@ const Authentication = () => {
       sx={{
         minHeight: '100vh',
         width: '100%',
-        background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 35%, #6d28d9 60%, #4c1d95 100%)',
+        background: { xs: '#ffffff', lg: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 35%, #6d28d9 60%, #4c1d95 100%)' },
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
@@ -39,7 +39,8 @@ const Authentication = () => {
             linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
           `,
           backgroundSize: '50px 50px',
-          animation: 'gridMove 20s linear infinite'
+          animation: 'gridMove 20s linear infinite',
+          display: { xs: 'none', lg: 'block' }
         },
         '@keyframes gridMove': {
           '0%': { transform: 'translate(0, 0)' },

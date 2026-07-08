@@ -3,6 +3,7 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import PricingComponent from '../landing/PricingComponent';
 import PaymentResult from '../views/utilities/PaymentResult';
+import DealerRoute from './DealerRoute';
 
 //User
 const UserDashboard = Loadable(lazy(() => import('views/userDashboard/Dashboard')));
@@ -12,6 +13,11 @@ const Post = Loadable(lazy(() => import('views/content-creator/post')));
 const SocialNetwork = Loadable(lazy(() => import('views/content-creator/socialNetwork')));
 const ClippingsAgent = Loadable(lazy(() => import('views/content-creator/clippingAgent')));
 const Calendar = Loadable(lazy(() => import('views/content-creator/calendar/Calendar')));
+
+//My Dealer
+const DealerDashboard = Loadable(lazy(() => import('views/dealer/DealerDashboard')));
+const ManageInventory = Loadable(lazy(() => import('views/dealer/inventory/ManageInventory')));
+const Shipping = Loadable(lazy(() => import('views/dealer/shipping/Shipping')));
 
 //AI
 const Ai = Loadable(lazy(() => import('views/ai/Ai')));
@@ -34,6 +40,10 @@ const MainRoutes = {
     { path: 'content/clippings-agent', element: <ClippingsAgent /> },
     { path: 'content/social-networks', element: <SocialNetwork /> },
     { path: 'content/calendar', element: <Calendar /> },
+
+    { path: 'dealer/dashboard', element: <DealerDashboard /> },
+    { path: 'dealer/inventory/manage', element: <DealerRoute><ManageInventory /></DealerRoute> },
+    { path: 'dealer/shipping', element: <DealerRoute><Shipping /></DealerRoute> },
 
     { path: 'chat/ai', element: <Ai /> },
 

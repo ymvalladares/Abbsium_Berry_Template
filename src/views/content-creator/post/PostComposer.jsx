@@ -42,7 +42,7 @@ import {
   IconConfetti
 } from '@tabler/icons-react';
 import { socialAPI } from '../../../services/AxiosService';
-import { showSnackbar } from '../../../utils/snackbarNotif';
+import { useNotification } from 'contexts/NotificationContext';
 import publishingSignalR from '../../../services/PublishingSignalRService';
 
 const PLATFORMS = [
@@ -114,6 +114,7 @@ export default function PostComposer() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const isMobile = theme ? useMediaQuery(theme.breakpoints.down('sm')) : false;
+  const notify = useNotification();
 
   const [step, setStep] = useState(0);
   const [platforms, setPlatforms] = useState([]);
@@ -267,12 +268,12 @@ export default function PostComposer() {
     if (posting) return;
 
     if (file && !validateFile(file)) {
-      showSnackbar(fileError, 'error');
+      notify.error(fileError, 'File Validation Error');
       return;
     }
 
     if (!title?.trim() && !description?.trim()) {
-      showSnackbar('Add a title or description before publishing', 'error');
+      notify.error('Add a title or description before publishing', 'Missing Content');
       return;
     }
 
@@ -293,7 +294,7 @@ export default function PostComposer() {
       .filter((name) => SUPPORTED_PLATFORMS.includes(name));
 
     if (platformNames.length === 0) {
-      showSnackbar('Select at least one supported platform (Facebook, Instagram, YouTube, TikTok)', 'warning');
+      notify.warning('Select at least one supported platform (Facebook, Instagram, YouTube, TikTok)', 'No Platform Selected');
       setPosting(false);
       return;
     }
@@ -312,7 +313,7 @@ export default function PostComposer() {
         const contentType = data.contentType || data.ContentType || file.type;
 
         if (!uploadUrl || !key) {
-          showSnackbar('Failed to get upload URL from server', 'error');
+          notify.error('Failed to get upload URL from server', 'Upload Error');
           setPosting(false);
           return;
         }
@@ -367,11 +368,11 @@ export default function PostComposer() {
 
         const ok = data.successful;
         if (ok === 0) {
-          showSnackbar('Publish failed on all platforms', 'error');
+          notify.error('Publish failed on all platforms', 'Publish Failed');
         } else if (ok === data.total) {
-          showSnackbar(`Published on ${ok} platform${ok > 1 ? 's' : ''}`, 'success');
+          notify.success(`Published on ${ok} platform${ok > 1 ? 's' : ''}`, 'Publish Successful');
         } else {
-          showSnackbar(`Published on ${ok} of ${data.total} platforms`, 'warning');
+          notify.warning(`Published on ${ok} of ${data.total} platforms`, 'Partial Success');
         }
 
         const r = {};
@@ -390,7 +391,7 @@ export default function PostComposer() {
       const handleError = (error) => {
         console.error('SignalR error:', error);
         setPosting(false);
-        showSnackbar('Real-time connection error', 'error');
+        notify.error('Real-time connection error', 'SignalR Error');
       };
 
       publishingSignalR.on('publish_started', handlePublishStarted);
@@ -451,7 +452,7 @@ export default function PostComposer() {
     } catch (err) {
       console.error('Publish error:', err);
       setPosting(false);
-      showSnackbar(err.response?.data?.errorMessage || err.response?.data?.message || 'Publish failed', 'error');
+      notify.error(err.response?.data?.errorMessage || err.response?.data?.message || 'Publish failed', 'Publish Error');
       const r = {};
       platforms.forEach((p) => {
         r[p] = 'err';
@@ -492,9 +493,8 @@ export default function PostComposer() {
   const successCount = results ? Object.values(results).filter((v) => v === 'ok').length : 0;
 
   return (
-    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: 3, px: { xs: 1.5, sm: 2, md: 3 } }}>
-      <Box sx={{ width: '100%' }}>
-        {/* Header */}
+    <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
+      {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1.4rem' }}>Create Post</Typography>
           {results && (
@@ -1015,7 +1015,6 @@ export default function PostComposer() {
             ) : null}
           </Box>
         </Box>
-      </Box>
 
       {/* Success Modal */}
       <Dialog

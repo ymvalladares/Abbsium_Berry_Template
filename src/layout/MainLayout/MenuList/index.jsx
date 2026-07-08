@@ -8,10 +8,12 @@ import NavItem from './NavItem';
 import NavGroup from './NavGroup';
 import menuItems from 'menu-items';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useDealerSetup } from '../../../contexts/DealerSetupContext';
 import { useGetMenuMaster } from 'api/menu';
 
 function MenuList() {
   const { user } = useAuth();
+  const { hasDealer } = useDealerSetup();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
 

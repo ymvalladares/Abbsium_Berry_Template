@@ -10,7 +10,7 @@ import {
   IconPhoto, IconSend, IconBrandTiktok, IconVideo, IconCheck
 } from '@tabler/icons-react';
 import { socialAPI } from '../../../services/AxiosService';
-import { showSnackbar } from '../../../utils/snackbarNotif';
+import { useNotification } from 'contexts/NotificationContext';
 import { PLATFORMS, DAYS_HEADER, MONTHS } from './constants';
 import { getDaysInMonth, getFirstDayOfMonth, formatTime } from './utils';
 import EventPill from './components/EventPill';
@@ -22,6 +22,7 @@ export default function Calendar() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const notify = useNotification();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -97,7 +98,7 @@ export default function Calendar() {
       contentType: data.contentType || 'video',
       isShort: data.isShort || false,
     }]);
-    showSnackbar(`Post scheduled for ${data.date}`, 'success');
+    notify.success(`Post scheduled for ${data.date}`, 'Post Scheduled');
     fetchHistory();
   };
 
@@ -120,7 +121,7 @@ export default function Calendar() {
   const isToday_ = (d, other) => !other && d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
   return (
-    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', p: { xs: 1.5, sm: 2, md: 3 } }}>
+    <Box sx={{ py: { xs: 1, sm: 2 }, width: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
         <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.6rem', sm: '2rem' }, letterSpacing: '-0.5px' }}>Calendar</Typography>
         <Button onClick={() => { setDialogDate(null); setScheduleOpen(true); }} variant="contained" startIcon={<Add />}

@@ -28,12 +28,14 @@ import {
   Receipt
 } from '@mui/icons-material';
 import api from '../../services/AxiosService';
+import { useNotification } from 'contexts/NotificationContext';
 
 const Billings = () => {
   const [loading, setLoading] = useState(true);
   const [savingAddress, setSavingAddress] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const notify = useNotification();
 
   const [billingData, setBillingData] = useState({
     cardHolder: '',
@@ -85,7 +87,10 @@ const Billings = () => {
     setSavingAddress(true);
     try {
       await api.put('order/billing/address', billingAddress);
-    } catch {}
+      notify.success('Billing address updated successfully', 'Address Saved');
+    } catch {
+      notify.error('Failed to update billing address', 'Update Failed');
+    }
     setSavingAddress(false);
   };
 

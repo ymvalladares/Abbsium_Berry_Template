@@ -131,7 +131,7 @@ export default function StatsCards() {
   ];
 
   return (
-    <Box sx={{ width: { xs: '100%', lg: 'var(--app-content-width)' }, mx: 'auto', py: 3, px: { xs: 2, md: 8 } }}>
+    <Box sx={{ py: { xs: 1, sm: 2 }, width: '100%' }}>
       <Box sx={{ mb: 4 }}>
         <Typography
           sx={{

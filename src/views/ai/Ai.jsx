@@ -301,10 +301,8 @@ export default function Ai() {
         flexDirection: 'column',
         flex: 1,
         minHeight: 0,
-        width: { xs: '100%', lg: 'var(--app-content-width)' },
-        mx: 'auto',
-        px: { xs: 2, md: 4 },
-        pt: 2
+        width: '100%',
+        py: { xs: 1, sm: 2 }
       }}
     >
       {/* ERROR SNACKBAR */}
