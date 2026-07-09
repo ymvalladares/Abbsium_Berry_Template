@@ -33,7 +33,7 @@ const INITIAL_VALUES = {
   remember_me: false
 };
 
-// Rate limiting config
+// Rate limiting config (client-side fallback)
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 30000;
 
@@ -138,7 +138,16 @@ const Auth_Form = ({ onSuccess }) => {
       }
     } else {
       setAuthMessage(null);
-      setAttemptCount((prev) => prev + 1);
+
+      // Handle server-side lockout
+      if (result?.data?.IsLockedOut && result?.data?.LockoutEnd) {
+        const lockoutEnd = new Date(result.data.LockoutEnd).getTime();
+        setLockedUntil(lockoutEnd);
+        setAttemptCount(0);
+      } else {
+        setAttemptCount((prev) => prev + 1);
+      }
+
       setAuthError(result?.message || 'Invalid credentials. Please try again.');
     }
   };

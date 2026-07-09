@@ -16,7 +16,6 @@ import { IconMenu2 } from '@tabler/icons-react';
 
 import { useAuth } from '../../../contexts/AuthContext';
 import LanguageSelector from './LanguagePopover/LanguageSelector';
-import PricingCallout from './PricingCallout';
 
 export default function Header() {
   const theme = useTheme();
@@ -62,7 +61,6 @@ export default function Header() {
       {isAuthenticated ? (
         <>
           <LanguageSelector />
-          <PricingCallout />
           <NotificationSection />
           <ProfileSection />
         </>

@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message };
+      return { success: false, message: err.response?.data?.message, data: err.response?.data?.data };
     } finally {
       setAuthLoading(false);
     }

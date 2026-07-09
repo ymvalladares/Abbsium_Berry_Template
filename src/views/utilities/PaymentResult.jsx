@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { keyframes } from '@mui/system';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../../services/AxiosService';
+import api, { dealerAPI } from '../../services/AxiosService';
+import { useDealerSetup } from '../../contexts/DealerSetupContext';
 
 const scaleIn = keyframes`
   0%   { transform: scale(0.85); opacity: 0; }
@@ -113,10 +114,16 @@ const PaymentResult = () => {
   const isDark = colorScheme === 'dark';
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { handleDealerCreated } = useDealerSetup();
   const [status, setStatus] = useState('loading');
   const [order, setOrder] = useState(null);
+  const [isDealerPayment, setIsDealerPayment] = useState(false);
+  const processedRef = useRef(false);
 
   useEffect(() => {
+    if (processedRef.current) return;
+    processedRef.current = true;
+
     const sessionId = searchParams.get('session_id');
 
     if (!sessionId) {
@@ -124,14 +131,53 @@ const PaymentResult = () => {
       return;
     }
 
+    const pendingData = localStorage.getItem('pendingDealerData');
+    setIsDealerPayment(!!pendingData);
+
     api
       .post('order/verify', { sessionId })
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         setOrder(data);
+
+        if (pendingData) {
+          try {
+            const dealerInfo = JSON.parse(pendingData);
+            const payload = {
+              name: dealerInfo.name,
+              domain: dealerInfo.domain,
+              primaryColor: dealerInfo.primaryColor,
+              logo: dealerInfo.logo || null,
+              isActive: true
+            };
+
+            console.log('Creating dealer after payment:', payload);
+            const response = await dealerAPI.upsert(payload);
+            console.log('Dealer upsert response:', response.data);
+
+            if (response.data?.success) {
+              const dealerId = response.data.data?.dealerId;
+              if (dealerId) {
+                const dealerResponse = await dealerAPI.getById(dealerId);
+                if (dealerResponse.data) {
+                  handleDealerCreated(dealerResponse.data);
+                }
+              }
+            } else {
+              console.error('Dealer upsert failed:', response.data?.message);
+            }
+          } catch (err) {
+            console.error('Failed to create dealer after payment:', err.response?.data || err.message);
+          }
+          localStorage.removeItem('pendingDealerData');
+        }
+
         setStatus('success');
       })
-      .catch(() => setStatus('failed'));
-  }, [searchParams]);
+      .catch((err) => {
+        console.error('Payment verification failed:', err);
+        setStatus('failed');
+      });
+  }, [searchParams, handleDealerCreated]);
 
   const isSuccess = status === 'success';
   const isLoading = status === 'loading';
@@ -193,7 +239,9 @@ const PaymentResult = () => {
               }}
             >
               {isSuccess
-                ? `Your ${order?.serviceType ?? ''} plan is now active. You'll receive a confirmation email shortly.`
+                ? isDealerPayment
+                  ? 'Your Dealer account has been activated! You can now start managing your inventory.'
+                  : `Your ${order?.serviceType ?? ''} plan is now active. You'll receive a confirmation email shortly.`
                 : 'Something went wrong while processing your payment. You have not been charged. Please try again.'}
             </Typography>
 
@@ -204,7 +252,7 @@ const PaymentResult = () => {
                 <>
                   <Button
                     fullWidth
-                    onClick={() => navigate('/platform/dashboard')}
+                    onClick={() => navigate(isDealerPayment ? '/platform/dealer/dashboard' : '/platform/dashboard')}
                     sx={{
                       py: '11px',
                       bgcolor: '#6366f1',
@@ -216,11 +264,11 @@ const PaymentResult = () => {
                       '&:hover': { bgcolor: '#4f46e5' }
                     }}
                   >
-                    Go to dashboard
+                    {isDealerPayment ? 'Go to Dealer Dashboard' : 'Go to dashboard'}
                   </Button>
                   <Button
                     fullWidth
-                    onClick={() => navigate('/platform/pricing')}
+                    onClick={() => navigate(isDealerPayment ? '/platform/dealer/dashboard' : '/platform/pricing')}
                     sx={{
                       py: '11px',
                       color: '#a0aec0',
@@ -231,14 +279,14 @@ const PaymentResult = () => {
                       '&:hover': { color: isDark ? '#e2e8f0' : '#718096', bgcolor: isDark ? '#334155' : '#f8fafc' }
                     }}
                   >
-                    Back to pricing
+                    {isDealerPayment ? 'Back to Dealer Dashboard' : 'Back to pricing'}
                   </Button>
                 </>
               ) : (
                 <>
                   <Button
                     fullWidth
-                    onClick={() => navigate('/platform/pricing')}
+                    onClick={() => navigate(isDealerPayment ? '/platform/dealer/dashboard' : '/platform/pricing')}
                     sx={{
                       py: '11px',
                       bgcolor: '#f43f5e',
@@ -254,7 +302,7 @@ const PaymentResult = () => {
                   </Button>
                   <Button
                     fullWidth
-                    onClick={() => navigate('/platform/dashboard')}
+                    onClick={() => navigate(isDealerPayment ? '/platform/dealer/dashboard' : '/platform/dashboard')}
                     sx={{
                       py: '11px',
                       color: '#a0aec0',
@@ -265,7 +313,7 @@ const PaymentResult = () => {
                       '&:hover': { color: isDark ? '#e2e8f0' : '#718096', bgcolor: isDark ? '#334155' : '#f8fafc' }
                     }}
                   >
-                    Back to home
+                    {isDealerPayment ? 'Back to Dealer Dashboard' : 'Back to home'}
                   </Button>
                 </>
               )}
