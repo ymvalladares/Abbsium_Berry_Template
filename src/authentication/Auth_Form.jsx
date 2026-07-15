@@ -430,7 +430,7 @@ const Auth_Form = ({ onSuccess }) => {
           {userAction === 'login' && (
             <>
               <Divider sx={{ my: 2 }} />
-              <Box sx={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, pb: { xs: 4, sm: 0 } }}>
                 <Typography sx={{ fontSize: '14px', color: '#94a3b8', fontWeight: 500 }}>{ui.altText}</Typography>
                 <Typography
                   sx={{ fontSize: '14px', color: '#7c3aed', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease', '&:hover': { color: '#6d28d9', textDecoration: 'underline' } }}
