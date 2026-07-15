@@ -36,6 +36,7 @@ import {
   Skeleton,
 } from "@mui/material";
 import { useColorScheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import { useNotification } from "contexts/NotificationContext";
 import { carAPI } from "services/AxiosService";
 import SearchIcon from "@mui/icons-material/Search";
@@ -60,6 +61,7 @@ import StarIcon from "@mui/icons-material/Star";
 import SpeedIcon from "@mui/icons-material/Speed";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import LocalGasStationIcon from "@mui/icons-material/LocalGasStation";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 const StatusChip = ({ status }) => {
   const isPublished = status === "Published";
@@ -242,6 +244,7 @@ export default function ManageInventory() {
   const notify = useNotification();
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDealerInactive, setIsDealerInactive] = useState(false);
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -263,7 +266,23 @@ export default function ManageInventory() {
   const fetchCars = async () => {
     try {
       setLoading(true);
-      const response = await carAPI.getAll();
+      setIsDealerInactive(false);
+      const dealerId = localStorage.getItem('dealerId');
+      if (!dealerId) {
+        setCars([]);
+        setLoading(false);
+        return;
+      }
+      const response = await carAPI.getByDealer(dealerId);
+
+      if (response.data?.message?.toLowerCase().includes('dealer is not active')) {
+        setIsDealerInactive(true);
+        notify.error('Your dealer account is currently inactive. Please contact support to reactivate.', 'Account Inactive');
+        setCars([]);
+        setLoading(false);
+        return;
+      }
+
         const mapped = response.data.map((car) => {
         const coverPhoto = car.photos?.find(p => p.isCover) || car.photos?.[0];
         return {
@@ -290,7 +309,13 @@ export default function ManageInventory() {
       });
       setCars(mapped);
     } catch (error) {
-      notify.error('Failed to load inventory', 'Error');
+      const errorMsg = error.response?.data?.message || error.response?.data || '';
+      if (errorMsg.toLowerCase().includes('dealer is not active')) {
+        setIsDealerInactive(true);
+        notify.error('Your dealer account is currently inactive. Please contact support to reactivate.', 'Account Inactive');
+      } else {
+        notify.error('Failed to load inventory', 'Error');
+      }
     } finally {
       setLoading(false);
     }
@@ -459,7 +484,13 @@ export default function ManageInventory() {
       fetchCars();
     } catch (error) {
       console.error('Error adding vehicle:', error);
-      notify.error(error.response?.data?.message || error.message || 'Failed to add vehicle', 'Error');
+      const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Failed to add vehicle';
+      if (errorMsg.toLowerCase().includes('dealer is not active')) {
+        setIsDealerInactive(true);
+        notify.error('Your dealer account is inactive. Please contact support.', 'Account Inactive');
+      } else {
+        notify.error(errorMsg, 'Error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -477,7 +508,13 @@ export default function ManageInventory() {
       notify.success('Vehicle deleted successfully', 'Deleted');
       fetchCars();
     } catch (error) {
-      notify.error(error.response?.data?.message || 'Failed to delete vehicle', 'Error');
+      const errorMsg = error.response?.data?.message || 'Failed to delete vehicle';
+      if (errorMsg.toLowerCase().includes('dealer is not active')) {
+        setIsDealerInactive(true);
+        notify.error('Your dealer account is inactive. Please contact support.', 'Account Inactive');
+      } else {
+        notify.error(errorMsg, 'Error');
+      }
     }
   };
 
@@ -550,7 +587,13 @@ export default function ManageInventory() {
       fetchCars();
     } catch (error) {
       console.error('Error updating vehicle:', error);
-      notify.error(error.response?.data?.message || error.message || 'Failed to update vehicle', 'Error');
+      const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Failed to update vehicle';
+      if (errorMsg.toLowerCase().includes('dealer is not active')) {
+        setIsDealerInactive(true);
+        notify.error('Your dealer account is inactive. Please contact support.', 'Account Inactive');
+      } else {
+        notify.error(errorMsg, 'Error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -706,6 +749,25 @@ export default function ManageInventory() {
             </Box>
           </Card>
         </>
+      ) : isDealerInactive ? (
+        <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', textAlign: 'center', py: 6 }}>
+          <CardContent sx={{ py: 6 }}>
+            <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: alpha('#ef4444', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+              <CancelIcon sx={{ fontSize: 40, color: '#ef4444' }} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, fontSize: '1.25rem', color: 'text.primary', mb: 1 }}>Dealer Account Inactive</Typography>
+            <Typography sx={{ fontSize: '0.9rem', color: 'text.secondary', maxWidth: 400, mx: 'auto', mb: 3, lineHeight: 1.6 }}>
+              Your dealer account is currently inactive. Please contact support to reactivate your account and regain access to your inventory.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => window.location.href = '/platform/dealer/dashboard'}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, px: 3, bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}
+            >
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <>
           <Grid container spacing={3} sx={{ mb: 3 }}>

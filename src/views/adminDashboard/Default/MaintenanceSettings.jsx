@@ -27,7 +27,9 @@ const MaintenanceCard = styled(Box)(({ theme }) => ({
   }
 }));
 
-const StatusIndicator = styled(Box)(({ theme, active }) => ({
+const StatusIndicator = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'active',
+})(({ theme, active }) => ({
   width: 12,
   height: 12,
   borderRadius: '50%',

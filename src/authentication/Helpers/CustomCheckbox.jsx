@@ -6,11 +6,11 @@ const CustomCheckbox = ({ label, ...props }) => {
 
   return (
     <FormControlLabel
-      control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#64748b', '&.Mui-checked': { color: '#0399DF' } }} />}
+      control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#94a3b8', '&.Mui-checked': { color: '#7c3aed' } }} />}
       label="Remember Me"
       sx={{
         ml: 0,
-        '& .MuiFormControlLabel-label': { fontSize: '13px', color: '#64748b', fontWeight: 500, userSelect: 'none' }
+        '& .MuiFormControlLabel-label': { fontSize: '13px', color: '#94a3b8', fontWeight: 500, userSelect: 'none' }
       }}
     />
   );

@@ -45,6 +45,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import PeopleIcon from '@mui/icons-material/People';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import api from 'services/AxiosService';
 
 const StatsCard = ({ title, value, subtitle, trend, trendValue, iconBgColor, icon: Icon }) => {
@@ -138,8 +139,20 @@ const StatusChip = ({ active }) => {
   );
 };
 
-const RowMenu = ({ onEdit, onDelete }) => {
+const RowMenu = ({ dealerName, onEdit, onDelete }) => {
   const [anchor, setAnchor] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleDeleteClick = () => {
+    setConfirmOpen(true);
+    setAnchor(null);
+  };
+
+  const handleConfirmDelete = () => {
+    setConfirmOpen(false);
+    onDelete();
+  };
+
   return (
     <>
       <IconButton size="small" onClick={(e) => setAnchor(e.currentTarget)} sx={{ color: 'text.secondary' }}>
@@ -162,14 +175,32 @@ const RowMenu = ({ onEdit, onDelete }) => {
         </MenuItem>
         <MenuItem
           sx={{ fontSize: '0.85rem', gap: 1.25, color: 'error.main' }}
-          onClick={() => {
-            setAnchor(null);
-            onDelete();
-          }}
+          onClick={handleDeleteClick}
         >
           <DeleteOutlineIcon sx={{ fontSize: 17 }} /> Delete
         </MenuItem>
       </Menu>
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningAmberRoundedIcon color="warning" />
+            Delete Dealer?
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary' }}>
+            Are you sure you want to delete <strong>{dealerName}</strong>? This action cannot be undone and will remove all associated data.
+          </Typography>
+        </DialogContent>
+        <Box sx={{ px: 3, py: 2, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+          <Button onClick={() => setConfirmOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDelete}
+            sx={{ textTransform: 'none', fontWeight: 600 }}>Delete</Button>
+        </Box>
+      </Dialog>
     </>
   );
 };
@@ -189,6 +220,8 @@ export default function DealersList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [editDealer, setEditDealer] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState(null);
   const fileInputRef = useRef(null);
 
   const [dealerForm, setDealerForm] = useState({
@@ -292,16 +325,23 @@ export default function DealersList() {
     }
   };
 
-  const handleDeleteSelected = async () => {
-    for (const id of selected) {
+  const handleDeleteSelected = () => {
+    setPendingDeleteIds([...selected]);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDeleteSelected = async () => {
+    setDeleteConfirmOpen(false);
+    for (const id of pendingDeleteIds) {
       try {
         await api.delete(`/Dealer/Delete/${id}`);
       } catch (err) {
         console.error(`Failed to delete dealer ${id}:`, err);
       }
     }
-    notify.success(`${selected.length} dealer(s) removed`, 'Dealers Deleted');
+    notify.success(`${pendingDeleteIds.length} dealer(s) removed`, 'Dealers Deleted');
     setSelected([]);
+    setPendingDeleteIds(null);
     fetchDealers();
   };
 
@@ -593,7 +633,7 @@ export default function DealersList() {
                   </TableCell>
 
                   <TableCell align="right" sx={{ pr: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <RowMenu onEdit={() => openEditDialog(item)} onDelete={() => handleDelete(item.id)} />
+                    <RowMenu dealerName={item.name} onEdit={() => openEditDialog(item)} onDelete={() => handleDelete(item.id)} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -625,6 +665,28 @@ export default function DealersList() {
           sx={{ borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', '& .MuiTablePagination-toolbar': { px: 2 } }}
         />
       </Card>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} maxWidth="xs" fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningAmberRoundedIcon color="warning" />
+            Delete {pendingDeleteIds?.length} Dealer(s)?
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary' }}>
+            Are you sure you want to delete <strong>{pendingDeleteIds?.length}</strong> selected dealer(s)? This action cannot be undone and will remove all associated data.
+          </Typography>
+        </DialogContent>
+        <Box sx={{ px: 3, py: 2, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+          <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDeleteSelected}
+            sx={{ textTransform: 'none', fontWeight: 600 }}>Delete All</Button>
+        </Box>
+      </Dialog>
 
       {/* Add/Edit Dealer Dialog */}
       <Dialog

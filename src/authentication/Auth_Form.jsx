@@ -7,6 +7,7 @@ import { Box, Button, Chip, Divider, Stack, Typography, Alert, createTheme, Them
 import { BeatLoader } from 'react-spinners';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/AxiosService';
+import { Lock } from '@mui/icons-material';
 
 const FORM_FIELDS = [
   { name: 'email', label: 'E-mail', type: 'email', action: ['login', 'register', 'forgetPassword'] },
@@ -15,15 +16,16 @@ const FORM_FIELDS = [
 ];
 
 const V = {
-  login: { title: 'Sign In Abbsium', submit: 'Log In', altText: "Don't have an account?", altAction: 'Sign Up', altMode: 'register' },
+  login: { title: 'Welcome back', subtitle: "Let's pick up where you spark left off", submit: 'Log In', altText: "Don't have an account?", altAction: 'Sign Up', altMode: 'register' },
   register: {
-    title: 'Sign Up Abbsium',
-    submit: 'Create Account',
+    title: 'Welcome back',
+    subtitle: 'Create your account to get started',
+    submit: 'Sign Up',
     altText: 'Already have an account?',
     altAction: 'Sign In',
     altMode: 'login'
   },
-  forgetPassword: { title: 'Reset Password', submit: 'Send Reset Email', altText: '', altAction: 'Back to Sign In', altMode: 'login' }
+  forgetPassword: { title: 'Reset Password', subtitle: 'Enter your email to receive a reset link', submit: 'Send Reset Email', altText: '', altAction: 'Back to Sign In', altMode: 'login' }
 };
 
 const INITIAL_VALUES = {
@@ -33,7 +35,6 @@ const INITIAL_VALUES = {
   remember_me: false
 };
 
-// Rate limiting config (client-side fallback)
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 30000;
 
@@ -48,32 +49,31 @@ const Auth_Form = ({ onSuccess }) => {
   const { authenticate, authLoading, googleLogin } = useAuth();
   const googleTimeoutRef = useRef(null);
 
-  // Clear Google timeout on unmount
   React.useEffect(() => {
     return () => {
       if (googleTimeoutRef.current) clearTimeout(googleTimeoutRef.current);
     };
   }, []);
 
-  // ── Google Sign-In (GIS credential flow) ────────────────────────────────────
-  const handleGoogleCredential = useCallback(async (credentialResponse) => {
-    setGoogleLoading(true);
-    setAuthError(null);
-    try {
-      const res = await api.post(
-        '/account/google-login',
-        JSON.stringify(credentialResponse.credential),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      googleLogin(res.data);
-      onSuccess?.(res.data.email);
-    } catch (err) {
-      setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setGoogleLoading(false);
-      if (googleTimeoutRef.current) clearTimeout(googleTimeoutRef.current);
-    }
-  }, [googleLogin, onSuccess]);
+  const handleGoogleCredential = useCallback(
+    async (credentialResponse) => {
+      setGoogleLoading(true);
+      setAuthError(null);
+      try {
+        const res = await api.post('/account/google-login', JSON.stringify(credentialResponse.credential), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        googleLogin(res.data);
+        onSuccess?.(res.data.email);
+      } catch (err) {
+        setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+      } finally {
+        setGoogleLoading(false);
+        if (googleTimeoutRef.current) clearTimeout(googleTimeoutRef.current);
+      }
+    },
+    [googleLogin, onSuccess]
+  );
 
   const triggerGoogleSignIn = useCallback(() => {
     if (typeof window.google === 'undefined') {
@@ -99,14 +99,12 @@ const Auth_Form = ({ onSuccess }) => {
       }
     }, 100);
 
-    // Timeout fallback — if Google doesn't respond within 30s, reset loading
     googleTimeoutRef.current = setTimeout(() => {
       setGoogleLoading(false);
       setAuthError('Google sign-in timed out. Please try again.');
     }, 30000);
   }, [handleGoogleCredential]);
 
-  // ── Rate limiting check ─────────────────────────────────────────────────────
   const isRateLimited = useCallback(() => {
     if (Date.now() < lockedUntil) return true;
     if (attemptCount >= MAX_ATTEMPTS) {
@@ -117,7 +115,6 @@ const Auth_Form = ({ onSuccess }) => {
     return false;
   }, [attemptCount, lockedUntil]);
 
-  // ── Form submit ─────────────────────────────────────────────────────────────
   const handleSubmit = async (values) => {
     if (isRateLimited()) {
       setAuthError('Too many attempts. Please wait a moment before trying again.');
@@ -139,7 +136,6 @@ const Auth_Form = ({ onSuccess }) => {
     } else {
       setAuthMessage(null);
 
-      // Handle server-side lockout
       if (result?.data?.IsLockedOut && result?.data?.LockoutEnd) {
         const lockoutEnd = new Date(result.data.LockoutEnd).getTime();
         setLockedUntil(lockoutEnd);
@@ -170,7 +166,6 @@ const Auth_Form = ({ onSuccess }) => {
     [userAction]
   );
 
-  // Remaining lockout time
   const remainingLockout = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
 
   const lightTheme = useMemo(
@@ -179,7 +174,7 @@ const Auth_Form = ({ onSuccess }) => {
         colorSchemes: {
           light: {
             palette: {
-              primary: { main: '#0399DF' },
+              primary: { main: '#7c3aed' },
               background: { default: '#ffffff', paper: '#ffffff' },
               text: { primary: '#1e293b', secondary: '#64748b' }
             }
@@ -193,125 +188,188 @@ const Auth_Form = ({ onSuccess }) => {
     <ThemeProvider theme={lightTheme}>
       <Box
         sx={{
-          minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: { xs: 0, sm: 2 },
-        py: { xs: 0, sm: 3 }
-      }}
-    >
-      <Box
-        sx={{
           display: 'flex',
           flexDirection: 'column',
-          padding: { xs: 4, sm: 5 },
-          boxShadow: { xs: 'none', sm: '0px 10px 40px rgba(0,0,0,0.2)' },
-          borderRadius: 6,
-          width: { xs: '400px', sm: '440px', md: '460px' },
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: { xs: '100%', lg: '460px' },
           maxWidth: '100%',
-          backgroundColor: '#ffffff',
-          position: 'relative'
+          px: { xs: 0, sm: 3 }
         }}
       >
-        <Stack alignItems="center" width="100%" mb={1}>
-          <Typography sx={{ color: '#0399DF', fontSize: { xs: '24px', sm: '28px' }, fontWeight: 700, mb: 1 }}>{ui.title}</Typography>
-          <Typography sx={{ color: '#64748b', fontSize: '15px', fontWeight: 400 }}>Enter your credentials to continue</Typography>
-        </Stack>
-
-        {/* ── Google button ── */}
-        {(userAction === 'login' || userAction === 'register') && (
-          <Box sx={{ width: '100%', mt: 2, mb: 1 }}>
-            <Box id="google-btn-hidden" sx={{ display: 'none' }} />
-
-            <Button
-              fullWidth
-              onClick={triggerGoogleSignIn}
-              disabled={isLoading}
-              sx={{
-                height: 48,
-                borderRadius: '10px',
-                border: '2px solid #e2e8f0',
-                background: '#fff',
-                color: '#64748b',
-                fontSize: '14px',
-                fontWeight: 500,
-                textTransform: 'none',
-                gap: 1.5,
-                px: 2,
-                justifyContent: 'center',
-                transition: 'all 0.25s ease',
-                '&:hover': {
-                  background: '#f8fafc',
-                  borderColor: '#cbd5e1',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
-                },
-                '&:active': { transform: 'translateY(0)' },
-                '&.Mui-disabled': { background: '#f1f5f9', color: '#94a3b8', borderColor: '#e2e8f0' }
-              }}
-            >
-              {googleLoading ? (
-                <BeatLoader size={8} color="#94a3b8" />
-              ) : (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                  </svg>
-                  {userAction === 'login' ? 'Sign in with Google' : 'Sign up with Google'}
-                </>
-              )}
-            </Button>
+        {/* Mobile: Logo icon + title above card */}
+        <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(10px)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 1.5
+            }}
+          >
+            <Lock sx={{ fontSize: 28, color: 'white' }} />
           </Box>
-        )}
+          <Typography sx={{ color: 'white', fontSize: '18px', fontWeight: 600, letterSpacing: '0.5px' }}>Smart Guide</Typography>
+        </Box>
 
-        {userAction !== 'forgetPassword' && (
-          <>
-            <Divider sx={{ my: 2 }}>
-              <Chip
-                label="OR"
+        {/* Card */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            padding: { xs: '24px 18px', sm: '36px 32px' },
+            boxShadow: { xs: '0 -4px 30px rgba(0,0,0,0.15)', sm: '0px 10px 40px rgba(0,0,0,0.2)' },
+            borderRadius: { xs: '24px 24px 0 0', sm: '24px' },
+            width: { xs: '100%', sm: '420px', md: '440px' },
+            maxWidth: '100%',
+            backgroundColor: '#ffffff',
+            position: 'relative',
+            borderTop: { xs: 'none', sm: '1px solid rgba(255,255,255,0.1)' }
+          }}
+        >
+          {/* Title */}
+          <Stack alignItems="center" width="100%" mb={0.5}>
+            <Typography sx={{ color: '#1e293b', fontSize: { xs: '22px', sm: '26px' }, fontWeight: 700, mb: 0.5 }}>{ui.title}</Typography>
+            <Typography sx={{ color: '#94a3b8', fontSize: '14px', fontWeight: 400, textAlign: 'center' }}>{ui.subtitle}</Typography>
+          </Stack>
+
+          {/* Google button */}
+          {(userAction === 'login' || userAction === 'register') && (
+            <Box sx={{ width: '100%', mt: 2.5, mb: 1 }}>
+              <Box id="google-btn-hidden" sx={{ display: 'none' }} />
+              <Button
+                fullWidth
+                onClick={triggerGoogleSignIn}
+                disabled={isLoading}
                 sx={{
-                  color: '#0399DF',
-                  backgroundColor: '#fff',
+                  height: 48,
+                  borderRadius: '12px',
+                  border: '1.5px solid #e2e8f0',
+                  background: '#fff',
+                  color: '#64748b',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  gap: 1.5,
                   px: 2,
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  border: '2px solid #0399DF',
-                  borderRadius: '20px'
+                  justifyContent: 'center',
+                  transition: 'all 0.25s ease',
+                  '&:hover': { background: '#f8fafc', borderColor: '#cbd5e1', transform: 'translateY(-1px)', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' },
+                  '&:active': { transform: 'translateY(0)' },
+                  '&.Mui-disabled': { background: '#f1f5f9', color: '#94a3b8', borderColor: '#e2e8f0' }
                 }}
-              />
-            </Divider>
+              >
+                {googleLoading ? (
+                  <BeatLoader size={8} color="#94a3b8" />
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
+                    {userAction === 'login' ? 'Sign in with Google' : 'Sign up with Google'}
+                  </>
+                )}
+              </Button>
+            </Box>
+          )}
 
-            <Formik key={userAction} initialValues={INITIAL_VALUES} validationSchema={validationSchema} onSubmit={handleSubmit}>
-              {({ resetForm }) => (
+          {userAction !== 'forgetPassword' && (
+            <>
+              <Divider sx={{ my: 2 }}>
+                <Chip
+                  label="OR"
+                  sx={{ color: '#7c3aed', backgroundColor: '#fff', px: 2, fontSize: '12px', fontWeight: 600, border: '1.5px solid #7c3aed', borderRadius: '20px' }}
+                />
+              </Divider>
+
+              <Formik key={userAction} initialValues={INITIAL_VALUES} validationSchema={validationSchema} onSubmit={handleSubmit}>
+                {({ resetForm }) => (
+                  <Form style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
+
+                    {authError && (
+                      <Alert severity="error" sx={{ mb: 2, fontSize: 13, borderRadius: '10px', '& .MuiAlert-icon': { fontSize: '18px' } }}>
+                        {authError}
+                        {remainingLockout > 0 && ` (${remainingLockout}s remaining)`}
+                      </Alert>
+                    )}
+                    {authMessage && (
+                      <Alert severity="success" sx={{ mb: 2, fontSize: 13, borderRadius: '10px', '& .MuiAlert-icon': { fontSize: '18px' } }}>
+                        {authMessage}
+                      </Alert>
+                    )}
+
+                    {filteredInputs.map((f) => (
+                      <Input_Fields key={f.name} {...f} />
+                    ))}
+
+                    {userAction === 'login' && (
+                      <Box sx={{ mt: 0.5, mb: 1.5 }}>
+                        <CustomCheckbox name="remember_me" type="checkbox" />
+                      </Box>
+                    )}
+
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      disabled={isLoading || remainingLockout > 0}
+                      sx={{
+                        mt: 1,
+                        mb: 2,
+                        height: 48,
+                        fontSize: '15px',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        backgroundColor: '#7c3aed',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                        '&:hover': { backgroundColor: '#6d28d9', boxShadow: '0 6px 18px rgba(124,58,237,0.45)', transform: 'translateY(-1px)' },
+                        '&.Mui-disabled': { backgroundColor: '#7c3aed', color: '#fff', opacity: 0.7 }
+                      }}
+                    >
+                      <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>{ui.submit}</Box>
+                      {isLoading && (
+                        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <BeatLoader size={10} color="#fff" />
+                        </Box>
+                      )}
+                    </Button>
+                  </Form>
+                )}
+              </Formik>
+            </>
+          )}
+
+          {userAction === 'forgetPassword' && (
+            <Formik key="forgetPassword" initialValues={{ email: '' }} validationSchema={validationSchema} onSubmit={handleSubmit}>
+              {() => (
                 <Form style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-                  {/* Honeypot — hidden field to catch bots */}
                   <input type="text" name="website" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
 
                   {authError && (
-                    <Alert severity="error" sx={{ mb: 2.5, fontSize: 13, borderRadius: '8px', '& .MuiAlert-icon': { fontSize: '20px' } }}>
+                    <Alert severity="error" sx={{ mb: 2, fontSize: 13, borderRadius: '10px', '& .MuiAlert-icon': { fontSize: '18px' } }}>
                       {authError}
-                      {remainingLockout > 0 && ` (${remainingLockout}s remaining)`}
                     </Alert>
                   )}
                   {authMessage && (
-                    <Alert severity="success" sx={{ mb: 2.5, fontSize: 13, borderRadius: '8px', '& .MuiAlert-icon': { fontSize: '20px' } }}>
+                    <Alert severity="success" sx={{ mb: 2, fontSize: 13, borderRadius: '10px', '& .MuiAlert-icon': { fontSize: '18px' } }}>
                       {authMessage}
                     </Alert>
                   )}
 
-                  {filteredInputs.map((f) => (
-                    <Input_Fields key={f.name} {...f} />
-                  ))}
-
-                  {userAction === 'login' && (
-                    <Box sx={{ mt: 1, mb: 2 }}>
-                      <CustomCheckbox name="remember_me" type="checkbox" />
-                    </Box>
-                  )}
+                  <Input_Fields key="email" name="email" label="E-mail" type="email" />
 
                   <Button
                     type="submit"
@@ -319,19 +377,19 @@ const Auth_Form = ({ onSuccess }) => {
                     variant="contained"
                     disabled={isLoading || remainingLockout > 0}
                     sx={{
-                      mt: 1,
+                      mt: 3,
                       mb: 2,
                       height: 48,
                       fontSize: '15px',
                       fontWeight: 600,
                       textTransform: 'none',
-                      backgroundColor: '#0399DF',
-                      borderRadius: '10px',
-                      boxShadow: '0 4px 12px rgba(3,153,223,0.3)',
+                      backgroundColor: '#7c3aed',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
                       position: 'relative',
                       transition: 'all 0.3s ease',
-                      '&:hover': { backgroundColor: '#0288cc', boxShadow: '0 6px 16px rgba(3,153,223,0.4)', transform: 'translateY(-1px)' },
-                      '&.Mui-disabled': { backgroundColor: '#0399DF', color: '#fff', opacity: 0.7 }
+                      '&:hover': { backgroundColor: '#6d28d9', boxShadow: '0 6px 18px rgba(124,58,237,0.45)', transform: 'translateY(-1px)' },
+                      '&.Mui-disabled': { backgroundColor: '#7c3aed', color: '#fff', opacity: 0.7 }
                     }}
                   >
                     <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>{ui.submit}</Box>
@@ -344,122 +402,47 @@ const Auth_Form = ({ onSuccess }) => {
                 </Form>
               )}
             </Formik>
-          </>
-        )}
+          )}
 
-        {userAction === 'forgetPassword' && (
-          <Formik key="forgetPassword" initialValues={{ email: '' }} validationSchema={validationSchema} onSubmit={handleSubmit}>
-            {() => (
-              <Form style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-                {/* Honeypot */}
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
-
-                {authError && (
-                  <Alert severity="error" sx={{ mb: 2.5, fontSize: 13, borderRadius: '8px', '& .MuiAlert-icon': { fontSize: '20px' } }}>
-                    {authError}
-                  </Alert>
-                )}
-                {authMessage && (
-                  <Alert severity="success" sx={{ mb: 2.5, fontSize: 13, borderRadius: '8px', '& .MuiAlert-icon': { fontSize: '20px' } }}>
-                    {authMessage}
-                  </Alert>
-                )}
-
-                <Input_Fields key="email" name="email" label="E-mail" type="email" />
-
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  disabled={isLoading || remainingLockout > 0}
-                  sx={{
-                    mt: 3,
-                    mb: 2,
-                    height: 48,
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    backgroundColor: '#0399DF',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 12px rgba(3,153,223,0.3)',
-                    position: 'relative',
-                    transition: 'all 0.3s ease',
-                    '&:hover': { backgroundColor: '#0288cc', boxShadow: '0 6px 16px rgba(3,153,223,0.4)', transform: 'translateY(-1px)' },
-                    '&.Mui-disabled': { backgroundColor: '#0399DF', color: '#fff', opacity: 0.7 }
-                  }}
-                >
-                  <Box sx={{ visibility: isLoading ? 'hidden' : 'visible' }}>{ui.submit}</Box>
-                  {isLoading && (
-                    <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <BeatLoader size={10} color="#fff" />
-                    </Box>
-                  )}
-                </Button>
-              </Form>
-            )}
-          </Formik>
-        )}
-
-        {userAction === 'login' && (
-          <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" sx={{ mb: 2 }}>
-            <Typography sx={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>Forget your password?</Typography>
-            <Typography
-              sx={{
-                color: '#0399DF',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '13px',
-                transition: 'all 0.2s ease',
-                '&:hover': { color: '#0288cc', textDecoration: 'underline' }
-              }}
-              onClick={() => switchMode('forgetPassword')}
-            >
-              Reset Password
-            </Typography>
-          </Box>
-        )}
-
-        {userAction !== 'login' && (
-          <Box display="flex" justifyContent="center" alignItems="center" width="100%" sx={{ mt: 2 }}>
-            <Typography
-              sx={{
-                color: '#0399DF',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '13px',
-                transition: 'all 0.2s ease',
-                '&:hover': { color: '#0288cc', textDecoration: 'underline' }
-              }}
-              onClick={() => switchMode('login')}
-            >
-              Back to Sign In
-            </Typography>
-          </Box>
-        )}
-
-        {userAction === 'login' && (
-          <>
-            <Divider sx={{ my: 2.5 }} />
-            <Box sx={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
-              <Typography sx={{ fontSize: '14px', color: '#64748b', fontWeight: 500 }}>{ui.altText}</Typography>
+          {userAction === 'login' && (
+            <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" sx={{ mb: 1.5 }}>
+              <Typography sx={{ fontSize: '13px', color: '#94a3b8', fontWeight: 500 }}>Forgot password?</Typography>
               <Typography
-                sx={{
-                  fontSize: '14px',
-                  color: '#0399DF',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': { color: '#0288cc', textDecoration: 'underline' }
-                }}
-                onClick={() => switchMode(ui.altMode)}
+                sx={{ color: '#7c3aed', fontWeight: 600, cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s ease', '&:hover': { color: '#6d28d9', textDecoration: 'underline' } }}
+                onClick={() => switchMode('forgetPassword')}
               >
-                {ui.altAction}
+                Reset Password
               </Typography>
             </Box>
-          </>
-        )}
+          )}
+
+          {userAction !== 'login' && (
+            <Box display="flex" justifyContent="center" alignItems="center" width="100%" sx={{ mt: 1.5 }}>
+              <Typography
+                sx={{ color: '#7c3aed', fontWeight: 600, cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s ease', '&:hover': { color: '#6d28d9', textDecoration: 'underline' } }}
+                onClick={() => switchMode('login')}
+              >
+                Back to Sign In
+              </Typography>
+            </Box>
+          )}
+
+          {userAction === 'login' && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontSize: '14px', color: '#94a3b8', fontWeight: 500 }}>{ui.altText}</Typography>
+                <Typography
+                  sx={{ fontSize: '14px', color: '#7c3aed', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease', '&:hover': { color: '#6d28d9', textDecoration: 'underline' } }}
+                  onClick={() => switchMode(ui.altMode)}
+                >
+                  {ui.altAction}
+                </Typography>
+              </Box>
+            </>
+          )}
+        </Box>
       </Box>
-    </Box>
     </ThemeProvider>
   );
 };
