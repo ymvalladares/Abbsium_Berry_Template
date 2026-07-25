@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -6,9 +6,6 @@ import {
   Button,
   TextField,
   Chip,
-  Stepper,
-  Step,
-  StepLabel,
   InputAdornment,
   Switch,
   Fade,
@@ -232,12 +229,12 @@ export default function ClippingAgent() {
   return (
     <Box sx={{ py: { xs: 1, sm: 2 }, width: '100%' }}>
         {/* ── Header ── */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: { xs: 1.5, sm: 2 } }}>
-          <Stack direction="row" spacing={1} alignItems="center">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
               sx={{
-                width: 32,
-                height: 32,
+                width: 40,
+                height: 40,
                 borderRadius: 2,
                 bgcolor: ACCENT,
                 display: 'flex',
@@ -245,66 +242,89 @@ export default function ClippingAgent() {
                 justifyContent: 'center'
               }}
             >
-              <IconScissors size={17} color="#fff" />
+              <IconScissors size={20} color="#fff" />
             </Box>
-            <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.1rem', sm: '1.3rem' } }}>Clipping Agent</Typography>
-          </Stack>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.15rem', lineHeight: 1.2 }}>
+                {startGen ? 'Clips Generated' : 'Clipping Agent'}
+              </Typography>
+              {!startGen && (
+                <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                  {STEP_LABELS[step]}
+                </Typography>
+              )}
+            </Box>
+          </Box>
           {startGen && (
-            <Button
-              size="small"
-              startIcon={<IconRefresh size={15} />}
-              onClick={reset}
-              sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', color: ACCENT }}
-            >
+            <Button size="small" startIcon={<IconRefresh size={16} />} onClick={reset} sx={{ textTransform: 'none', fontWeight: 600 }}>
               New
             </Button>
           )}
-        </Stack>
+        </Box>
 
         {/* ── Stepper ── */}
-        <Stepper
-          activeStep={step}
-          sx={{
-            mb: { xs: 1.5, sm: 2 },
-            '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.78rem' }, fontWeight: 600 },
-            '& .MuiStepConnector-line': { borderColor: 'divider' },
-            // hide labels on very small screens, show only icons
-            '& .MuiStepLabel-labelContainer': { display: { xs: 'none', sm: 'block' } }
-          }}
-        >
-          {STEP_LABELS.map((l, i) => (
-            <Step key={l}>
-              <StepLabel
-                onClick={() => {
-                  if (!startGen && i < step) setStep(i);
-                }}
-                sx={{ cursor: i < step && !startGen ? 'pointer' : 'default' }}
-                icon={
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, px: 1 }}>
+          {STEP_LABELS.map((label, i) => {
+            const isActive = i === step;
+            const isCompleted = i < step;
+            const isLast = i === STEP_LABELS.length - 1;
+            return (
+              <React.Fragment key={label}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1
+                  }}
+                >
                   <Box
                     sx={{
-                      width: { xs: 22, sm: 26 },
-                      height: { xs: 22, sm: 26 },
+                      width: 26,
+                      height: 26,
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      bgcolor: i === step ? ACCENT : i < step ? '#4CAF50' : isDark ? '#374151' : '#e0e0e0',
-                      color: i <= step ? '#fff' : isDark ? '#94a3b8' : '#999',
-                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                      bgcolor: isActive ? ACCENT : isCompleted ? '#4CAF50' : isDark ? '#374151' : '#e5e7eb',
+                      color: '#fff',
+                      fontSize: '0.7rem',
                       fontWeight: 700,
-                      transition: 'all 0.2s',
-                      cursor: i < step && !startGen ? 'pointer' : 'default'
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
                     }}
                   >
-                    {i < step ? <IconCheck size={isMobile ? 10 : 12} /> : i + 1}
+                    {isCompleted ? <IconCheck size={12} /> : i + 1}
                   </Box>
-                }
-              >
-                {l}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+                  <Typography
+                    sx={{
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: '0.75rem',
+                      color: isActive ? 'text.primary' : isCompleted ? 'text.primary' : 'text.secondary',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {label}
+                  </Typography>
+                </Box>
+                {!isLast && (
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: 2,
+                      mx: 1,
+                      borderRadius: 1,
+                      bgcolor: i < step ? '#4CAF50' : isDark ? '#374151' : '#e5e7eb',
+                      transition: 'all 0.3s ease',
+                      maxWidth: 60
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </Box>
 
         {/* ── Card ── */}
         <Box

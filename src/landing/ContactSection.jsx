@@ -16,9 +16,12 @@ import * as Yup from 'yup';
 
 import SendIcon from '@mui/icons-material/Send';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EmailIcon from '@mui/icons-material/Email';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+
+import { sendContactEmail } from '../services/EmailService';
 
 const KEYFRAMES = `
   @keyframes float {
@@ -28,6 +31,20 @@ const KEYFRAMES = `
   @keyframes pulse-ring {
     0% { transform: scale(0.8); opacity: 1; }
     100% { transform: scale(1.4); opacity: 0; }
+  }
+  @keyframes scaleIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes slideUp {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
   }
 `;
 
@@ -74,8 +91,7 @@ const ContactSection = () => {
     onSubmit: async (values) => {
       setSubmissionStatus('loading');
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        console.log('Form submitted:', values);
+        await sendContactEmail(values);
         setSubmissionStatus('success');
         formik.resetForm();
       } catch {
@@ -88,6 +104,7 @@ const ContactSection = () => {
 
   const isSubmitting = submissionStatus === 'loading';
   const isSuccess = submissionStatus === 'success';
+  const isError = submissionStatus === 'error';
 
   return (
     <>
@@ -388,17 +405,122 @@ const ContactSection = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        mb: 3
+                        mb: 3,
+                        animation: 'scaleIn 0.5s ease-out forwards'
                       }}
                     >
                       <CheckCircleIcon sx={{ color: '#22c55e', fontSize: '2.5rem' }} />
                     </Box>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', mb: 1 }}>
-                      Message Sent!
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 900,
+                        color: '#0f172a',
+                        mb: 1,
+                        animation: 'slideUp 0.5s ease-out 0.1s both'
+                      }}
+                    >
+                      Message Sent Successfully!
                     </Typography>
-                    <Typography sx={{ color: '#64748b', maxWidth: '280px' }}>
-                      We'll get back to you within 24 hours. Check your email for a confirmation.
+                    <Typography
+                      sx={{
+                        color: '#64748b',
+                        maxWidth: '320px',
+                        mb: 3,
+                        animation: 'slideUp 0.5s ease-out 0.2s both'
+                      }}
+                    >
+                      Thank you for reaching out. We'll get back to you within 24 hours.
                     </Typography>
+                    <Button
+                      onClick={() => setSubmissionStatus('idle')}
+                      sx={{
+                        py: 1.5,
+                        px: 4,
+                        borderRadius: '14px',
+                        fontWeight: 800,
+                        fontSize: '0.9rem',
+                        textTransform: 'none',
+                        bgcolor: '#6366f1',
+                        color: '#fff',
+                        animation: 'slideUp 0.5s ease-out 0.3s both',
+                        '&:hover': {
+                          bgcolor: '#4f46e5',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 25px rgba(99,102,241,0.3)'
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Send Another Message
+                    </Button>
+                  </Box>
+                ) : isError ? (
+                  <Box
+                    sx={{
+                      minHeight: '400px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(239, 68, 68, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 3,
+                        animation: 'shake 0.6s ease-in-out'
+                      }}
+                    >
+                      <ErrorIcon sx={{ color: '#ef4444', fontSize: '2.5rem' }} />
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 900,
+                        color: '#0f172a',
+                        mb: 1
+                      }}
+                    >
+                      Something Went Wrong
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: '#64748b',
+                        maxWidth: '320px',
+                        mb: 3
+                      }}
+                    >
+                      Please try again or contact us directly at yordan.j.martinez@gmail.com
+                    </Typography>
+                    <Button
+                      onClick={() => setSubmissionStatus('idle')}
+                      sx={{
+                        py: 1.5,
+                        px: 4,
+                        borderRadius: '14px',
+                        fontWeight: 800,
+                        fontSize: '0.9rem',
+                        textTransform: 'none',
+                        bgcolor: '#ef4444',
+                        color: '#fff',
+                        '&:hover': {
+                          bgcolor: '#dc2626',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 25px rgba(239,68,68,0.3)'
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Try Again
+                    </Button>
                   </Box>
                 ) : (
                   <form onSubmit={formik.handleSubmit}>

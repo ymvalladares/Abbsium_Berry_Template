@@ -212,10 +212,10 @@ class SignalRService {
   }
 
   // ⭐ NUEVO: Enviar indicador de escritura
-  async sendTypingIndicator(conversationId) {
+  async sendTypingIndicator(conversationId, targetUserId, isTyping = true) {
     if (!this.isConnected || !this.connection) return;
     try {
-      await this.connection.invoke('SendTypingIndicator', conversationId);
+      await this.connection.invoke('SendTypingIndicator', conversationId, targetUserId, isTyping);
     } catch (error) {
       console.error('Error sending typing indicator:', error);
     }

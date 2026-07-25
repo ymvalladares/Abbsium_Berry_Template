@@ -495,88 +495,109 @@ export default function PostComposer() {
   return (
     <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
       {/* Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.4rem' }}>Create Post</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                bgcolor: '#5E35B1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <IconSparkles size={20} style={{ color: '#fff' }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.15rem', lineHeight: 1.2 }}>
+                {results ? 'Post Published' : 'Create Post'}
+              </Typography>
+              {!results && (
+                <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                  {STEP_LABELS[step]}
+                </Typography>
+              )}
+            </Box>
+          </Box>
           {results && (
             <Button size="small" startIcon={<IconRefresh size={16} />} onClick={reset} sx={{ textTransform: 'none', fontWeight: 600 }}>
-              New
+              New Post
             </Button>
           )}
-        </Stack>
+        </Box>
 
         {/* Stepper */}
-        <Stepper activeStep={step} sx={{ mb: 2, '& .MuiStepLabel-label': { fontSize: '0.8rem', fontWeight: 600 } }}>
-          {STEP_LABELS.map((l, i) => (
-            <Step key={l}>
-              <StepLabel
-                onClick={() => {
-                  if (!results && i < step) setStep(i);
-                }}
-                icon={
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, px: 1 }}>
+          {STEP_LABELS.map((label, i) => {
+            const isActive = i === step;
+            const isCompleted = i < step;
+            const isLast = i === STEP_LABELS.length - 1;
+            return (
+              <React.Fragment key={label}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1
+                  }}
+                >
                   <Box
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: 26,
+                      height: 26,
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      bgcolor: i === step ? '#5E35B1' : i < step ? '#4CAF50' : isDark ? '#374151' : '#e0e0e0',
-                      color: i <= step ? '#fff' : isDark ? '#94a3b8' : '#999',
-                      fontSize: '0.75rem',
-                      fontWeight: 700
+                      bgcolor: isActive ? '#5E35B1' : isCompleted ? '#4CAF50' : isDark ? '#374151' : '#e5e7eb',
+                      color: '#fff',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
                     }}
                   >
-                    {i < step ? <IconCheck size={12} /> : i + 1}
+                    {isCompleted ? <IconCheck size={12} /> : i + 1}
                   </Box>
-                }
-              >
-                {l}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+                  <Typography
+                    sx={{
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: '0.75rem',
+                      color: isActive ? 'text.primary' : isCompleted ? 'text.primary' : 'text.secondary',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {label}
+                  </Typography>
+                </Box>
+                {!isLast && (
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: 2,
+                      mx: 1,
+                      borderRadius: 1,
+                      bgcolor: i < step ? '#4CAF50' : isDark ? '#374151' : '#e5e7eb',
+                      transition: 'all 0.3s ease',
+                      maxWidth: 60
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </Box>
 
         {/* Card */}
         <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper', overflow: 'hidden' }}>
           <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             {/* Step 0 */}
             {step === 0 && (
-              <Stack spacing={2}>
-                {/* Welcome banner */}
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, alpha(#5E35B1, 0.08), alpha(#7C4DFF, 0.04))',
-                    border: '1px solid',
-                    borderColor: alpha('#5E35B1', 0.12)
-                  }}
-                >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 1.5,
-                        bgcolor: isDark ? 'rgba(30,41,59,0.8)' : 'rgba(255,255,255,0.8)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}
-                    >
-                      <IconSend size={20} style={{ color: '#5E35B1' }} />
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mb: 0.15 }}>Ready to create your first post?</Typography>
-                      <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                        Select the platforms where you want to publish
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Box>
-
+              <Stack spacing={2.5}>
                 {/* Quick actions */}
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Button
@@ -674,42 +695,78 @@ export default function PostComposer() {
                   })}
                 </Box>
 
-                {/* Divider */}
-                {platforms.some((p) => pages[p]) && (
-                  <Divider sx={{ my: 0.5 }} />
-                )}
-
-                {/* Account info for connected platforms */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, width: '100%' }}>
-                  {platforms.map((id) => {
-                    const p = PLATFORMS.find((plat) => plat.id === id);
-                    if (!p || !pages[id] || loadingPages) return null;
-                    const account = pages[id];
-                    return (
-                      <Box key={id}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#fff' }}>{p.name[0]}</Typography>
-                          </Box>
-                          <Typography sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>{p.name}</Typography>
-                        </Stack>
-                        <Box sx={{ p: 1, borderRadius: 1.5, border: '1px solid', borderColor: alpha(p.color, 0.12), bgcolor: alpha(p.color, 0.02), display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                          <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: alpha(p.color, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: p.color }}>{p.name[0]}</Typography>
-                          </Box>
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{account.accountName}</Typography>
-                            {account.expiresAt && (
-                              <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>
-                                Expires: {new Date(account.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
+                {/* Selected accounts */}
+                {platforms.length > 0 && (
+                  <Box
+                    sx={{
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      bgcolor: 'background.paper',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <IconSend size={16} style={{ color: '#5E35B1' }} />
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                        {platforms.length} {platforms.length === 1 ? 'platform' : 'platforms'} selected
+                      </Typography>
+                    </Box>
+                    <Box sx={{ p: 2 }}>
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                          gap: 1.5
+                        }}
+                      >
+                        {platforms.map((id) => {
+                          const p = PLATFORMS.find((plat) => plat.id === id);
+                          if (!p) return null;
+                          const Icon = p.icon;
+                          const account = pages[id];
+                          return (
+                            <Box
+                              key={id}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.5,
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                border: '1px solid',
+                                borderColor: alpha(p.color, 0.12)
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: 2,
+                                  bgcolor: p.color,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  boxShadow: `0 4px 12px ${alpha(p.color, 0.25)}`
+                                }}
+                              >
+                                <Icon size={20} style={{ color: '#fff' }} />
+                              </Box>
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.2 }}>{p.name}</Typography>
+                                <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                                  {account ? account.accountName : 'Personal account'}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          );
+                        })}
                       </Box>
-                    );
-                  })}
-                </Box>
+                    </Box>
+                  </Box>
+                )}
 
                 {loadingPages && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
@@ -879,91 +936,59 @@ export default function PostComposer() {
             {/* Step 2 - Review & Publish */}
             {step === 2 && (
               <Stack spacing={1.5}>
-                {/* Platforms row */}
-                <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: isDark ? '#1e293b' : 'white' }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Publishing to</Typography>
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                    {platforms.map((id) => {
-                      const p = plat(id);
-                      if (!p) return null;
-                      const Icon = p.icon;
-                      const account = pages[id];
-                      return (
-                        <Stack key={id} direction="row" alignItems="center" spacing={1} sx={{ p: '6px 12px', borderRadius: 1.5, border: '1px solid', borderColor: alpha(p.color, 0.15), bgcolor: alpha(p.color, 0.03) }}>
-                          <Box sx={{ width: 20, height: 20, borderRadius: 1, bgcolor: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Icon size={11} style={{ color: '#fff' }} />
-                          </Box>
-                          <Box>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem' }}>{p.name}</Typography>
-                            <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                              {account ? account.accountName : 'Personal'}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      );
-                    })}
-                  </Stack>
+                {/* Platforms */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {platforms.map((id) => {
+                    const p = plat(id);
+                    if (!p) return null;
+                    const Icon = p.icon;
+                    return (
+                      <Box key={id} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 1.25, py: 0.6, borderRadius: 1.5, border: '1px solid', borderColor: alpha(p.color, 0.2), bgcolor: alpha(p.color, 0.04) }}>
+                        <Icon size={14} style={{ color: p.color }} />
+                        <Typography sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{p.name}</Typography>
+                      </Box>
+                    );
+                  })}
                 </Box>
 
-                {/* Content + Details in compact row */}
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ alignItems: 'stretch' }}>
-                  {/* Content */}
-                  <Box sx={{ flex: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: isDark ? '#1e293b' : 'white' }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Content</Typography>
-                    {title && <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>{title}</Typography>}
-                    {description && (
-                      <Typography sx={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'text.secondary', mb: 1 }}>
-                        {description}
-                      </Typography>
-                    )}
-                    {!title && !description && (
-                      <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled', mb: 1 }}>No text content</Typography>
-                    )}
-                    {file && (
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 1, borderRadius: 1.5, bgcolor: isDark ? '#0f172a' : 'grey.50', border: '1px solid', borderColor: 'divider' }}>
-                        {file.type.startsWith('image') ? (
-                          <Box component="img" src={preview} sx={{ width: 48, height: 48, borderRadius: 1.5, objectFit: 'cover', flexShrink: 0 }} />
-                        ) : (
-                          <Box sx={{ width: 48, height: 48, borderRadius: 1.5, bgcolor: isDark ? '#1e293b' : 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <IconVideo size={18} style={{ color: isDark ? '#94a3b8' : '#999' }} />
-                          </Box>
-                        )}
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography sx={{ fontWeight: 600, fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</Typography>
-                          <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>{(file.size / 1024 / 1024).toFixed(1)} MB</Typography>
-                        </Box>
-                      </Stack>
-                    )}
-                    {!file && (
-                      <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled' }}>No media attached</Typography>
-                    )}
-                  </Box>
-
-                  {/* Details */}
-                  <Box sx={{ flex: '0 0 160px', borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: isDark ? '#1e293b' : 'white' }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', mb: 1, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Details</Typography>
-                    <Stack spacing={1}>
-                      <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: isDark ? '#0f172a' : 'grey.50' }}>
-                        <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Type</Typography>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{TYPES.find((t) => t.id === type)?.label}</Typography>
-                      </Box>
-                      <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: isDark ? '#0f172a' : 'grey.50' }}>
-                        <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Schedule</Typography>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#4CAF50' }}>Now</Typography>
-                      </Box>
-                      {file && (
-                        <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: isDark ? '#0f172a' : 'grey.50' }}>
-                          <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>File size</Typography>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{(file.size / 1024 / 1024).toFixed(1)} MB</Typography>
+                {/* Content */}
+                <Box sx={{ display: 'flex', gap: 2, p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                  {file && (
+                    <Box sx={{ width: 72, height: 72, borderRadius: 1.5, overflow: 'hidden', flexShrink: 0, bgcolor: isDark ? '#0f172a' : 'grey.100' }}>
+                      {file.type.startsWith('image') ? (
+                        <Box component="img" src={preview} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <IconVideo size={24} style={{ color: isDark ? '#64748b' : '#999' }} />
                         </Box>
                       )}
-                      <Box sx={{ p: 0.75, borderRadius: 1.5, bgcolor: isDark ? '#0f172a' : 'grey.50' }}>
-                        <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Platforms</Typography>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{platforms.length}</Typography>
-                      </Box>
-                    </Stack>
+                    </Box>
+                  )}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    {title && <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 0.5 }}>{title}</Typography>}
+                    {description ? (
+                      <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{description}</Typography>
+                    ) : (
+                      <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>No caption</Typography>
+                    )}
                   </Box>
-                </Stack>
+                </Box>
+
+                {/* Details */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+                  <Box sx={{ p: 1.25, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                    <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', textTransform: 'uppercase', mb: 0.25 }}>Type</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{TYPES.find((t) => t.id === type)?.label}</Typography>
+                  </Box>
+                  <Box sx={{ p: 1.25, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                    <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', textTransform: 'uppercase', mb: 0.25 }}>Schedule</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#4CAF50' }}>Now</Typography>
+                  </Box>
+                  <Box sx={{ p: 1.25, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                    <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', textTransform: 'uppercase', mb: 0.25 }}>File</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'None'}</Typography>
+                  </Box>
+                </Box>
               </Stack>
             )}
           </Box>

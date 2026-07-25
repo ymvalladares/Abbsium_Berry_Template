@@ -179,6 +179,30 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     };
   }, [isConnected, isAdmin]);
 
+  // ⭐ Mark as read when window becomes visible
+  useEffect(() => {
+    if (!isConnected || !selectedConversationId) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        signalRService.markAsRead(selectedConversationId);
+        const now = new Date().toISOString();
+        setMessages((prev) =>
+          prev.map((msg) =>
+            !msg.isSender && !msg.isRead
+              ? { ...msg, isRead: true, readAt: now }
+              : msg
+          )
+        );
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isConnected, selectedConversationId]);
+
   useEffect(() => {
     if (!isConnected) return;
 
@@ -251,9 +275,10 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
   }, []);
 
   useEffect(() => {
-    if (!isAdmin || !isConnected) return;
+    if (!isConnected) return;
 
     const handleNewUserMessage = (msg) => {
+      setIsOtherTyping(false);
       if (msg.conversationId === selectedConversationId) {
         setMessages((prev) => {
           const exists = prev.find((m) => m.id === msg.messageId);
@@ -267,9 +292,14 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
               isAdminMessage: false,
               isSender: false,
               senderName: msg.userName,
+              isRead: true,
+              readAt: new Date().toISOString(),
             },
           ];
         });
+
+        // ⭐ Mark as read immediately since we're viewing this conversation
+        signalRService.markAsRead(selectedConversationId);
       }
 
       setConversations((prev) => {
@@ -351,6 +381,7 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     };
 
     const handleNewAdminMessage = (msg) => {
+      setIsOtherTyping(false);
       setMessages((prev) => {
         const exists = prev.find((m) => m.id === msg.messageId);
         if (exists) return prev;
@@ -363,9 +394,14 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
             isAdminMessage: true,
             isSender: false,
             senderName: msg.adminName,
+            isRead: true,
+            readAt: new Date().toISOString(),
           },
         ];
       });
+
+      // ⭐ Mark as read immediately since we're viewing this conversation
+      signalRService.markAsRead(selectedConversationId);
 
       setAdmins((prev) =>
         prev.map((admin) =>
@@ -389,14 +425,34 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     if (!isConnected) return;
 
     const handleMessagesRead = (data) => {
-      const { conversationId, messageIds, readAt } = data;
-      if (!messageIds?.length) return;
+      const { conversationId, messageIds, readBy, readAt } = data;
 
-      setMessages((prev) =>
-        prev.map((msg) =>
-          messageIds.includes(msg.id) ? { ...msg, isRead: true, readAt: readAt || new Date().toISOString() } : msg
-        )
-      );
+      const now = readAt || new Date().toISOString();
+
+      if (messageIds?.length) {
+        const readIds = new Set(messageIds.map((id) => String(id).toLowerCase()));
+
+        setMessages((prev) =>
+          prev.map((msg) => {
+            const msgId = String(msg.id).toLowerCase();
+            if (readIds.has(msgId)) {
+              return { ...msg, isRead: true, readAt: now, readBy };
+            }
+            return msg;
+          })
+        );
+      }
+
+      // ⭐ Fallback: mark all sender messages as read for this conversation
+      if (conversationId === selectedConversationId) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.isSender && !msg.isRead
+              ? { ...msg, isRead: true, readAt: now, readBy }
+              : msg
+          )
+        );
+      }
 
       if (conversationId !== selectedConversationId) {
         if (isAdmin) {
@@ -410,8 +466,9 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     };
 
     const handleMarkedAsRead = (conversationId) => {
+      const now = new Date().toISOString();
       setMessages((prev) =>
-        prev.map((msg) => (msg.isSender ? { ...msg, isRead: true, readAt: new Date().toISOString() } : msg))
+        prev.map((msg) => (msg.isSender ? { ...msg, isRead: true, readAt: now } : msg))
       );
     };
 
@@ -419,12 +476,16 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
       const { conversationId, messageIds, userId, readAt } = data;
       if (!messageIds?.length) return;
 
+      const readIds = new Set(messageIds.map((id) => String(id).toLowerCase()));
+
       setMessages((prev) =>
-        prev.map((msg) =>
-          messageIds.includes(msg.id) && msg.isSender
-            ? { ...msg, isRead: true, readAt: readAt || new Date().toISOString(), readBy: userId }
-            : msg
-        )
+        prev.map((msg) => {
+          const msgId = String(msg.id).toLowerCase();
+          if (readIds.has(msgId) && msg.isSender) {
+            return { ...msg, isRead: true, readAt: readAt || new Date().toISOString(), readBy: userId };
+          }
+          return msg;
+        })
       );
     };
 
@@ -532,6 +593,17 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
         }));
 
         setMessages(enrichedMessages);
+
+        // ⭐ Mark as read immediately on UI
+        const now = new Date().toISOString();
+        setMessages((prev) =>
+          prev.map((msg) =>
+            !msg.isSender && !msg.isRead
+              ? { ...msg, isRead: true, readAt: now }
+              : msg
+          )
+        );
+
         await signalRService.markAsRead(convId);
 
         if (isAdmin) {
@@ -627,18 +699,19 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
 
   // ⭐ NUEVO: Enviar typing indicator con debounce
   const sendTypingIndicator = useCallback(() => {
-    if (!selectedConversationId || !isConnected) return;
+    if (!selectedConversationId || !isConnected || !selectedChat) return;
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    signalRService.sendTypingIndicator(selectedConversationId);
+    const targetUserId = isAdmin ? selectedChat.id : selectedChat.id;
+    signalRService.sendTypingIndicator(selectedConversationId, targetUserId, true);
 
     typingTimeoutRef.current = setTimeout(() => {
-      signalRService.sendTypingIndicator(selectedConversationId);
+      signalRService.sendTypingIndicator(selectedConversationId, targetUserId, false);
     }, 2000);
-  }, [selectedConversationId, isConnected]);
+  }, [selectedConversationId, isConnected, selectedChat, isAdmin]);
 
   // ⭐ NUEVO: Toggle reaction on a message
   const toggleReaction = useCallback(async (messageId, emoji) => {

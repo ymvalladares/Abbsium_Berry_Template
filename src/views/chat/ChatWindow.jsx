@@ -109,8 +109,20 @@ const ChatWindow = ({ isMobile }) => {
 
     if (isNearBottom) {
       updateUnreadBadge(0);
+      // ⭐ Mark messages as read when user scrolls to bottom
+      const now = new Date().toISOString();
+      const unreadMsgs = messages.filter((m) => !m.isSender && !m.isRead);
+      if (unreadMsgs.length > 0) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            !msg.isSender && !msg.isRead
+              ? { ...msg, isRead: true, readAt: now }
+              : msg
+          )
+        );
+      }
     }
-  }, [updateUnreadBadge]);
+  }, [updateUnreadBadge, messages]);
 
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
@@ -124,6 +136,10 @@ const ChatWindow = ({ isMobile }) => {
       if (!isConnected) notify.error('Unable to send message. Connection lost.', 'Send Failed');
       return;
     }
+    if (typingDebounceRef.current) {
+      clearTimeout(typingDebounceRef.current);
+    }
+    sendTypingIndicator();
     await sendMessage(message);
     setMessage('');
     setReplyTo(null);
@@ -146,9 +162,15 @@ const ChatWindow = ({ isMobile }) => {
       if (typingDebounceRef.current) {
         clearTimeout(typingDebounceRef.current);
       }
+      sendTypingIndicator();
       typingDebounceRef.current = setTimeout(() => {
         sendTypingIndicator();
-      }, 500);
+      }, 2000);
+    } else {
+      if (typingDebounceRef.current) {
+        clearTimeout(typingDebounceRef.current);
+      }
+      sendTypingIndicator();
     }
   };
 

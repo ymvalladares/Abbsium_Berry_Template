@@ -84,6 +84,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
   const validateForm = () => {
     const newErrors = {};
     if (!form.username.trim()) newErrors.username = 'Username is required';
+    else if (/\s/.test(form.username)) newErrors.username = 'Username cannot contain spaces';
     if (mode === 'create') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!form.email.trim()) {
@@ -110,8 +111,19 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
       }
     } catch (error) {
       console.error(error);
-      const msg = error.response?.data;
-      notify.error(typeof msg === 'string' ? msg : msg?.message || 'Operation failed', 'Operation Failed');
+      const data = error.response?.data;
+      let errorMsg = 'Operation failed';
+      
+      if (typeof data === 'string') {
+        errorMsg = data;
+      } else if (data?.errors && Array.isArray(data.errors)) {
+        errorMsg = data.errors.join('\n');
+      } else if (data?.message) {
+        errorMsg = data.message;
+      }
+      
+      setErrors({ submit: errorMsg });
+      notify.error(errorMsg, 'Operation Failed');
     } finally {
       setLoading(false);
     }
@@ -162,6 +174,13 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
           </Box>
 
           <Box sx={{ p: 3 }}>
+            {errors.submit && (
+              <Box sx={{ mb: 2, p: 1.5, borderRadius: '10px', bgcolor: isDark ? '#450a0a' : '#fef2f2', border: `1px solid ${isDark ? '#7f1d1d' : '#fecaca'}` }}>
+                <Typography variant="caption" sx={{ color: isDark ? '#fca5a5' : '#ef4444', fontWeight: 600, whiteSpace: 'pre-line' }}>
+                  {errors.submit}
+                </Typography>
+              </Box>
+            )}
             <Stack spacing={3}>
               {/* Sección 1: Identidad */}
               <Box>
@@ -179,10 +198,10 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
                     label="Username"
                     placeholder="e.g. alex.dev"
                     value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    onChange={(e) => setForm({ ...form, username: e.target.value.replace(/\s/g, '') })}
                     fullWidth
                     error={!!errors.username}
-                    helperText={errors.username}
+                    helperText={errors.username || 'Letters and digits only'}
                     sx={isDark ? darkInputStyle : inputStyle}
                     size="small"
                   />

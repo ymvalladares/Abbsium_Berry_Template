@@ -1,219 +1,184 @@
 import { useState } from 'react';
-import { styled, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
-import Tooltip from '@mui/material/Tooltip';
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
+import Chip from '@mui/material/Chip';
+import Divider from '@mui/material/Divider';
+import Paper from '@mui/material/Paper';
+import Switch from '@mui/material/Switch';
 import ConstructionRounded from '@mui/icons-material/ConstructionRounded';
-import WarningRounded from '@mui/icons-material/WarningRounded';
-import InfoRounded from '@mui/icons-material/InfoRounded';
+import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
+import AccessTimeRounded from '@mui/icons-material/AccessTimeRounded';
+import ShieldRounded from '@mui/icons-material/ShieldRounded';
 import { useMaintenance } from '../../../contexts/MaintenanceContext';
 import { useNotification } from 'contexts/NotificationContext';
 
-const MaintenanceCard = styled(Box)(({ theme }) => ({
-  padding: '24px',
-  borderRadius: '16px',
-  border: `1px solid ${theme.palette.divider}`,
-  background: theme.palette.mode === 'dark'
-    ? 'rgba(30,41,59,0.5)'
-    : 'rgba(255,255,255,0.8)',
-  backdropFilter: 'blur(12px)',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    borderColor: theme.palette.primary.main + '40',
-    boxShadow: `0 4px 24px ${theme.palette.primary.main}10`
-  }
-}));
-
-const StatusIndicator = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'active',
-})(({ theme, active }) => ({
-  width: 12,
-  height: 12,
-  borderRadius: '50%',
-  background: active
-    ? '#ef4444'
-    : theme.palette.mode === 'dark'
-      ? '#4b5563'
-      : '#d1d5db',
-  boxShadow: active ? '0 0 12px #ef4444' : 'none',
-  animation: active ? 'pulse 2s infinite' : 'none',
-  '@keyframes pulse': {
-    '0%': { boxShadow: '0 0 0 0 rgba(239,68,68,0.4)' },
-    '70%': { boxShadow: '0 0 0 10px rgba(239,68,68,0)' },
-    '100%': { boxShadow: '0 0 0 0 rgba(239,68,68,0)' }
-  }
-}));
-
-const GlassSwitch = styled(Switch)(({ theme }) => ({
-  width: 62,
-  height: 34,
-  padding: 7,
-  '& .MuiSwitch-switchBase': {
-    margin: 1,
-    padding: 0,
-    '&.Mui-checked': {
-      transform: 'translateX(28px)',
-      '& .MuiSwitch-thumb:before': {
-        content: '""',
-        position: 'absolute',
-        width: 100,
-        height: 100,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-        opacity: 0.3
-      },
-      '& + .MuiSwitch-track': {
-        opacity: 1,
-        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-        border: 'none'
-      }
-    }
-  },
-  '& .MuiSwitch-thumb': {
-    width: 32,
-    height: 32,
-    '&:before': {
-      content: '""',
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      borderRadius: '50%',
-      background: theme.palette.mode === 'dark'
-        ? 'linear-gradient(135deg, #475569, #334155)'
-        : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-    }
-  },
-  '& .MuiSwitch-track': {
-    opacity: 1,
-    background: theme.palette.mode === 'dark' ? '#334155' : '#cbd5e1',
-    borderRadius: 20,
-    border: '1px solid ' + (theme.palette.mode === 'dark' ? '#475569' : '#94a3b8')
-  }
-}));
-
 export default function MaintenanceSettings() {
   const theme = useTheme();
-  const { isUnderMaintenance, setMaintenance } = useMaintenance();
+  const { isUnderMaintenance, toggleMaintenance, maintenanceStartedAt, loading } = useMaintenance();
   const notify = useNotification();
-  const [loading, setLoading] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const handleToggle = async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    setMaintenance(!isUnderMaintenance);
-    setLoading(false);
-    if (!isUnderMaintenance) {
-      notify.warning('Maintenance mode activated - site is now restricted', 'Maintenance Enabled');
-    } else {
-      notify.success('Site is back online and accessible to all users', 'Maintenance Disabled');
+    if (toggling) return;
+    setToggling(true);
+    try {
+      const wasMaintenance = isUnderMaintenance;
+      await toggleMaintenance();
+      if (!wasMaintenance) {
+        notify.success('Maintenance mode activated', 'Maintenance Mode');
+      } else {
+        notify.success('Site is back online', 'System Online');
+      }
+    } catch {
+      notify.error('Failed to update maintenance mode', 'Error');
+    } finally {
+      setToggling(false);
     }
   };
 
+  const formatDuration = (startAt) => {
+    if (!startAt) return null;
+    const diff = Date.now() - new Date(startAt).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    return `${hrs}h ${mins % 60}m ago`;
+  };
+
+  const statusColor = isUnderMaintenance ? theme.palette.error.main : theme.palette.success.main;
+  const statusBg = isUnderMaintenance
+    ? theme.palette.mode === 'dark' ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.08)'
+    : theme.palette.mode === 'dark' ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.08)';
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3 } }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 680 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+        <Typography variant="h3" sx={{ fontWeight: 800, mb: 0.5 }}>
           Site Maintenance
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Control the maintenance mode for the entire application
+          Control site availability for all non-admin users
         </Typography>
       </Box>
 
-      <MaintenanceCard sx={{ maxWidth: 600 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
-          <Box
-            sx={{
-              width: 56,
-              height: 56,
-              borderRadius: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: isUnderMaintenance
-                ? 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.15))'
-                : theme.palette.mode === 'dark'
-                  ? 'rgba(99,102,241,0.15)'
-                  : 'rgba(99,102,241,0.1)',
-              border: `1px solid ${isUnderMaintenance ? 'rgba(239,68,68,0.3)' : theme.palette.primary.main + '30'}`,
-              flexShrink: 0
-            }}
-          >
-            <ConstructionRounded sx={{
-              fontSize: 28,
-              color: isUnderMaintenance ? '#ef4444' : theme.palette.primary.main,
-              filter: isUnderMaintenance ? 'drop-shadow(0 0 8px rgba(239,68,68,0.5))' : 'none'
-            }} />
-          </Box>
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          bgcolor: 'background.paper',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ height: 4, bgcolor: statusColor, transition: 'bgcolor 0.3s' }} />
 
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                Maintenance Mode
-              </Typography>
-              <StatusIndicator active={isUnderMaintenance} />
+        <Box sx={{ p: { xs: 3, md: 4 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: statusBg
+                }}
+              >
+                {isUnderMaintenance
+                  ? <ConstructionRounded sx={{ color: statusColor, fontSize: 24 }} />
+                  : <CheckCircleRounded sx={{ color: statusColor, fontSize: 24 }} />
+                }
+              </Box>
+
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                    {isUnderMaintenance ? 'Maintenance Active' : 'All Systems Online'}
+                  </Typography>
+                  <Chip
+                    label={isUnderMaintenance ? 'RESTRICTED' : 'PUBLIC'}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      bgcolor: statusBg,
+                      color: statusColor
+                    }}
+                  />
+                </Box>
+                <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+                  {isUnderMaintenance
+                    ? 'Non-admin users see a maintenance page'
+                    : 'All users can access the site normally'}
+                </Typography>
+              </Box>
             </Box>
 
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-              {isUnderMaintenance
-                ? 'The site is currently showing a maintenance page to all visitors.'
-                : 'The site is running normally and accessible to all users.'}
-            </Typography>
+            <Switch
+              checked={isUnderMaintenance}
+              onChange={handleToggle}
+              disabled={toggling || loading}
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': {
+                  color: theme.palette.error.main,
+                  '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.08)' }
+                },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                  bgcolor: theme.palette.error.main
+                }
+              }}
+            />
+          </Box>
 
-            <Tooltip
-              title={loading ? 'Applying changes...' : 'Toggle maintenance mode'}
-              arrow
-            >
-              <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                <GlassSwitch
-                  checked={isUnderMaintenance}
-                  onChange={handleToggle}
-                  disabled={loading}
-                  inputProps={{ 'aria-label': 'Maintenance mode toggle' }}
-                />
+          <Divider sx={{ my: 3 }} />
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <ShieldRounded sx={{ fontSize: 18, color: 'primary.main' }} />
+              <Box>
+                <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Admin Access
+                </Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                  Always Available
+                </Typography>
               </Box>
-            </Tooltip>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: isUnderMaintenance ? 'error.main' : 'success.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'background.paper' }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Visitors
+                </Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                  {isUnderMaintenance ? 'Blocked' : 'Allowed'}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
+              <AccessTimeRounded sx={{ fontSize: 18, color: 'text.secondary' }} />
+              <Box>
+                <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {isUnderMaintenance ? 'Since' : 'Last Updated'}
+                </Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                  {maintenanceStartedAt
+                    ? formatDuration(maintenanceStartedAt)
+                    : 'N/A'}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Box>
-
-        {isUnderMaintenance && (
-          <Alert
-            severity="warning"
-            icon={<WarningRounded fontSize="inherit" />}
-            sx={{
-              mt: 3,
-              borderRadius: '12px',
-              border: '1px solid rgba(245,158,11,0.3)',
-              background: 'rgba(245,158,11,0.08)',
-              '& .MuiAlert-icon': { color: '#f59e0b' }
-            }}
-          >
-            <AlertTitle sx={{ fontWeight: 700 }}>Active Maintenance</AlertTitle>
-            All routes except this page will display the maintenance error. Only admins can access the dashboard during maintenance.
-          </Alert>
-        )}
-
-        {!isUnderMaintenance && (
-          <Alert
-            severity="info"
-            icon={<InfoRounded fontSize="inherit" />}
-            sx={{
-              mt: 3,
-              borderRadius: '12px',
-              border: '1px solid rgba(14,165,233,0.3)',
-              background: 'rgba(14,165,233,0.08)',
-              '& .MuiAlert-icon': { color: '#0ea5e9' }
-            }}
-          >
-            <AlertTitle sx={{ fontWeight: 700 }}>Normal Operation</AlertTitle>
-            All users can access the site normally. Toggle maintenance when you need to perform updates.
-          </Alert>
-        )}
-      </MaintenanceCard>
+      </Paper>
     </Box>
   );
 }

@@ -417,7 +417,7 @@ const Auth_Form = ({ onSuccess }) => {
           )}
 
           {userAction !== 'login' && (
-            <Box display="flex" justifyContent="center" alignItems="center" width="100%" sx={{ mt: 1.5 }}>
+            <Box display="flex" justifyContent="center" alignItems="center" width="100%" sx={{ mt: 1.5, pb: { xs: 4, sm: 0 } }}>
               <Typography
                 sx={{ color: '#7c3aed', fontWeight: 600, cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s ease', '&:hover': { color: '#6d28d9', textDecoration: 'underline' } }}
                 onClick={() => switchMode('login')}

@@ -1,4 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+
+const BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'https://localhost:44328';
 
 const MaintenanceContext = createContext();
 
@@ -11,33 +14,64 @@ export const useMaintenance = () => {
 };
 
 export const MaintenanceProvider = ({ children }) => {
-  const [isUnderMaintenance, setIsUnderMaintenance] = useState(() => {
-    const stored = localStorage.getItem('MAINTENANCE_MODE');
-    if (stored !== null) {
-      return stored === 'true';
+  const [isUnderMaintenance, setIsUnderMaintenance] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState(null);
+  const [maintenanceStartedAt, setMaintenanceStartedAt] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/SiteSettings`);
+      setIsUnderMaintenance(response.data.isUnderMaintenance);
+      setMaintenanceMessage(response.data.maintenanceMessage);
+      setMaintenanceStartedAt(response.data.maintenanceStartedAt);
+    } catch (error) {
+      console.error('Failed to fetch maintenance settings:', error);
+    } finally {
+      setLoading(false);
     }
-    return import.meta.env.VITE_MAINTENANCE_MODE === 'true';
-  });
-
-  const toggleMaintenance = () => {
-    setIsUnderMaintenance((prev) => {
-      const newValue = !prev;
-      localStorage.setItem('MAINTENANCE_MODE', String(newValue));
-      return newValue;
-    });
-  };
-
-  const setMaintenance = (value) => {
-    setIsUnderMaintenance(value);
-    localStorage.setItem('MAINTENANCE_MODE', String(value));
-  };
+  }, []);
 
   useEffect(() => {
-    console.log(`🔧 Maintenance mode: ${isUnderMaintenance ? 'ON' : 'OFF'}`);
-  }, [isUnderMaintenance]);
+    fetchSettings();
+    const interval = setInterval(fetchSettings, 60000);
+    return () => clearInterval(interval);
+  }, [fetchSettings]);
+
+  const setMaintenance = async (value) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${BASE_URL}/SiteSettings`,
+        { isUnderMaintenance: value, maintenanceMessage: null },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsUnderMaintenance(response.data.isUnderMaintenance);
+      setMaintenanceMessage(response.data.maintenanceMessage);
+      setMaintenanceStartedAt(response.data.maintenanceStartedAt);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update maintenance settings:', error);
+      throw error;
+    }
+  };
+
+  const toggleMaintenance = async () => {
+    return await setMaintenance(!isUnderMaintenance);
+  };
 
   return (
-    <MaintenanceContext.Provider value={{ isUnderMaintenance, toggleMaintenance, setMaintenance }}>
+    <MaintenanceContext.Provider
+      value={{
+        isUnderMaintenance,
+        maintenanceMessage,
+        maintenanceStartedAt,
+        loading,
+        toggleMaintenance,
+        setMaintenance,
+        refresh: fetchSettings
+      }}
+    >
       {children}
     </MaintenanceContext.Provider>
   );
