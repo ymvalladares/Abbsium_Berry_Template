@@ -30,7 +30,8 @@ import {
   Select,
   LinearProgress,
   Stack,
-  Menu
+  Menu,
+  Skeleton
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { useNotification } from 'contexts/NotificationContext';
@@ -212,6 +213,7 @@ export default function DealersList() {
   const notify = useNotification();
 
   const [dealers, setDealers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selected, setSelected] = useState([]);
@@ -234,12 +236,15 @@ export default function DealersList() {
   });
 
   const fetchDealers = async () => {
+    setLoading(true);
     try {
       const response = await api.get('Dealer/All-Dealers');
       setDealers(response.data);
     } catch (err) {
       console.error('Error fetching dealers:', err);
       notify.error('Could not load dealers. Please refresh the page.', 'Connection Error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -401,20 +406,49 @@ export default function DealersList() {
     <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', sm: '1.5rem' }, color: 'text.primary' }}>Manage Dealers</Typography>
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25 }}>{dealers.length} dealer(s) registered</Typography>
+          {loading ? (
+            <>
+              <Skeleton variant="text" width={180} height={32} sx={{ mb: 0.5 }} />
+              <Skeleton variant="text" width={120} height={20} />
+            </>
+          ) : (
+            <>
+              <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', sm: '1.5rem' }, color: 'text.primary' }}>Manage Dealers</Typography>
+              <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25 }}>{dealers.length} dealer(s) registered</Typography>
+            </>
+          )}
         </Box>
       </Stack>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        {stats.map((stat, index) => (
+        {loading ? (
+          stats.map((stat, index) => (
+            <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card sx={{ height: '100%', border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 3, bgcolor: 'background.paper' }}>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Box sx={{ width: '100%' }}>
+                      <Skeleton variant="text" width={100} height={32} sx={{ mb: 1 }} />
+                      <Skeleton variant="text" width={80} height={20} sx={{ mb: 0.5 }} />
+                      <Skeleton variant="text" width={120} height={16} />
+                    </Box>
+                    <Skeleton variant="rounded" width={42} height={42} sx={{ borderRadius: 2 }} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          stats.map((stat, index) => (
           <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
             <StatsCard {...stat} icon={StorefrontIcon} />
           </Grid>
-        ))}
+          ))
+        )}
       </Grid>
 
-      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', mb: 0 }}>
+      {!loading && (
+        <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', mb: 0 }}>
         <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Box
             sx={{
@@ -522,7 +556,53 @@ export default function DealersList() {
         </Box>
 
         <TableContainer sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { height: 6 } }}>
-          <Table>
+          {loading ? (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox" sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider', pl: 2, minWidth: 120 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Skeleton variant="circular" width={20} height={20} />
+                      <Skeleton variant="text" width={30} height={16} />
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={60} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={120} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={60} /></TableCell>
+                  <TableCell align="right" sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={30} /></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Skeleton variant="circular" width={20} height={20} />
+                        <Skeleton variant="text" width={60} height={16} />
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <Stack direction="row" spacing={1.75} alignItems="center">
+                        <Skeleton variant="rounded" width={48} height={48} sx={{ borderRadius: 2 }} />
+                        <Box>
+                          <Skeleton variant="text" width={100} height={20} />
+                          <Skeleton variant="text" width={80} height={16} />
+                        </Box>
+                      </Stack>
+                    </TableCell>
+                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
+                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={120} /></TableCell>
+                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
+                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="rounded" width={60} height={26} sx={{ borderRadius: '8px' }} /></TableCell>
+                    <TableCell align="right" sx={{ pr: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="circular" width={32} height={32} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <Table>
             <TableHead>
               <TableRow>
                 <TableCell
@@ -649,22 +729,26 @@ export default function DealersList() {
               )}
             </TableBody>
           </Table>
+          )}
         </TableContainer>
 
-        <TablePagination
-          component="div"
-          count={filtered.length}
-          page={page}
-          onPageChange={(_, p) => setPage(p)}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          rowsPerPageOptions={[5, 10, 25]}
-          sx={{ borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', '& .MuiTablePagination-toolbar': { px: 2 } }}
-        />
+        {!loading && (
+          <TablePagination
+            component="div"
+            count={filtered.length}
+            page={page}
+            onPageChange={(_, p) => setPage(p)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[5, 10, 25]}
+            sx={{ borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', '& .MuiTablePagination-toolbar': { px: 2 } }}
+          />
+        )}
       </Card>
+      )}
 
       {/* Bulk Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} maxWidth="xs" fullWidth

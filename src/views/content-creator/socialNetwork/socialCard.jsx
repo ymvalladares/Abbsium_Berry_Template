@@ -294,9 +294,7 @@ export default function SocialCard({ platform, connection, onConnect, onDisconne
         {/* Action Button */}
         <Button
           fullWidth
-          disabled={isConnecting}
           variant={connected ? 'outlined' : 'contained'}
-          startIcon={connected ? <IconLinkOff size={18} /> : <IconLink size={18} />}
           onClick={connected ? onDisconnect : handleConnect}
           sx={{
             borderRadius: 2,
@@ -304,6 +302,7 @@ export default function SocialCard({ platform, connection, onConnect, onDisconne
             fontWeight: 600,
             textTransform: 'none',
             fontSize: '0.9rem',
+            pointerEvents: isConnecting ? 'none' : 'auto',
             ...(connected
               ? {
                   borderColor: 'divider',
@@ -316,13 +315,40 @@ export default function SocialCard({ platform, connection, onConnect, onDisconne
                 }
               : {
                   bgcolor: config.color,
+                  color: '#fff',
                   '&:hover': {
-                    bgcolor: alpha(config.color, 0.9)
+                    bgcolor: isConnecting ? config.color : alpha(config.color, 0.9)
                   }
                 })
           }}
         >
-          {isConnecting ? 'Connecting...' : connected ? 'Disconnect' : 'Connect'}
+          {isConnecting ? (
+            <>
+              <Box
+                sx={{
+                  mr: 1,
+                  width: 20,
+                  height: 20,
+                  border: '3px solid rgba(255,255,255,0.3)',
+                  borderTop: '3px solid #fff',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite'
+                }}
+              />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              Connecting...
+            </>
+          ) : connected ? (
+            <>
+              <IconLinkOff size={18} style={{ marginRight: 8 }} />
+              Disconnect
+            </>
+          ) : (
+            <>
+              <IconLink size={18} style={{ marginRight: 8 }} />
+              Connect
+            </>
+          )}
         </Button>
       </Box>
     </Paper>

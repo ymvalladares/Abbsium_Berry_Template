@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Box, TextField, IconButton, Paper, Typography, Button, Popover, Tooltip, Alert, Snackbar, CircularProgress } from '@mui/material';
+import { Box, TextField, IconButton, Paper, Typography, Button, Popover, Tooltip, Alert, Snackbar, CircularProgress, Skeleton } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import {
   IconSend2,
@@ -16,7 +16,8 @@ import {
   IconPlayerStop,
   IconCopy,
   IconRotate2,
-  IconTrash
+  IconTrash,
+  IconArrowRight
 } from '@tabler/icons-react';
 
 import ChatMessage from './message-view/MessageView';
@@ -71,6 +72,35 @@ const formatTime = (ts) => {
   const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   if (d.toDateString() === now.toDateString()) return time;
   return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${time}`;
+};
+
+const generateFollowUps = (assistantContent) => {
+  const content = assistantContent.toLowerCase();
+  const prompts = [];
+
+  if (content.includes('code') || content.includes('function') || content.includes('class') || content.includes('import')) {
+    prompts.push('Can you explain how this works?');
+    prompts.push('How can I optimize this?');
+    prompts.push('Show me an example of how to use this');
+  } else if (content.includes('idea') || content.includes('suggest') || content.includes('recommend')) {
+    prompts.push('Tell me more about the first option');
+    prompts.push('What are the pros and cons?');
+    prompts.push('Give me more specific examples');
+  } else if (content.includes('debug') || content.includes('error') || content.includes('fix')) {
+    prompts.push('What caused this issue?');
+    prompts.push('How can I prevent this in the future?');
+    prompts.push('Are there any related issues I should check?');
+  } else if (content.includes('summar') || content.includes('overview') || content.includes('explain')) {
+    prompts.push('Can you go into more detail?');
+    prompts.push('What are the key takeaways?');
+    prompts.push('Give me a practical example');
+  } else {
+    prompts.push('Can you elaborate on that?');
+    prompts.push('Give me a concrete example');
+    prompts.push('What else should I know about this?');
+  }
+
+  return prompts.slice(0, 3);
 };
 
 const getMessageCount = (msgs) => {
@@ -520,47 +550,92 @@ export default function Ai() {
                       )}
                     </Box>
                   )}
+
+                  {isLastAssistant && !loading && !lastMsgIsError && (
+                    <Box sx={{ px: { xs: 2, md: 6 }, mt: 1.5 }}>
+                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Suggested follow-ups
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                        {generateFollowUps(msg.content).map((prompt, pIdx) => (
+                          <Button
+                            key={pIdx}
+                            onClick={() => {
+                              setInput(prompt);
+                              setTimeout(() => {
+                                const userMsg = { role: 'user', content: prompt, timestamp: Date.now() };
+                                const prevMessages = [...messages, userMsg];
+                                setMessages(prevMessages);
+                                setInput('');
+                                sendRequest(
+                                  prompt,
+                                  prevMessages,
+                                  (content) => {
+                                    setMessages((prev) => [...prev, { role: 'assistant', content, timestamp: Date.now() }]);
+                                  },
+                                  () => {
+                                    setMessages((prev) => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.', timestamp: Date.now() }]);
+                                  }
+                                );
+                              }, 50);
+                            }}
+                            sx={{
+                              justifyContent: 'flex-start',
+                              px: 2,
+                              py: 1,
+                              borderRadius: 2,
+                              border: '1px solid',
+                              borderColor: isDark ? '#374151' : '#e5e7eb',
+                              bgcolor: isDark ? '#1F2937' : '#FAFAFA',
+                              color: 'text.primary',
+                              fontSize: 13,
+                              fontWeight: 500,
+                              textTransform: 'none',
+                              textAlign: 'left',
+                              whiteSpace: 'normal',
+                              minHeight: 'auto',
+                              '&:hover': {
+                                borderColor: '#7C3AED',
+                                bgcolor: isDark ? '#2D1B69' : '#F5F3FF',
+                                color: '#7C3AED',
+                                '& .followup-arrow': { transform: 'translateX(4px)' }
+                              },
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                              <IconArrowRight size={14} className="followup-arrow" style={{ color: isDark ? '#6B7280' : '#9CA3AF', flexShrink: 0, transition: 'transform 0.2s ease' }} />
+                              <Typography sx={{ flex: 1 }}>{prompt}</Typography>
+                            </Box>
+                          </Button>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               );
             })}
           </Box>
         )}
 
-        {/* LOADING */}
+        {/* LOADING SKELETON */}
         {loading && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: { xs: 2, md: 6 }, py: 2.5 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                fontSize: 11,
-                fontWeight: 800,
-                color: '#FFF',
-                letterSpacing: '-0.02em'
-              }}
-            >
-              AI
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              {[0, 1, 2].map((i) => (
-                <Box
-                  key={i}
-                  sx={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    bgcolor: '#7C3AED',
-                    animation: 'aiBounce 1.2s ease-in-out infinite',
-                    animationDelay: `${i * 0.2}s`
-                  }}
-                />
-              ))}
+          <Box sx={{ px: { xs: 2, md: 6 }, py: 2.5 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+                  flexShrink: 0
+                }}
+              />
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Skeleton variant="text" width="90%" height={20} sx={{ bgcolor: isDark ? '#374151' : '#e5e7eb', borderRadius: 1 }} />
+                <Skeleton variant="text" width="100%" height={20} sx={{ bgcolor: isDark ? '#374151' : '#e5e7eb', borderRadius: 1 }} />
+                <Skeleton variant="text" width="75%" height={20} sx={{ bgcolor: isDark ? '#374151' : '#e5e7eb', borderRadius: 1 }} />
+              </Box>
             </Box>
           </Box>
         )}
@@ -878,10 +953,6 @@ export default function Ai() {
 
       {/* ANIMATIONS */}
       <style>{`
-        @keyframes aiBounce {
-          0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
-          40% { opacity: 1; transform: translateY(-6px); }
-        }
         @keyframes shimmer {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }

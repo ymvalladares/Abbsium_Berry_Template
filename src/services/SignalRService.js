@@ -6,6 +6,11 @@ class SignalRService {
     this.isConnected = false;
     this.listeners = {};
     this.isInitializing = false;
+    this.activeConversationId = null;
+  }
+
+  setActiveConversation(conversationId) {
+    this.activeConversationId = conversationId;
   }
 
   async start(token, baseURL = import.meta.env.VITE_API_URL) {
@@ -261,8 +266,22 @@ class SignalRService {
 
   playNotificationSound() {
     try {
-      const audio = new Audio('/notification.mp3');
-      audio.play().catch((e) => console.log('Could not play sound:', e));
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+      oscillator.start(audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + 0.3);
     } catch (error) {
       console.log('Notification sound error:', error);
     }

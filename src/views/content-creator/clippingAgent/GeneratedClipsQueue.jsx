@@ -41,7 +41,7 @@ const HOOK_VARIANTS = [
   ['This is insane', 'Watch till the end', 'Game changer alert']
 ];
 
-export default function GeneratedClipsQueue({ clipCount, duration, format, platforms, aiFeatures, onFinish }) {
+export default function GeneratedClipsQueue({ clipCount, duration, format, platforms, aiFeatures, onFinish, onPublish }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [clips, setClips] = useState([]);
@@ -442,6 +442,7 @@ export default function GeneratedClipsQueue({ clipCount, duration, format, platf
                 size="small"
                 variant="contained"
                 startIcon={<IconUpload size={14} />}
+                onClick={onPublish}
                 sx={{
                   textTransform: 'none',
                   fontWeight: 600,

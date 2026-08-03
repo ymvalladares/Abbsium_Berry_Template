@@ -49,8 +49,10 @@ const chatService = {
   markAsRead: async (conversationId) => {
     try {
       await api.post(`/Chat/conversations/${conversationId}/mark-read`);
+      return { success: true };
     } catch (error) {
       console.error('Error marking as read:', error);
+      return { success: false, error };
     }
   }
 };

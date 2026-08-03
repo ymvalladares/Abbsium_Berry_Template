@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 
-const passwordRules = /^[A-Z][A-Za-z\d@$!%*?&]{4,}$/;
-// min 5 characters, 1 upper case letter, 1 lower case letter, 1 numeric digit.
+const passwordRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 export const Schema_Login_Validation = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Required'),
@@ -13,11 +12,8 @@ export const Schema_Login_Validation = yup.object().shape({
 
   password: yup
     .string()
-    .min(6, 'Password must be at least 6 characters')
-    .matches(/^(?=^[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*().,+=_-]).{6,50}$/, 'Make sure you are using a strong password')
-
-  // remember_me: yup.boolean()
-  // .oneOf([true], "Please accept the terms of service"),
+    .min(8, 'Password must be at least 8 characters')
+    .matches(passwordRules, 'Password must include uppercase, lowercase, and a number')
 });
 
 export const Schema_ForgetPassword_Validation = yup.object().shape({
@@ -26,7 +22,7 @@ export const Schema_ForgetPassword_Validation = yup.object().shape({
 
 export const Schema_Reset_Password_Validation = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required(),
-  newPassword: yup.string().min(6).matches(passwordRules, { message: 'Use a stronger password' }).required(),
+  newPassword: yup.string().min(8, 'Password must be at least 8 characters').matches(passwordRules, { message: 'Password must include uppercase, lowercase, and a number' }).required(),
 
   confirmPassword: yup
     .string()

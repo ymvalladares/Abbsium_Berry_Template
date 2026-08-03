@@ -1,18 +1,20 @@
 import {
-  IconBrandFacebook, IconBrandInstagram, IconBrandYoutube,
-  IconBrandTiktok, IconBrandTwitter, IconBrandLinkedin,
-  IconBrandPinterest
+  IconBrandFacebookFilled, IconBrandInstagramFilled, IconBrandYoutubeFilled,
+  IconBrandTiktokFilled, IconBrandTwitterFilled, IconBrandLinkedinFilled,
+  IconBrandPinterestFilled, IconClockFilled
 } from '@tabler/icons-react';
 
 export const PLATFORMS = [
-  { id: 'facebook',  name: 'Facebook',  icon: IconBrandFacebook,  color: '#1877F2', bg: '#E8F0FE' },
-  { id: 'instagram', name: 'Instagram', icon: IconBrandInstagram, color: '#E4405F', bg: '#FDE8EC' },
-  { id: 'youtube',   name: 'YouTube',   icon: IconBrandYoutube,   color: '#FF0000', bg: '#FFE8E8' },
-  { id: 'tiktok',    name: 'TikTok',    icon: IconBrandTiktok,    color: '#010101', bg: '#F0F0F0' },
-  { id: 'twitter',   name: 'X',         icon: IconBrandTwitter,   color: '#1DA1F2', bg: '#E8F5FD' },
-  { id: 'linkedin',  name: 'LinkedIn',  icon: IconBrandLinkedin,  color: '#0A66C2', bg: '#E8F0FB' },
-  { id: 'pinterest', name: 'Pinterest', icon: IconBrandPinterest, color: '#E60023', bg: '#FDEAEA' },
+  { id: 'facebook',  name: 'Facebook',  icon: IconBrandFacebookFilled,  color: '#1877F2', bg: '#E8F0FE' },
+  { id: 'instagram', name: 'Instagram', icon: IconBrandInstagramFilled, color: '#E4405F', bg: '#FDE8EC' },
+  { id: 'youtube',   name: 'YouTube',   icon: IconBrandYoutubeFilled,   color: '#FF0000', bg: '#FFE8E8' },
+  { id: 'tiktok',    name: 'TikTok',    icon: IconBrandTiktokFilled,    color: '#010101', bg: '#F0F0F0' },
+  { id: 'twitter',   name: 'X',         icon: IconBrandTwitterFilled,   color: '#1DA1F2', bg: '#E8F5FD' },
+  { id: 'linkedin',  name: 'LinkedIn',  icon: IconBrandLinkedinFilled,  color: '#0A66C2', bg: '#E8F0FB' },
+  { id: 'pinterest', name: 'Pinterest', icon: IconBrandPinterestFilled, color: '#E60023', bg: '#FDEAEA' },
 ];
+
+export const SCHEDULED_ICON = IconClockFilled;
 
 export const FILTER_CATEGORIES = [
   { id: 'facebook',  label: 'Facebook',  color: '#1877F2' },

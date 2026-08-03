@@ -30,11 +30,11 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 0.75,
-        px: 1,
-        py: 0.75,
+        gap: 1,
+        px: 1.25,
+        py: 0.8,
         mx: 0.25,
-        my: 0.6,
+        my: 0.5,
         borderRadius: 2.5,
         cursor: 'pointer',
         bgcolor: isSelected ? primLight : 'transparent',
@@ -47,6 +47,7 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
         touchAction: 'manipulation',
       }}
     >
+      {/* Avatar */}
       <Box sx={{ position: 'relative', flexShrink: 0 }}>
         <Badge
           overlap="circular"
@@ -55,7 +56,7 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
           sx={{
             '& .MuiBadge-badge': {
               bgcolor: isOnline ? '#10b981' : 'transparent',
-              width: 9, height: 9, borderRadius: '50%',
+              width: 10, height: 10, borderRadius: '50%',
               border: isOnline ? (isDark ? '2px solid #1e293b' : '2px solid #fff') : 'none',
               ...(isSelected && { borderColor: primLight }),
             },
@@ -65,7 +66,7 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
             src={chat.avatar}
             alt={chat.userName || chat.name}
             sx={{
-              width: 38, height: 38,
+              width: 40, height: 40,
               bgcolor: isSelected ? primaryColor : (isDark ? '#1e293b' : '#fff'),
               border: `2px solid ${primaryColor}`,
               color: isSelected ? '#fff' : primaryColor,
@@ -77,65 +78,59 @@ const ChatListItem = ({ chat, isSelected, onClick }) => {
         </Badge>
       </Box>
 
+      {/* Content */}
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.2 }}>
-          <Typography sx={{
-            fontWeight: isSelected ? 700 : 500,
-            color: isSelected ? primaryColor : isDark ? '#f1f5f9' : '#0f172a',
-            fontSize: '0.85rem',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            flex: 1,
+        {/* Top row: name */}
+        <Typography sx={{
+          fontWeight: isSelected ? 700 : 600,
+          color: isSelected ? primaryColor : isDark ? '#f1f5f9' : '#0f172a',
+          fontSize: '0.82rem',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          mb: 0.15,
+        }}>
+          {chat.userName || chat.name}
+        </Typography>
+
+        {/* Bottom row: last message */}
+        <Typography variant="caption" sx={{
+          color: unreadCount > 0 ? (isDark ? '#D1D5DB' : '#475569') : (isDark ? '#6B7280' : '#94a3b8'),
+          fontSize: '0.72rem',
+          fontWeight: unreadCount > 0 ? 500 : 400,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {chat.lastMessage || 'Start a conversation'}
+        </Typography>
+      </Box>
+
+      {/* Right side: time + badge stacked */}
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '4px',
+        flexShrink: 0,
+        minWidth: 28,
+      }}>
+        <Typography variant="caption" sx={{
+          color: unreadCount > 0 ? primaryColor : (isDark ? '#64748b' : '#94a3b8'),
+          fontSize: '0.62rem',
+          fontWeight: 600,
+          lineHeight: 1,
+        }}>
+          {formatTime(chat.lastMessageAt || chat.timestamp)}
+        </Typography>
+        {unreadCount > 0 && (
+          <Box sx={{
+            minWidth: 20, height: 20,
+            borderRadius: '10px',
+            bgcolor: primaryColor,
+            color: '#fff',
+            fontSize: '0.65rem', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            px: 0.5,
           }}>
-            {chat.userName || chat.name}
-          </Typography>
-          {unreadCount > 0 ? (
-            <Box sx={{
-              minWidth: 20, height: 20,
-              borderRadius: '10px',
-              bgcolor: primaryColor,
-              color: '#fff',
-              fontSize: '0.65rem', fontWeight: 700,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              px: 0.5, flexShrink: 0,
-              ml: 0.75,
-            }}>
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </Box>
-          ) : (
-            <Typography variant="caption" sx={{
-              color: isDark ? '#9CA3AF' : '#1e293b',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              ml: 0.4, flexShrink: 0,
-              letterSpacing: '0.02em',
-            }}>
-              {formatTime(chat.lastMessageAt || chat.timestamp)}
-            </Typography>
-          )}
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.35 }}>
-          {chat.lastMessage && (
-            <Typography variant="caption" sx={{
-              color: unreadCount > 0 ? (isDark ? '#D1D5DB' : '#475569') : (isDark ? '#6B7280' : '#94a3b8'),
-              fontSize: '0.75rem',
-              fontWeight: unreadCount > 0 ? 500 : 400,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              flex: 1,
-            }}>
-              {chat.lastMessage}
-            </Typography>
-          )}
-        </Box>
-
-        {isOnline && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.2 }}>
-            <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#10b981' }} />
-            <Typography variant="caption" sx={{
-              fontSize: '0.55rem', color: '#10b981', fontWeight: 500, lineHeight: 1,
-            }}>
-              Online
-            </Typography>
+            {unreadCount > 99 ? '99+' : unreadCount}
           </Box>
         )}
       </Box>

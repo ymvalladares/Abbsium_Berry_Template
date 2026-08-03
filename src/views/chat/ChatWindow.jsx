@@ -69,6 +69,7 @@ const ChatWindow = ({ isMobile }) => {
     isLoading, sendMessage, deleteMessage, goBackToList,
     isOtherTyping, sendTypingIndicator, toggleReaction,
     saveDraft, getDraft, clearDraft, updateUnreadBadge,
+    markMessagesAsRead, selectedConversationId,
   } = useChat();
 
   const [message, setMessage] = useState('');
@@ -109,20 +110,12 @@ const ChatWindow = ({ isMobile }) => {
 
     if (isNearBottom) {
       updateUnreadBadge(0);
-      // ⭐ Mark messages as read when user scrolls to bottom
-      const now = new Date().toISOString();
       const unreadMsgs = messages.filter((m) => !m.isSender && !m.isRead);
       if (unreadMsgs.length > 0) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            !msg.isSender && !msg.isRead
-              ? { ...msg, isRead: true, readAt: now }
-              : msg
-          )
-        );
+        markMessagesAsRead();
       }
     }
-  }, [updateUnreadBadge, messages]);
+  }, [updateUnreadBadge, messages, markMessagesAsRead]);
 
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
@@ -258,103 +251,118 @@ const ChatWindow = ({ isMobile }) => {
 
   const readReceiptInfo = getReadReceiptInfo();
 
+  // ===== LOADING STATE =====
   if (isLoading) {
     return (
       <Paper elevation={0} sx={{
         flex: 1, display: 'flex', flexDirection: 'column',
-        height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
+        height: '100%', borderRadius: isMobile ? 0 : '0 24px 24px 0',
         border: isMobile ? 'none' : '1px solid',
         borderColor: 'divider',
-        boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        boxShadow: isMobile ? 'none' : '0 4px 24px rgba(0,0,0,0.04)',
         overflow: 'hidden',
+        bgcolor: isDark ? darkBg2 : '#ffffff',
       }}>
-        <Box sx={{ px: 2.25, py: 0.8, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Skeleton variant="circular" width={38} height={38} />
+        <Box sx={{ px: 3, py: 2.5, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid', borderColor: isDark ? '#1e293b' : '#f1f5f9' }}>
+          <Skeleton variant="circular" width={48} height={48} />
           <Box>
-            <Skeleton width={100} height={14} sx={{ mb: 0.5 }} />
-            <Skeleton width={60} height={10} />
+            <Skeleton width={120} height={22} sx={{ mb: 0.5 }} />
+            <Skeleton width={70} height={16} />
           </Box>
         </Box>
-        <Box sx={{ flex: 1, px: 1.25, py: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ flex: 1, px: 2, py: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {Array.from({ length: 8 }).map((_, i) => (
             <Box key={i} sx={{
               display: 'flex',
               flexDirection: i % 3 === 0 ? 'row' : 'row-reverse',
               alignItems: 'flex-end',
-              gap: 0.5,
+              gap: 0.75,
             }}>
-              <Skeleton variant="circular" width={24} height={24} />
+              <Skeleton variant="circular" width={28} height={28} />
               <Skeleton
                 variant="rounded"
-                width={i % 2 === 0 ? '60%' : '45%'}
-                height={36 + (i % 3) * 12}
-                sx={{ borderRadius: i % 3 === 0 ? '14px 14px 14px 4px' : '14px 14px 4px 14px' }}
+                width={i % 2 === 0 ? '55%' : '40%'}
+                height={40 + (i % 3) * 14}
+                sx={{ borderRadius: i % 3 === 0 ? '18px 18px 18px 6px' : '18px 18px 6px 18px' }}
               />
             </Box>
           ))}
         </Box>
-        <Box sx={{ px: 2.25, py: 1, borderTop: '1px solid', borderColor: 'divider', display: 'flex', gap: 0.5, alignItems: 'center' }}>
-          <Skeleton variant="circular" width={32} height={32} />
-          <Skeleton width="100%" height={36} sx={{ borderRadius: 2 }} />
-          <Skeleton variant="circular" width={32} height={32} />
+        <Box sx={{ px: 3, py: 1.5, borderTop: '1px solid', borderColor: isDark ? '#1e293b' : '#f1f5f9', display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Skeleton variant="rounded" width="100%" height={52} sx={{ borderRadius: '16px' }} />
+          <Skeleton variant="rounded" width={44} height={44} sx={{ borderRadius: '12px' }} />
         </Box>
       </Paper>
     );
   }
 
+  // ===== NO CHAT SELECTED =====
   if (!selectedChat) {
     return (
       <Paper elevation={0} sx={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
+        height: '100%', borderRadius: isMobile ? 0 : '0 24px 24px 0',
         border: isMobile ? 'none' : '1px solid',
         borderColor: 'divider',
-        boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        boxShadow: isMobile ? 'none' : '0 4px 24px rgba(0,0,0,0.04)',
         px: 4,
-        background: isDark ? 'linear-gradient(135deg, #1e293b 0%, #1a1a2e 100%)' : 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
+        bgcolor: isDark ? darkBg2 : '#ffffff',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
+        {/* Decorative orbs */}
+        <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: 300, height: 300, borderRadius: '50%', bgcolor: isDark ? 'rgba(139,92,246,0.03)' : 'rgba(139,92,246,0.04)', filter: 'blur(60px)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-5%', width: 250, height: 250, borderRadius: '50%', bgcolor: isDark ? 'rgba(99,102,241,0.03)' : 'rgba(99,102,241,0.04)', filter: 'blur(50px)' }} />
+
         <Box sx={{
-          width: 72, height: 72, borderRadius: '50%',
-          bgcolor: primLight, display: 'flex',
+          width: 88, height: 88, borderRadius: '24px',
+          background: isDark ? 'linear-gradient(135deg, #2D1B69 0%, #1e293b 100%)' : 'linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%)',
+          display: 'flex',
           alignItems: 'center', justifyContent: 'center', mb: 3,
-          boxShadow: `0 4px 16px ${primaryColor}25`,
-          transition: 'transform 0.3s ease',
-          '&:hover': { transform: 'scale(1.05)' },
+          boxShadow: isDark ? '0 8px 32px rgba(139,92,246,0.15)' : '0 8px 32px rgba(139,92,246,0.12)',
+          position: 'relative', zIndex: 1,
         }}>
-          <Forum sx={{ color: primaryColor, fontSize: 32 }} />
+          <Forum sx={{ color: primaryColor, fontSize: 40 }} />
         </Box>
-        <Typography sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '1.05rem', mb: 1 }}>
+        <Typography sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: '1.3rem', mb: 1, letterSpacing: '-0.02em' }}>
           {isAdmin ? 'Select a conversation' : 'Start a conversation'}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
-          {isAdmin ? 'Choose a conversation from the sidebar to view messages' : 'Select an admin to get started with support'}
+        <Typography variant="body2" sx={{ color: isDark ? '#64748b' : '#94a3b8', textAlign: 'center', maxWidth: 300, lineHeight: 1.7, fontSize: '0.9rem' }}>
+          {isAdmin ? 'Choose a conversation from the sidebar to view and respond to messages' : 'Select an admin from the sidebar to get started with support'}
         </Typography>
       </Paper>
     );
   }
 
+  // ===== MAIN CHAT VIEW =====
   return (
     <Paper elevation={0} sx={{
       flex: 1, display: 'flex', flexDirection: 'column',
-      height: '100%', borderRadius: isMobile ? 0 : '0 12px 12px 0',
+      height: '100%', borderRadius: isMobile ? 0 : '0 24px 24px 0',
       overflow: 'hidden',
       border: isMobile ? 'none' : '1px solid',
       borderColor: 'divider',
-      boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+      boxShadow: isMobile ? 'none' : '0 4px 24px rgba(0,0,0,0.04)',
       position: 'relative',
       touchAction: 'manipulation',
+      bgcolor: isDark ? darkBg2 : '#ffffff',
     }}>
+      {/* ===== HEADER ===== */}
       <Box sx={{
-        px: 2.25, py: 0.8,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: isDark ? 'linear-gradient(135deg, #1e293b 0%, #1a1a2e 100%)' : 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
-        minHeight: 52,
+        px: { xs: 2, sm: 3 },
+        py: { xs: 2, sm: 2.5 },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        bgcolor: isDark ? '#0f172a' : '#ffffff',
+        borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
+        minHeight: { xs: 64, sm: 72 },
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
           {isMobile && (
             <IconButton onClick={goBackToList}
-              sx={{ color: iconClr, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
+              sx={{ color: iconClr, p: 0.75, borderRadius: '12px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
               <ArrowBack sx={{ fontSize: 20 }} />
             </IconButton>
           )}
@@ -366,8 +374,8 @@ const ChatWindow = ({ isMobile }) => {
             sx={{
               '& .MuiBadge-badge': {
                 bgcolor: selectedChat.isOnline ? '#10b981' : isDark ? '#4B5563' : '#cbd5e1',
-                width: 9, height: 9, borderRadius: '50%',
-                border: isDark ? '2px solid #1e293b' : '2px solid #fff',
+                width: 10, height: 10, borderRadius: '50%',
+                border: isDark ? '2.5px solid #0f172a' : '2.5px solid #fff',
                 boxShadow: selectedChat.isOnline ? '0 0 0 2px rgba(16,185,129,0.2)' : 'none',
               },
             }}
@@ -375,11 +383,12 @@ const ChatWindow = ({ isMobile }) => {
             <Avatar
               src={selectedChat.avatar}
               sx={{
-                width: 38, height: 38,
+                width: 44, height: 44,
                 bgcolor: primaryColor,
-                border: `2px solid ${primaryColor}`,
+                border: `2.5px solid ${primaryColor}`,
                 color: '#fff',
-                fontWeight: 600, fontSize: '0.9rem',
+                fontWeight: 700, fontSize: '1rem',
+                boxShadow: `0 4px 12px ${primaryColor}30`,
               }}
             >
               {(selectedChat.userName || 'U')[0]?.toUpperCase()}
@@ -387,12 +396,12 @@ const ChatWindow = ({ isMobile }) => {
           </Badge>
 
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.85rem', lineHeight: 1.2 }}>
+            <Typography sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: '0.95rem', lineHeight: 1.2 }}>
               {selectedChat.userName || 'User'}
             </Typography>
             <Typography variant="caption" sx={{
-              color: selectedChat.isOnline ? '#10b981' : 'text.secondary',
-              fontSize: '0.65rem', fontWeight: 500,
+              color: selectedChat.isOnline ? '#10b981' : isDark ? '#64748b' : '#94a3b8',
+              fontSize: '0.72rem', fontWeight: 600,
             }}>
               {isOtherTyping ? (
                 <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -403,7 +412,7 @@ const ChatWindow = ({ isMobile }) => {
                         key={i}
                         component="span"
                         sx={{
-                          width: 4, height: 4, borderRadius: '50%',
+                          width: 5, height: 5, borderRadius: '50%',
                           bgcolor: '#10b981',
                           animation: 'typingDot 1.4s ease-in-out infinite',
                           animationDelay: `${i * 0.2}s`,
@@ -417,14 +426,15 @@ const ChatWindow = ({ isMobile }) => {
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, flexShrink: 0 }}>
           {showSearch ? (
             <Box sx={{
               display: 'flex', alignItems: 'center', gap: 0.5,
-              bgcolor: isDark ? '#1e293b' : '#f8fafc', borderRadius: '8px', px: 1, py: 0.3,
-              border: '1.5px solid', borderColor: 'divider',
+              bgcolor: isDark ? '#1e293b' : '#f8fafc', borderRadius: '12px', px: 1.2, py: 0.5,
+              border: '1.5px solid', borderColor: primaryColor,
+              boxShadow: `0 0 0 3px ${primaryColor}15`,
             }}>
-              <SearchOutlined sx={{ fontSize: 16, color: iconClr }} />
+              <SearchOutlined sx={{ fontSize: 16, color: primaryColor }} />
               <input
                 autoFocus
                 placeholder="Search messages..."
@@ -442,43 +452,44 @@ const ChatWindow = ({ isMobile }) => {
                 }}
                 style={{
                   border: 'none', outline: 'none', background: 'transparent',
-                  fontSize: '0.8rem', width: 140, color: isDark ? '#f1f5f9' : '#0f172a',
+                  fontSize: '0.82rem', width: 130, color: isDark ? '#f1f5f9' : '#0f172a',
+                  fontWeight: 500,
                 }}
               />
               {searchTerm && (
-                <Typography variant="caption" sx={{ color: iconClr, fontSize: '0.65rem', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                <Typography variant="caption" sx={{ color: primaryColor, fontSize: '0.65rem', whiteSpace: 'nowrap', fontWeight: 700 }}>
                   {searchedIndices.length > 0 ? `${searchIndex + 1}/${searchedIndices.length}` : '0/0'}
                 </Typography>
               )}
               <IconButton size="small" onClick={() => { setShowSearch(false); setSearchTerm(''); }}
-                sx={{ color: iconClr, p: 0.3, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-                <Close sx={{ fontSize: 14 }} />
+                sx={{ color: iconClr, p: 0.4, borderRadius: '8px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
+                <Close sx={{ fontSize: 16 }} />
               </IconButton>
             </Box>
           ) : (
             <>
-              <Tooltip title="Search in conversation">
+              <Tooltip title="Search">
                 <IconButton size="small" onClick={() => setShowSearch(true)}
-                  sx={{ color: iconClr, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-                  <SearchOutlined sx={{ fontSize: 18 }} />
+                  sx={{ color: iconClr, p: 0.75, borderRadius: '12px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
+                  <SearchOutlined sx={{ fontSize: 20 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Audio call">
                 <IconButton size="small"
-                  sx={{ color: iconClr, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-                  <CallOutlined sx={{ fontSize: 18 }} />
+                  sx={{ color: iconClr, p: 0.75, borderRadius: '12px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
+                  <CallOutlined sx={{ fontSize: 20 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Video call">
                 <IconButton size="small"
-                  sx={{ color: iconClr, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-                  <VideocamOutlined sx={{ fontSize: 18 }} />
+                  sx={{ color: iconClr, p: 0.75, borderRadius: '12px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
+                  <VideocamOutlined sx={{ fontSize: 20 }} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Conversation info">
+              <Tooltip title="Info">
                 <IconButton size="small"
-                  sx={{ color: iconClr, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-                  <InfoOutlined sx={{ fontSize: 18 }} />
+                  sx={{ color: iconClr, p: 0.75, borderRadius: '12px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
+                  <InfoOutlined sx={{ fontSize: 20 }} />
                 </IconButton>
               </Tooltip>
             </>
@@ -486,37 +497,39 @@ const ChatWindow = ({ isMobile }) => {
         </Box>
       </Box>
 
+      {/* ===== MESSAGES AREA ===== */}
       <Box
         ref={messagesContainerRef}
         onScroll={handleScroll}
         sx={{
-          flex: 1, overflowY: 'auto', px: 1.25, py: 1,
-          background: isDark ? '#111827' : 'linear-gradient(180deg, #fafbfc 0%, #f8f9ff 100%)',
+          flex: 1, overflowY: 'auto', px: { xs: 1.5, sm: 2.5 }, py: 1.5,
+          bgcolor: isDark ? '#0f172a' : '#fafbfc',
           position: 'relative',
           '&::-webkit-scrollbar': { width: '6px' },
           '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
-          '&::-webkit-scrollbar-thumb': { bgcolor: isDark ? '#4B5563' : '#e2e8f0', borderRadius: '3px', '&:hover': { bgcolor: isDark ? '#6B7280' : '#cbd5e1' } },
+          '&::-webkit-scrollbar-thumb': { bgcolor: isDark ? '#374151' : '#e2e8f0', borderRadius: '3px', '&:hover': { bgcolor: isDark ? '#4B5563' : '#cbd5e1' } },
         }}
       >
         {messages.length === 0 ? (
           <Box sx={{
             display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            py: 6, px: 3,
+            py: 8, px: 3,
           }}>
             <Box sx={{
-              width: 56, height: 56, borderRadius: '50%',
-              bgcolor: primLight, display: 'flex',
-              alignItems: 'center', justifyContent: 'center', mb: 2,
-              boxShadow: `0 3px 12px ${primaryColor}20`,
+              width: 64, height: 64, borderRadius: '20px',
+              background: isDark ? 'linear-gradient(135deg, #2D1B69 0%, #1e293b 100%)' : 'linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%)',
+              display: 'flex',
+              alignItems: 'center', justifyContent: 'center', mb: 2.5,
+              boxShadow: isDark ? '0 6px 24px rgba(139,92,246,0.12)' : '0 6px 24px rgba(139,92,246,0.1)',
             }}>
-              <Forum sx={{ color: primaryColor, fontSize: 24 }} />
+              <Forum sx={{ color: primaryColor, fontSize: 28 }} />
             </Box>
-            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.9rem', mb: 0.5 }}>
+            <Typography sx={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 700, fontSize: '1rem', mb: 0.5 }}>
               No messages yet
             </Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', textAlign: 'center', maxWidth: 220, lineHeight: 1.5 }}>
-              Send a message to start the conversation
+            <Typography sx={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.85rem', textAlign: 'center', maxWidth: 240, lineHeight: 1.6 }}>
+              Send the first message to start the conversation
             </Typography>
           </Box>
         ) : (
@@ -528,20 +541,26 @@ const ChatWindow = ({ isMobile }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    my: 1.5,
-                    gap: 1,
+                    my: 2,
+                    gap: 1.5,
                   }}>
-                    <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#374151' : '#e2e8f0' }} />
+                    <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#1e293b' : '#e2e8f0' }} />
                     <Typography variant="caption" sx={{
-                      color: 'text.secondary',
-                      fontWeight: 600,
-                      fontSize: '0.68rem',
+                      color: isDark ? '#64748b' : '#94a3b8',
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
                       whiteSpace: 'nowrap',
-                      letterSpacing: '0.02em',
+                      letterSpacing: '0.03em',
+                      textTransform: 'uppercase',
+                      bgcolor: isDark ? '#0f172a' : '#fafbfc',
+                      px: 1.5,
+                      py: 0.4,
+                      borderRadius: '8px',
+                      border: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
                     }}>
                       {formatDateLabel(msg.sentAt || msg.timestamp)}
                     </Typography>
-                    <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#374151' : '#e2e8f0' }} />
+                    <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#1e293b' : '#e2e8f0' }} />
                   </Box>
                 )}
                 <MessageBubble
@@ -560,31 +579,32 @@ const ChatWindow = ({ isMobile }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                my: 1,
+                my: 1.5,
                 gap: 0.5,
               }}>
-                <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#374151' : '#e2e8f0' }} />
+                <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#1e293b' : '#e2e8f0' }} />
                 <Box sx={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
                   px: 1.5,
-                  py: 0.3,
-                  borderRadius: '12px',
-                  bgcolor: isDark ? '#064e3b' : '#f0fdf4',
-                  border: isDark ? '1px solid #065f46' : '1px solid #bbf7d0',
+                  py: 0.4,
+                  borderRadius: '10px',
+                  bgcolor: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)',
+                  border: `1px solid ${isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.12)'}`,
                 }}>
-                  <DoneAll sx={{ fontSize: 12, color: '#10b981' }} />
+                  <DoneAll sx={{ fontSize: 13, color: '#10b981' }} />
                   <Typography variant="caption" sx={{
                     color: '#10b981',
-                    fontWeight: 600,
-                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    fontSize: '0.68rem',
                     whiteSpace: 'nowrap',
+                    letterSpacing: '0.02em',
                   }}>
-                    All messages read · {readReceiptInfo.lastReadTime}
+                    All read · {readReceiptInfo.lastReadTime}
                   </Typography>
                 </Box>
-                <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#374151' : '#e2e8f0' }} />
+                <Box sx={{ flex: 1, height: '1px', bgcolor: isDark ? '#1e293b' : '#e2e8f0' }} />
               </Box>
             )}
           </>
@@ -592,46 +612,112 @@ const ChatWindow = ({ isMobile }) => {
         <div ref={messagesEndRef} />
       </Box>
 
+      {/* ===== INPUT AREA ===== */}
       <Box sx={{
-        px: 2.25, py: 1,
-        background: isDark ? 'linear-gradient(135deg, #1e293b 0%, #1a1a2e 100%)' : 'linear-gradient(135deg, #fff 0%, #faf5ff 100%)',
-        position: 'relative',
+        px: { xs: 2, sm: 3 },
+        py: { xs: 1.25, sm: 1.5 },
+        bgcolor: isDark ? '#0f172a' : '#ffffff',
+        borderTop: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
       }}>
         {replyTo && (
           <Box sx={{
-            display: 'flex', alignItems: 'flex-start', gap: 0.8,
-            mb: 0.6, px: 1.2, py: 0.8,
-            bgcolor: isDark ? primaryLightDark : primaryLight, borderRadius: '8px',
+            display: 'flex', alignItems: 'center', gap: 1,
+            mb: 1, px: 1.5, py: 1,
+            bgcolor: isDark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.05)',
+            borderRadius: '14px',
             borderLeft: `3px solid ${primaryColor}`,
+            border: `1px solid ${isDark ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)'}`,
+            borderLeftWidth: '3px',
           }}>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="caption" sx={{ color: primaryColor, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              <Typography variant="caption" sx={{ color: primaryColor, fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Replying to {replyTo.senderName || 'User'}
               </Typography>
               <Typography variant="body2" sx={{
-                color: 'text.secondary', fontSize: '0.8rem',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mt: 0.2,
+                color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.8rem',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mt: 0.15,
               }}>
                 {(replyTo.content || replyTo.text || '').substring(0, 80)}
               </Typography>
             </Box>
-            <IconButton size="small" onClick={clearReply}
-              sx={{ color: iconClr, p: 0.3, mt: 0.2, '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-              <Close sx={{ fontSize: 14 }} />
+            <IconButton size="small" onClick={clearReply} sx={{ color: 'text.secondary', p: 0.5, borderRadius: '8px', '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' } }}>
+              <Close sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
         )}
 
-          <Box sx={{ display: 'flex', gap: 0.2, alignItems: 'center' }}>
-            <IconButton onClick={(e) => setEmojiAnchor(e.currentTarget)} sx={{ color: iconClr, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-              <EmojiEmotionsOutlined sx={{ fontSize: 17 }} />
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: { xs: 0.75, sm: 1 },
+        }}>
+          {/* Attachment buttons - desktop only */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.25,
+            pb: { xs: 0.5, sm: 0.75 },
+            display: { xs: 'none', sm: 'flex' },
+          }}>
+            <Tooltip title="Attach file">
+              <IconButton size="small" sx={{
+                color: isDark ? '#64748b' : '#94a3b8',
+                width: 40, height: 40,
+                borderRadius: '12px',
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: primLight, color: primaryColor },
+              }}>
+                <AttachFileOutlined sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Send photo">
+              <IconButton size="small" sx={{
+                color: isDark ? '#64748b' : '#94a3b8',
+                width: 40, height: 40,
+                borderRadius: '12px',
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: primLight, color: primaryColor },
+              }}>
+                <AddPhotoAlternateOutlined sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* Input container */}
+          <Box sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'flex-end',
+            gap: 0.5,
+            bgcolor: isDark ? '#1e293b' : '#f8fafc',
+            borderRadius: '18px',
+            border: `1.5px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            px: { xs: 1, sm: 1.5 },
+            py: { xs: 0.5, sm: 0.75 },
+            transition: 'all 0.2s',
+            '&:focus-within': {
+              borderColor: primaryColor,
+              boxShadow: `0 0 0 3px ${primaryColor}15`,
+              bgcolor: isDark ? '#1e293b' : '#ffffff',
+            },
+          }}>
+            {/* Emoji button */}
+            <IconButton onClick={(e) => setEmojiAnchor(e.currentTarget)} size="small" sx={{
+              color: isDark ? '#64748b' : '#94a3b8',
+              p: 0.5,
+              flexShrink: 0,
+              borderRadius: '10px',
+              '&:hover': { bgcolor: primLight, color: primaryColor },
+            }}>
+              <EmojiEmotionsOutlined sx={{ fontSize: 22 }} />
             </IconButton>
 
+            {/* Text input */}
             <TextField
               fullWidth
               multiline
               maxRows={4}
-              placeholder=""
+              placeholder="Type a message..."
               value={message}
               onChange={handleMessageChange}
               onKeyDown={handleKeyPress}
@@ -640,86 +726,90 @@ const ChatWindow = ({ isMobile }) => {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   bgcolor: 'transparent',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  '& fieldset': { borderColor: 'transparent', borderWidth: '0' },
-                  '&:hover fieldset': { borderColor: 'transparent' },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'transparent',
-                    boxShadow: 'none',
-                  },
-                  py: 0.5,
+                  fontSize: '0.9rem',
+                  '& fieldset': { border: 'none' },
+                  '&:hover fieldset': { border: 'none' },
+                  '&.Mui-focused fieldset': { border: 'none' },
+                  py: 0.25,
                   px: 0.5,
                 },
                 '& .MuiInputBase-input': {
-                  color: 'text.primary',
-                  '&::placeholder': { color: 'transparent' },
-                  touchAction: 'manipulation',
+                  color: isDark ? '#f1f5f9' : '#0f172a',
+                  lineHeight: 1.5,
+                  fontWeight: 400,
+                  '&::placeholder': { color: isDark ? '#475569' : '#94a3b8', fontWeight: 400 },
                 },
               }}
             />
+          </Box>
+
+          {/* Send button */}
+          <Box sx={{ pb: { xs: 0, sm: 0 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {/* Mic button - desktop only, hidden when text entered */}
+            {!message.trim() && (
+              <IconButton size="small" sx={{
+                color: isDark ? '#64748b' : '#94a3b8',
+                width: 40, height: 40,
+                borderRadius: '12px',
+                transition: 'all 0.2s',
+                display: { xs: 'none', sm: 'flex' },
+                '&:hover': { bgcolor: primLight, color: primaryColor },
+              }}>
+                <MicOutlined sx={{ fontSize: 20 }} />
+              </IconButton>
+            )}
 
             <IconButton
               onClick={handleSend}
               disabled={!isConnected || !message.trim()}
+              size="small"
               sx={{
-                bgcolor: message.trim() ? primaryColor : 'transparent',
-                color: message.trim() ? '#fff' : iconClr,
-                width: 32, height: 32,
-                borderRadius: '10px',
-                '&:hover': message.trim() ? { bgcolor: primaryHover, transform: 'translateY(-1px)', boxShadow: `0 4px 12px ${primaryColor}40` } : { bgcolor: primLight, color: primaryColor },
-                '&:disabled': { bgcolor: 'transparent !important', color: isDark ? '#4B5563 !important' : '#cbd5e1 !important' },
-                transition: 'all 0.2s ease',
+                background: message.trim() ? `linear-gradient(135deg, ${primaryColor} 0%, ${primaryHover} 100%)` : (isDark ? '#1e293b' : '#f1f5f9'),
+                color: message.trim() ? '#fff' : (isDark ? '#475569' : '#cbd5e1'),
+                width: 44, height: 44,
+                borderRadius: '14px',
+                transition: 'all 0.25s ease',
+                '&:hover': message.trim() ? {
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 6px 20px ${primaryColor}40`,
+                } : { bgcolor: isDark ? '#334155' : '#e2e8f0' },
+                '&:disabled': {
+                  background: isDark ? '#1e293b !important' : '#f1f5f9 !important',
+                  color: isDark ? '#475569 !important' : '#cbd5e1 !important',
+                },
+                flexShrink: 0,
               }}
             >
-              <SendRounded sx={{ fontSize: 17 }} />
-            </IconButton>
-
-            <IconButton sx={{ color: iconClr, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-              <AddPhotoAlternateOutlined sx={{ fontSize: 17 }} />
-            </IconButton>
-
-            <IconButton sx={{ color: iconClr, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-              <AttachFileOutlined sx={{ fontSize: 17 }} />
-            </IconButton>
-
-            <IconButton sx={{ color: iconClr, width: 32, height: 32, borderRadius: '10px', '&:hover': { bgcolor: primLight, color: primaryColor } }}>
-              <MicOutlined sx={{ fontSize: 17 }} />
+              <SendRounded sx={{ fontSize: 18 }} />
             </IconButton>
           </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.5 }}>
-          <Typography variant="caption" sx={{
-            color: 'text.secondary', fontSize: '0.6rem',
-            letterSpacing: '0.02em', fontWeight: 500,
-          }}>
-            End-to-end encrypted · Abbsium Chat
-          </Typography>
         </Box>
       </Box>
 
-      <EmojiPicker anchorEl={emojiAnchor} onClose={() => setEmojiAnchor(null)} onEmojiSelect={handleEmojiSelect} />
-
+      {/* ===== SCROLL TO BOTTOM BUTTON ===== */}
       <Fade in={showScrollBtn}>
         <IconButton
           onClick={scrollToBottom}
           size="small"
           sx={{
             position: 'absolute',
-            bottom: { xs: 110, sm: 120 },
-            right: { xs: 24, sm: 40 },
+            bottom: { xs: 90, sm: 100 },
+            right: { xs: 16, sm: 32 },
             bgcolor: isDark ? '#1e293b' : '#fff',
-            border: '1px solid', borderColor: 'divider',
-            boxShadow: '0 2px 8px rgba(139,92,246,0.15)',
-            width: 34, height: 34,
-            '&:hover': { bgcolor: primLight, color: primaryColor, boxShadow: '0 4px 12px rgba(139,92,246,0.2)' },
+            border: '1px solid', borderColor: isDark ? '#374151' : '#e2e8f0',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+            width: 36, height: 36,
+            borderRadius: '10px',
+            '&:hover': { bgcolor: primLight, color: primaryColor, boxShadow: `0 4px 16px ${primaryColor}20` },
             zIndex: 10,
             transition: 'all 0.2s ease',
           }}
         >
-          <KeyboardArrowDown sx={{ fontSize: 18 }} />
+          <KeyboardArrowDown sx={{ fontSize: 20 }} />
         </IconButton>
       </Fade>
+
+      <EmojiPicker anchorEl={emojiAnchor} onClose={() => setEmojiAnchor(null)} onEmojiSelect={handleEmojiSelect} />
 
       <style>{`
         @keyframes typingDot {

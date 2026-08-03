@@ -1,33 +1,165 @@
-import { Box, Typography } from '@mui/material';
-import { useColorScheme } from '@mui/material/styles';
-import EventPill from './EventPill';
+import { Box, Typography, Tooltip } from '@mui/material';
+import { alpha, useColorScheme } from '@mui/material/styles';
+import { IconClockFilled } from '@tabler/icons-react';
+import { formatTime } from '../utils';
+import { PLATFORMS } from '../constants';
 
-export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick, onEventClick, maxVisible = 3 }) {
+export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick, onEventClick }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const visible = dayEvents.slice(0, maxVisible);
-  const overflow = dayEvents.length - maxVisible;
+
+  const hasEvents = dayEvents.length > 0;
+  const maxShow = 6;
 
   return (
-    <Box onClick={() => day && onClick(day)} sx={{
-      minHeight: 110, p: '6px 6px 4px', cursor: day ? 'pointer' : 'default',
-      bgcolor: isOtherMonth ? (isDark ? '#0f172a' : '#fafafa') : (isDark ? '#111827' : '#fff'),
-      position: 'relative', overflow: 'hidden',
-      '&:hover': day ? { bgcolor: isOtherMonth ? (isDark ? '#1a1f35' : '#f3f3f3') : (isDark ? '#1e293b' : '#f8f6ff') } : {},
-      transition: 'background 0.13s',
-    }}>
+    <Box
+      onClick={() => day && onClick(day)}
+      sx={{
+        minHeight: { xs: 60, sm: 95, md: 110 },
+        p: { xs: '4px 3px', sm: '7px 6px' },
+        cursor: day ? 'pointer' : 'default',
+        bgcolor: isOtherMonth
+          ? (isDark ? '#0f172a' : '#fafbfc')
+          : (isDark ? '#111827' : '#ffffff'),
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'all 0.2s ease',
+        '&:hover': day ? {
+          bgcolor: isOtherMonth
+            ? (isDark ? '#1a1f35' : '#f0f4ff')
+            : (isDark ? '#1e293b' : '#f5f3ff'),
+          boxShadow: {
+            xs: 'none',
+            sm: isDark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(94,53,177,0.08)',
+          },
+          zIndex: 1,
+        } : {},
+      }}
+    >
       {day && (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: '3px' }}>
-            <Box sx={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: isToday ? '#f97316' : 'transparent' }}>
-              <Typography sx={{ fontSize: '0.8rem', fontWeight: isToday ? 700 : 400, color: isToday ? '#fff' : isOtherMonth ? (isDark ? '#475569' : '#aaa') : 'text.primary' }}>{day}</Typography>
+          {/* Day number */}
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            mb: { xs: '3px', sm: '6px' },
+            pr: '1px',
+          }}>
+            <Box sx={{
+              width: { xs: 18, sm: 26 },
+              height: { xs: 18, sm: 26 },
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: isToday ? 'linear-gradient(135deg, #f97316, #fb923c)' : 'transparent',
+              boxShadow: isToday ? { xs: '0 1px 4px rgba(249,115,22,0.25)', sm: '0 2px 8px rgba(249,115,22,0.35)' } : 'none',
+            }}>
+              <Typography sx={{
+                fontSize: { xs: '0.6rem', sm: '0.8rem' },
+                fontWeight: isToday ? 700 : 400,
+                color: isToday
+                  ? '#fff'
+                  : isOtherMonth
+                    ? (isDark ? '#475569' : '#b0b0b0')
+                    : (isDark ? '#e2e8f0' : '#1e293b'),
+              }}>
+                {day}
+              </Typography>
             </Box>
           </Box>
-          {visible.map(ev => <EventPill key={ev.id} event={ev} onClick={onEventClick} compact />)}
-          {overflow > 0 && (
-            <Typography sx={{ fontSize: '0.6rem', color: isDark ? '#b388ff' : '#5E35B1', fontWeight: 700, cursor: 'pointer', px: '4px', '&:hover': { textDecoration: 'underline' } }}>
-              +{overflow} more
-            </Typography>
+
+          {/* Platform icons */}
+          {hasEvents && (
+            <Box sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: { xs: '3px', sm: '5px' },
+              justifyContent: { xs: 'center', sm: 'flex-start' },
+            }}>
+              {dayEvents.slice(0, maxShow).map((ev) => {
+                const platformColor = ev.platformColor || '#4CAF50';
+                const isScheduled = ev.isScheduled === true;
+                const Icon = isScheduled ? IconClockFilled : (ev.platformIcon || PLATFORMS.find(p => p.color === platformColor)?.icon);
+
+                return (
+                  <Tooltip
+                    key={ev.id}
+                    title={
+                      <Box sx={{ p: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.3 }}>
+                          {ev.title}
+                        </Typography>
+                        {ev.time && (
+                          <Typography sx={{ fontSize: '0.7rem', opacity: 0.75, fontFamily: 'monospace' }}>
+                            {formatTime(ev.time)}
+                          </Typography>
+                        )}
+                        {isScheduled && (
+                          <Typography sx={{ fontSize: '0.65rem', color: '#FF9800', mt: 0.3, fontWeight: 600 }}>
+                            Scheduled
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <Box
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClick && onEventClick(ev);
+                      }}
+                      sx={{
+                        width: { xs: 20, sm: 30 },
+                        height: { xs: 20, sm: 30 },
+                        minWidth: { xs: 20, sm: 30 },
+                        minHeight: { xs: 20, sm: 30 },
+                        borderRadius: '50%',
+                        bgcolor: isScheduled
+                          ? (isDark ? alpha('#FF9800', 0.3) : alpha('#FF9800', 0.15))
+                          : (isDark ? alpha(platformColor, 0.25) : alpha(platformColor, 0.1)),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        '&:hover': {
+                          transform: { xs: 'none', sm: 'scale(1.2)' },
+                          bgcolor: isScheduled
+                            ? (isDark ? alpha('#FF9800', 0.5) : alpha('#FF9800', 0.25))
+                            : (isDark ? alpha(platformColor, 0.4) : alpha(platformColor, 0.18)),
+                          boxShadow: {
+                            xs: 'none',
+                            sm: `0 3px 10px ${alpha(isScheduled ? '#FF9800' : platformColor, 0.35)}`,
+                          },
+                        },
+                      }}
+                    >
+                      {Icon && (
+                        <Icon
+                          size={10}
+                          style={{
+                            color: isScheduled ? '#FF9800' : platformColor,
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Tooltip>
+                );
+              })}
+              {dayEvents.length > maxShow && (
+                <Typography sx={{
+                  fontSize: '0.5rem',
+                  fontWeight: 600,
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  lineHeight: 1,
+                  alignSelf: 'center',
+                }}>
+                  +{dayEvents.length - maxShow}
+                </Typography>
+              )}
+            </Box>
           )}
         </>
       )}

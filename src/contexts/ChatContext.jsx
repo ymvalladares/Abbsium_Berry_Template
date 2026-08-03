@@ -29,6 +29,8 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
   const pendingMessages = useRef(new Map());
   const lastTempId = useRef(0);
   const typingTimeoutRef = useRef(null);
+  const currentConvIdRef = useRef(null);
+  const currentSelectedChatRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated || isInitialized.current) return;
@@ -53,7 +55,29 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
 
     init();
 
-    const handleConnectionChanged = (connected) => setIsConnected(connected);
+    const handleConnectionChanged = (connected) => {
+      setIsConnected(connected);
+      // Re-fetch messages for active conversation after reconnect
+      if (connected && currentConvIdRef.current) {
+        chatService.getMessages(currentConvIdRef.current).then((msgs) => {
+          const enrichedMessages = msgs.map((msg) => ({
+            ...msg,
+            isSender: isAdmin ? msg.isAdminMessage : !msg.isAdminMessage,
+            isRead: msg.isRead || false,
+            readAt: msg.readAt || null,
+            reactions: msg.reactions || {},
+          }));
+          setMessages((prev) => {
+            const existingIds = new Set(enrichedMessages.map((m) => m.id || m.messageId));
+            const signalRMessages = prev.filter((m) => !existingIds.has(m.id || m.messageId));
+            const merged = [...enrichedMessages, ...signalRMessages].sort(
+              (a, b) => new Date(a.sentAt || a.timestamp) - new Date(b.sentAt || b.timestamp)
+            );
+            return merged;
+          });
+        }).catch((err) => console.error('Error re-fetching messages after reconnect:', err));
+      }
+    };
     signalRService.on('connectionChanged', handleConnectionChanged);
 
     return () => {
@@ -102,6 +126,8 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
 
           console.log('✅ Enriched users for sidebar:', enrichedUsers);
           setConversations(enrichedUsers);
+          // Request online status immediately after loading
+          setTimeout(() => signalRService.requestOnlineUsers(), 500);
         } else {
           console.log('👤 Loading user data (admins list)...');
           const [adminsList, convs] = await Promise.all([chatService.getAdmins(), chatService.getMyConversations()]);
@@ -126,6 +152,8 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
           console.log('✅ Enriched admins for sidebar:', enrichedAdmins);
           setAdmins(enrichedAdmins);
           setConversations(convs);
+          // Request online status immediately after loading
+          setTimeout(() => signalRService.requestOnlineUsers(), 500);
         }
 
         await signalRService.requestOnlineUsers();
@@ -274,6 +302,17 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     });
   }, []);
 
+  const markMessagesAsRead = useCallback(() => {
+    const now = new Date().toISOString();
+    setMessages((prev) =>
+      prev.map((msg) =>
+        !msg.isSender && !msg.isRead
+          ? { ...msg, isRead: true, readAt: now }
+          : msg
+      )
+    );
+  }, []);
+
   useEffect(() => {
     if (!isConnected) return;
 
@@ -343,9 +382,10 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
         senderName: 'You',
       }));
 
+      // Update ALL conversations with the new last message, not just the selected one
       setConversations((prev) =>
         prev.map((conv) =>
-          conv.conversationId === selectedConversationId
+          conv.conversationId === msg.conversationId
             ? { ...conv, lastMessage: msg.content, lastMessageAt: msg.sentAt }
             : conv
         )
@@ -576,10 +616,13 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     }
 
     setSelectedChat(chat);
+    currentSelectedChatRef.current = chat;
     setIsOtherTyping(false);
 
     const convId = chat.conversationId || chat.id;
     if (convId) {
+      currentConvIdRef.current = convId;
+      signalRService.setActiveConversation(convId);
       try {
         setSelectedConversationId(convId);
         const msgs = await chatService.getMessages(convId);
@@ -592,9 +635,17 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
           reactions: msg.reactions || {},
         }));
 
-        setMessages(enrichedMessages);
+        // Merge with any messages that arrived via SignalR during the async load
+        setMessages((prev) => {
+          const existingIds = new Set(enrichedMessages.map((m) => m.id || m.messageId));
+          const signalRMessages = prev.filter((m) => !existingIds.has(m.id || m.messageId));
+          const merged = [...enrichedMessages, ...signalRMessages].sort(
+            (a, b) => new Date(a.sentAt || a.timestamp) - new Date(b.sentAt || b.timestamp)
+          );
+          return merged;
+        });
 
-        // ⭐ Mark as read immediately on UI
+        // Mark as read immediately on UI
         const now = new Date().toISOString();
         setMessages((prev) =>
           prev.map((msg) =>
@@ -630,6 +681,7 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
   }, [isAdmin, selectedConversationId]);
 
   const goBackToList = useCallback(() => {
+    signalRService.setActiveConversation(null);
     setShowChatList(true);
     setSelectedChat(null);
     setSelectedConversationId(null);
@@ -781,6 +833,7 @@ export const ChatProvider = ({ children, isAdmin, isAuthenticated }) => {
     getDraft,
     clearDraft,
     updateUnreadBadge,
+    markMessagesAsRead,
   };
 
   return (

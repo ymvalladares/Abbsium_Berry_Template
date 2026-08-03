@@ -5,7 +5,7 @@ import {
   DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Select,
   InputLabel, FormControl, TablePagination, CircularProgress, Tooltip,
   Divider, InputAdornment, Avatar, Stepper, Step, StepLabel, Checkbox,
-  useMediaQuery, ToggleButton, ToggleButtonGroup
+  useMediaQuery, ToggleButton, ToggleButtonGroup, Skeleton
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
@@ -289,29 +289,49 @@ const Orders = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', p: { xs: 2, md: 3 } }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3, flexWrap: 'wrap', gap: 2 }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3, flexWrap: 'wrap', gap: 1.5 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>Orders & Subscriptions</Typography>
           <Typography sx={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.85rem' }}>Manage payments, subscriptions and dealer billing</Typography>
         </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <ToggleButtonGroup value={viewMode} exclusive onChange={(e, val) => { if (val) setViewMode(val); }} size="small" sx={{ '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none', border: '1px solid', borderColor: isDark ? '#374151' : '#d1d5db', py: 0.6, px: 2, bgcolor: isDark ? '#1e293b' : '#fff', color: isDark ? '#94a3b8' : '#64748b', '&.Mui-selected': { bgcolor: '#6366f1', borderColor: '#6366f1', color: '#fff', fontWeight: 600 }, ...(isDark && { '&:hover': { bgcolor: '#334155' } }) }, '& .MuiToggleButton-root:first-of-type': { borderRadius: '8px 0 0 8px' }, '& .MuiToggleButton-root:last-of-type': { borderRadius: '0 8px 8px 0' } }}>
-            <ToggleButton value="orders">Orders</ToggleButton>
-            <ToggleButton value="history">Payment History</ToggleButton>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
+          <ToggleButtonGroup value={viewMode} exclusive onChange={(e, val) => { if (val) setViewMode(val); }} size="small" sx={{ '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none', border: '1px solid', borderColor: isDark ? '#374151' : '#d1d5db', py: 0.5, px: { xs: 1.2, sm: 2 }, bgcolor: isDark ? '#1e293b' : '#fff', color: isDark ? '#94a3b8' : '#64748b', '&.Mui-selected': { bgcolor: '#6366f1', borderColor: '#6366f1', color: '#fff', fontWeight: 600 }, ...(isDark && { '&:hover': { bgcolor: '#334155' } }) }, '& .MuiToggleButton-root:first-of-type': { borderRadius: '8px 0 0 8px' }, '& .MuiToggleButton-root:last-of-type': { borderRadius: '0 8px 8px 0' } }}>
+            <ToggleButton value="orders"><Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Orders</Box><Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Ord</Box></ToggleButton>
+            <ToggleButton value="history"><Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Payment History</Box><Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Hist</Box></ToggleButton>
           </ToggleButtonGroup>
-          <Button variant="text" size="small" startIcon={<RefreshIcon sx={{ fontSize: 18 }} />} onClick={() => { if (viewMode === 'orders') { fetchOrders(); fetchStats(); } else { fetchPaymentHistory(); } }} sx={{ textTransform: 'none', color: 'text.secondary', px: 1 }}>Refresh</Button>
-          {viewMode === 'orders' && <Button variant="text" size="small" startIcon={<DownloadIcon sx={{ fontSize: 18 }} />} onClick={exportToCSV} sx={{ textTransform: 'none', color: 'text.secondary', px: 1 }}>Export</Button>}
+          <Button variant="text" size="small" startIcon={<RefreshIcon sx={{ fontSize: 16 }} />} onClick={() => { if (viewMode === 'orders') { fetchOrders(); fetchStats(); } else { fetchPaymentHistory(); } }} sx={{ textTransform: 'none', color: 'text.secondary', px: { xs: 0.5, sm: 1 }, minWidth: 'auto', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}><Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Refresh</Box></Button>
+          {viewMode === 'orders' && <Button variant="text" size="small" startIcon={<DownloadIcon sx={{ fontSize: 16 }} />} onClick={exportToCSV} sx={{ textTransform: 'none', color: 'text.secondary', px: { xs: 0.5, sm: 1 }, minWidth: 'auto', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}><Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Export</Box></Button>}
         </Stack>
       </Stack>
 
       {viewMode === 'orders' && (
         <>
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Total Revenue" value={fmt.currency(stats.totalRevenue)} subtitle={`${stats.totalOrders || 0} total orders`} icon={<AttachMoneyIcon />} color="#10b981" isDark={isDark} /></Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Active Subscriptions" value={stats.activeSubscriptions || 0} subtitle={`$${(stats.monthlyRevenue || 0).toFixed(2)} this month`} icon={<ShoppingBagIcon />} color="#6366f1" isDark={isDark} /></Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Pending / Failed" value={`${stats.pendingOrders || 0} / ${stats.failedPayments || 0}`} subtitle="Needs attention" icon={<WarningAmberIcon />} color="#f59e0b" isDark={isDark} /></Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Cancelled" value={stats.cancelledSubscriptions || 0} subtitle="Lost subscriptions" icon={<CancelIcon />} color="#ef4444" isDark={isDark} /></Grid>
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Paper elevation={0} sx={{ p: 2.5, borderRadius: 2, border: isDark ? '1px solid #374151' : '1px solid #e2e8f0', bgcolor: isDark ? '#1e293b' : '#fff', position: 'relative', overflow: 'hidden' }}>
+                <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', bgcolor: '#e2e8f0', borderRadius: '3px 3px 0 0' }} />
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                  <Box sx={{ width: '100%' }}>
+                    <Skeleton variant="text" width={80} height={16} sx={{ mb: 1 }} />
+                    <Skeleton variant="text" width={120} height={40} sx={{ mb: 0.5 }} />
+                    <Skeleton variant="text" width={100} height={16} />
+                  </Box>
+                  <Skeleton variant="rounded" width={44} height={44} sx={{ borderRadius: 2.5 }} />
+                </Stack>
+              </Paper>
+            </Grid>
+          ))
+        ) : (
+          <>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Total Revenue" value={fmt.currency(stats.totalRevenue)} subtitle={`${stats.totalOrders || 0} total orders`} icon={<AttachMoneyIcon />} color="#10b981" isDark={isDark} /></Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Active Subscriptions" value={stats.activeSubscriptions || 0} subtitle={`$${(stats.monthlyRevenue || 0).toFixed(2)} this month`} icon={<ShoppingBagIcon />} color="#6366f1" isDark={isDark} /></Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Pending / Failed" value={`${stats.pendingOrders || 0} / ${stats.failedPayments || 0}`} subtitle="Needs attention" icon={<WarningAmberIcon />} color="#f59e0b" isDark={isDark} /></Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Cancelled" value={stats.cancelledSubscriptions || 0} subtitle="Lost subscriptions" icon={<CancelIcon />} color="#ef4444" isDark={isDark} /></Grid>
+          </>
+        )}
       </Grid>
 
       {/* Filters Card */}

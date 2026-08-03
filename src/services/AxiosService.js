@@ -231,6 +231,14 @@ export const socialAPI = {
     return api.post('/socialpost/publish', data);
   },
 
+  getScheduledPosts: () => {
+    return api.get('/socialpost/scheduled');
+  },
+
+  cancelScheduledPost: (id) => {
+    return api.delete(`/socialpost/scheduled/${id}`);
+  },
+
   uploadToS3: async (url, file, contentType, onProgress) => {
     return axios.put(url, file, {
       headers: { 'Content-Type': contentType },
@@ -267,15 +275,18 @@ export const carAPI = {
 };
 
 function openPopup(url, platform, onComplete) {
-  const width = 600;
+  const width = 550;
   const height = 700;
   const left = window.screenX + (window.outerWidth - width) / 2;
-  const top = window.screenY + (window.outerHeight - height) / 2;
+  const top = window.screenY + (window.outerHeight - height) / 2 - 40;
 
-  const popup = window.open(url, `${platform} Connect`, `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+  let popup;
+  try {
+    popup = window.open(url, `${platform} Connect`, `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`);
+  } catch {}
 
   if (!popup) {
-    showSnackbar('Pop-up blocked. Please allow pop-ups for this site.', 'error');
+    showSnackbar(`Pop-up blocked. Please allow pop-ups for ${window.location.hostname} in your browser settings, then try again.`, 'error');
     onComplete(false);
     return;
   }
@@ -286,9 +297,10 @@ function openPopup(url, platform, onComplete) {
     if (resolved) return;
     resolved = true;
     clearTimeout(maxTimeout);
+    clearInterval(pollTimer);
     window.removeEventListener('storage', handleStorage);
     try {
-      popup.close();
+      if (popup && !popup.closed) popup.close();
     } catch {}
     try {
       localStorage.removeItem('social_auth_result');
@@ -301,7 +313,7 @@ function openPopup(url, platform, onComplete) {
     if (e.key !== 'social_auth_result' || !e.newValue) return;
     try {
       const result = JSON.parse(e.newValue);
-      if (!result || !result.ts || Date.now() - result.ts > 30000) return;
+      if (!result || !result.ts || Date.now() - result.ts > 300000) return;
 
       const resultProvider = result.data?.provider || '';
       if (resultProvider && resultProvider.toLowerCase() !== platform.toLowerCase()) return;
@@ -309,7 +321,6 @@ function openPopup(url, platform, onComplete) {
       if (result.type === 'AUTH_SUCCESS') {
         finish(true, `${result.data?.provider || platform} connected successfully`);
       } else if (result.type === 'AUTH_ERROR') {
-        console.error('Social auth error received:', result);
         finish(false, result.message || `Failed to connect ${platform}`);
       }
     } catch {}
@@ -317,7 +328,15 @@ function openPopup(url, platform, onComplete) {
 
   window.addEventListener('storage', handleStorage);
 
+  const pollTimer = setInterval(() => {
+    try {
+      if (popup && popup.closed) {
+        finish(false, `${platform} connection was cancelled`);
+      }
+    } catch {}
+  }, 500);
+
   const maxTimeout = setTimeout(() => {
     finish(false, `${platform} connection timed out. Please try again.`);
-  }, 120000);
+  }, 300000);
 }

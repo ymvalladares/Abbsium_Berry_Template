@@ -81,6 +81,17 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
     setErrors({});
   }, [mode, initialData, open]);
 
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
   const validateForm = () => {
     const newErrors = {};
     if (!form.username.trim()) newErrors.username = 'Username is required';
@@ -134,6 +145,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
   return (
     <Fade in={open}>
       <Box
+        onClick={onClose}
         sx={{
           position: 'fixed',
           inset: 0,
@@ -147,14 +159,16 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
         }}
       >
           <Paper
+            onClick={(e) => e.stopPropagation()}
             elevation={0}
             sx={{
               width: '100%',
               maxWidth: 480,
+              maxHeight: '90vh',
+              overflowY: 'auto',
               bgcolor: isDark ? '#1e293b' : '#fff',
               borderRadius: '20px',
               border: isDark ? '1px solid #374151' : '1px solid #e2e8f0',
-              overflow: 'hidden',
               boxShadow: isDark ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 25px 50px -12px rgba(0,0,0,0.25)'
             }}
         >
@@ -279,7 +293,7 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
                 <InfoOutlinedIcon sx={{ color: isDark ? '#38bdf8' : '#0369a1', fontSize: 18, mt: 0.2 }} />
                 <Typography variant="caption" sx={{ color: isDark ? '#38bdf8' : '#0369a1', lineHeight: 1.4 }}>
                   {mode === 'create'
-                    ? "New users receive a temporary password 'Abbsium.2020' which they should change on first login."
+                    ? "New users receive a temporary password sent to their email which they should change on first login."
                     : "Modifying security roles might affect the user's current session permissions immediately."}
                 </Typography>
               </Box>

@@ -47,6 +47,19 @@ const formatTime = (dateString) => {
   return new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 };
 
+const sanitizeUrl = (url) => {
+  if (!url) return '#';
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+  return '#';
+};
+
 const getDateGroupLabel = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -104,7 +117,7 @@ const PostCard = ({ item }) => {
           {item.success && item.postUrl ? (
             <Box
               component="a"
-              href={item.postUrl}
+              href={sanitizeUrl(item.postUrl)}
               target="_blank"
               rel="noopener noreferrer"
               sx={{
@@ -137,13 +150,96 @@ const PostCard = ({ item }) => {
   );
 };
 
+const ScheduledCard = ({ item, onCancel }) => {
+  const platforms = JSON.parse(item.platforms || '[]');
+  const scheduledDate = new Date(item.scheduledFor);
+  const isPast = scheduledDate < new Date();
+
+  return (
+    <Box
+      sx={{
+        p: 1.5,
+        borderRadius: 2,
+        bgcolor: 'white',
+        border: '1px solid',
+        borderColor: isPast ? alpha('#FF9800', 0.3) : 'divider',
+        transition: 'all 0.15s ease',
+        '&:hover': {
+          borderColor: isPast ? alpha('#FF9800', 0.5) : alpha('#5E35B1', 0.15),
+          boxShadow: `0 4px 12px ${alpha('#5E35B1', 0.04)}`
+        }
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1.25}>
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: 1.5,
+            bgcolor: alpha('#5E35B1', 0.08),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+        >
+          <IconClock size={14} style={{ color: '#5E35B1' }} />
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.25 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{item.title || 'Untitled'}</Typography>
+            <Chip
+              label={isPast ? 'Processing' : 'Scheduled'}
+              size="small"
+              sx={{
+                height: 18, fontSize: '0.6rem', fontWeight: 600,
+                bgcolor: isPast ? alpha('#FF9800', 0.1) : alpha('#4CAF50', 0.1),
+                color: isPast ? '#FF9800' : '#4CAF50'
+              }}
+            />
+          </Stack>
+
+          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.25 }}>
+            {platforms.slice(0, 3).map((p, i) => {
+              const PIcon = PLATFORM_ICONS[p] || IconExternalLink;
+              const pColor = PLATFORM_COLORS[p] || '#999';
+              return (
+                <Box key={i} sx={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PIcon size={12} style={{ color: pColor }} />
+                </Box>
+              );
+            })}
+          </Stack>
+
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <IconCalendarEvent size={10} style={{ color: '#bbb' }} />
+              <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>
+                {scheduledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </Typography>
+            </Stack>
+            {!isPast && (
+              <IconButton size="small" onClick={() => onCancel(item.id)} sx={{ width: 20, height: 20, color: '#f44336' }}>
+                <IconAlertCircle size={10} />
+              </IconButton>
+            )}
+          </Stack>
+        </Box>
+      </Stack>
+    </Box>
+  );
+};
+
 export default function PostHistory() {
   const [history, setHistory] = useState([]);
+  const [scheduled, setScheduled] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [pageSize] = useState(18);
   const [total, setTotal] = useState(0);
+  const [tab, setTab] = useState('published');
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -160,9 +256,31 @@ export default function PostHistory() {
     }
   };
 
+  const fetchScheduled = async () => {
+    try {
+      const res = await socialAPI.getScheduledPosts();
+      setScheduled(res.data.items || []);
+    } catch (err) {
+      console.error('Scheduled posts fetch error:', err);
+    }
+  };
+
+  const handleCancelScheduled = async (id) => {
+    try {
+      await socialAPI.cancelScheduledPost(id);
+      setScheduled((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error('Cancel scheduled error:', err);
+    }
+  };
+
   useEffect(() => {
-    fetchHistory();
-  }, [page]);
+    if (tab === 'published') {
+      fetchHistory();
+    } else {
+      fetchScheduled();
+    }
+  }, [tab, page]);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -200,7 +318,7 @@ export default function PostHistory() {
   return (
     <Box sx={{ py: 3 }}>
         {/* Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <IconCalendarEvent size={22} style={{ color: '#5E35B1' }} />
             <Box>
@@ -211,10 +329,39 @@ export default function PostHistory() {
             </Box>
           </Stack>
           <Tooltip title="Refresh">
-            <IconButton onClick={fetchHistory} disabled={loading} sx={{ color: '#5E35B1' }}>
+            <IconButton onClick={() => tab === 'published' ? fetchHistory() : fetchScheduled()} disabled={loading} sx={{ color: '#5E35B1' }}>
               <IconRefresh size={18} />
             </IconButton>
           </Tooltip>
+        </Stack>
+
+        {/* Tabs */}
+        <Stack direction="row" spacing={0} sx={{ mb: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Box
+            onClick={() => { setTab('published'); setPage(0); }}
+            sx={{
+              px: 2, py: 1, cursor: 'pointer', borderBottom: tab === 'published' ? '2px solid' : '2px solid transparent',
+              borderColor: tab === 'published' ? '#5E35B1' : 'transparent', color: tab === 'published' ? '#5E35B1' : 'text.secondary',
+              fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s'
+            }}
+          >
+            Published
+          </Box>
+          <Box
+            onClick={() => { setTab('scheduled'); setPage(0); }}
+            sx={{
+              px: 2, py: 1, cursor: 'pointer', borderBottom: tab === 'scheduled' ? '2px solid' : '2px solid transparent',
+              borderColor: tab === 'scheduled' ? '#5E35B1' : 'transparent', color: tab === 'scheduled' ? '#5E35B1' : 'text.secondary',
+              fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s', position: 'relative'
+            }}
+          >
+            Scheduled
+            {scheduled.length > 0 && (
+              <Box component="span" sx={{ ml: 0.75, px: 0.75, py: 0.15, borderRadius: 1, bgcolor: alpha('#5E35B1', 0.1), color: '#5E35B1', fontSize: '0.65rem', fontWeight: 700 }}>
+                {scheduled.length}
+              </Box>
+            )}
+          </Box>
         </Stack>
 
         {error && (
@@ -226,7 +373,23 @@ export default function PostHistory() {
           </Box>
         )}
 
-        {history.length === 0 ? (
+        {tab === 'scheduled' ? (
+          scheduled.length === 0 ? (
+            <Box sx={{ p: 5, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center', bgcolor: 'white' }}>
+              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: alpha('#5E35B1', 0.06), display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 1.5 }}>
+                <IconClock size={24} style={{ color: '#5E35B1' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 0.25 }}>No scheduled posts</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>Posts you schedule will appear here</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.25 }}>
+              {scheduled.map((item) => (
+                <ScheduledCard key={item.id} item={item} onCancel={handleCancelScheduled} />
+              ))}
+            </Box>
+          )
+        ) : history.length === 0 ? (
           <Box sx={{ p: 5, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center', bgcolor: 'white' }}>
             <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: alpha('#5E35B1', 0.06), display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 1.5 }}>
               <IconExternalLink size={24} style={{ color: '#5E35B1' }} />

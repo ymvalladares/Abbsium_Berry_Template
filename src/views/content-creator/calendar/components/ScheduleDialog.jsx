@@ -1,15 +1,25 @@
 import React, { useState, useRef } from 'react';
-import { Box, Typography, IconButton, Dialog, DialogContent, TextField, Button, alpha, Tooltip } from '@mui/material';
+import { Box, Typography, IconButton, Dialog, DialogContent, TextField, Button, alpha, Tooltip, CircularProgress } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { Close, CloudUpload, CalendarToday, AccessTime, CheckCircle } from '@mui/icons-material';
 import { PLATFORMS } from '../constants';
+import { socialAPI } from '../../../../services/AxiosService';
+import { useNotification } from 'contexts/NotificationContext';
 
 export default function ScheduleDialog({ open, onClose, onSave }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const notify = useNotification();
+  const fileInputRef = useRef(null);
+
   const [selPlats, setSelPlats] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const fileInputRef = useRef(null);
+  const [title, setTitle] = useState('');
+  const [caption, setCaption] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const togglePlatform = (id) => setSelPlats((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
@@ -18,16 +28,94 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
     if (file) setSelectedFile(file);
   };
 
-  const handleSave = () => {
-    if (onSave) onSave({ selectedFile, platforms: selPlats });
-    setSelectedFile(null);
-    setSelPlats([]);
-  };
-
   const handleClose = () => {
     setSelectedFile(null);
     setSelPlats([]);
+    setTitle('');
+    setCaption('');
+    setDate('');
+    setTime('');
+    setUploading(false);
+    setUploadProgress(0);
     if (onClose) onClose();
+  };
+
+  const handleSave = async () => {
+    if (selPlats.length === 0) {
+      notify.warning('Select at least one platform', 'No Platform');
+      return;
+    }
+    if (!date || !time) {
+      notify.warning('Please select date and time', 'Missing Schedule');
+      return;
+    }
+    if (!title.trim() && !caption.trim()) {
+      notify.warning('Add a title or caption', 'Missing Content');
+      return;
+    }
+
+    const scheduledDate = new Date(`${date}T${time}`);
+    const now = new Date();
+    if (scheduledDate <= now) {
+      notify.warning('Please select a future date and time', 'Invalid Schedule');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      let s3Url = null;
+
+      if (selectedFile) {
+        const presignedResponse = await socialAPI.getPresignedUrl(selectedFile.name, selectedFile.type);
+        const data = presignedResponse.data;
+        const uploadUrl = data.url || data.Url;
+        const key = data.key || data.Key;
+        const contentType = data.contentType || data.ContentType || selectedFile.type;
+
+        await socialAPI.uploadToS3(uploadUrl, selectedFile, contentType, (percent) => {
+          setUploadProgress(percent);
+        });
+
+        s3Url = data.publicUrl || data.PublicUrl;
+        if (!s3Url) {
+          const baseUrl = import.meta.env.VITE_S3_PUBLIC_URL || 'https://s3.amazonaws.com/abbsiumapp/';
+          s3Url = `${baseUrl}${key}`;
+        }
+      }
+
+      const platformNames = selPlats
+        .map((id) => PLATFORMS.find((p) => p.id === id)?.name)
+        .filter(Boolean);
+
+      const payload = {
+        videoUrl: s3Url,
+        title: title.trim(),
+        caption: caption.trim(),
+        platforms: platformNames,
+        isShort: false,
+        scheduleType: 'scheduled',
+        scheduledFor: scheduledDate.toISOString()
+      };
+
+      const response = await socialAPI.publishAsync(payload);
+
+      if (response.data.status === 'scheduled') {
+        notify.success(`Post scheduled for ${new Date(response.data.scheduledFor).toLocaleString()}`, 'Post Scheduled');
+        window.dispatchEvent(new Event('refresh-scheduled-posts'));
+        if (onSave) onSave({ title, caption, platforms: selPlats, date, time });
+        handleClose();
+      } else {
+        notify.error('Failed to schedule post', 'Schedule Error');
+      }
+    } catch (err) {
+      console.error('Schedule error:', err);
+      notify.error(err.response?.data?.message || 'Failed to schedule post', 'Schedule Error');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const sharedInputStyle = {
@@ -72,17 +160,17 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
         }
       }}
     >
-      {/* HEADER COMPACTO */}
+      {/* HEADER */}
       <Box sx={{ p: 3, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#111827' }}>
           Schedule Post
         </Typography>
-        <IconButton onClick={onClose} size="small" sx={{ bgcolor: isDark ? '#334155' : '#F3F4F6', '&:hover': { bgcolor: isDark ? '#475569' : '#E5E7EB' } }}>
+        <IconButton onClick={handleClose} size="small" sx={{ bgcolor: isDark ? '#334155' : '#F3F4F6', '&:hover': { bgcolor: isDark ? '#475569' : '#E5E7EB' } }}>
           <Close fontSize="small" sx={{ color: isDark ? '#94a3b8' : '#4B5563' }} />
         </IconButton>
       </Box>
 
-      {/* CUERPO DEL MODAL */}
+      {/* BODY */}
       <DialogContent sx={{ p: 3, pt: 0, display: 'flex', flexDirection: 'column', gap: 2.5, overflow: 'hidden' }}>
         {/* DROPZONE */}
         <Box
@@ -118,7 +206,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
           )}
         </Box>
 
-        {/* REDES SOCIALES */}
+        {/* PLATFORMS */}
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: isDark ? '#e2e8f0' : '#374151' }}>
             Platforms
@@ -154,9 +242,9 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
           </Box>
         </Box>
 
-        {/* FORMULARIO */}
-        <TextField fullWidth label="Title" size="small" sx={sharedInputStyle} />
-        <TextField fullWidth multiline rows={3} label="Caption" size="small" sx={sharedInputStyle} />
+        {/* FORM */}
+        <TextField fullWidth label="Title" size="small" value={title} onChange={(e) => setTitle(e.target.value)} sx={sharedInputStyle} />
+        <TextField fullWidth multiline rows={3} label="Caption" size="small" value={caption} onChange={(e) => setCaption(e.target.value)} sx={sharedInputStyle} />
 
         {/* DATE & TIME */}
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -165,8 +253,11 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
             type="date"
             label="Date"
             size="small"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             InputProps={{ startAdornment: <CalendarToday sx={{ fontSize: 18, mr: 1, color: isDark ? '#94a3b8' : '#6B7280', pointerEvents: 'none' }} /> }}
+            inputProps={{ min: new Date().toISOString().split('T')[0] }}
             sx={dateTimeInputStyle}
           />
           <TextField
@@ -174,22 +265,35 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
             type="time"
             label="Time"
             size="small"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
             InputLabelProps={{ shrink: true }}
             InputProps={{ startAdornment: <AccessTime sx={{ fontSize: 18, mr: 1, color: isDark ? '#94a3b8' : '#6B7280', pointerEvents: 'none' }} /> }}
             sx={dateTimeInputStyle}
           />
         </Box>
+
+        {/* UPLOAD PROGRESS */}
+        {uploading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CircularProgress size={20} sx={{ color: '#5E35B1' }} />
+            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+              Uploading... {uploadProgress}%
+            </Typography>
+          </Box>
+        )}
       </DialogContent>
 
       {/* FOOTER */}
       <Box sx={{ p: 3, pt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2, borderTop: '1px solid', borderColor: isDark ? '#334155' : '#F3F4F6' }}>
-        <Button onClick={handleClose} sx={{ color: isDark ? '#94a3b8' : '#4B5563', textTransform: 'none', fontWeight: 600 }}>
+        <Button onClick={handleClose} sx={{ color: isDark ? '#94a3b8' : '#4B5563', textTransform: 'none', fontWeight: 600 }} disabled={uploading}>
           Cancel
         </Button>
         <Button
           variant="contained"
           onClick={handleSave}
           disableElevation
+          disabled={uploading}
           sx={{
             textTransform: 'none',
             borderRadius: '10px',
@@ -199,7 +303,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
             '&:hover': { bgcolor: '#4C2A8E' }
           }}
         >
-          Schedule Post
+          {uploading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Schedule Post'}
         </Button>
       </Box>
     </Dialog>
