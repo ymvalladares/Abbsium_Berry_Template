@@ -61,6 +61,9 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
       return;
     }
 
+    // Browser auto-converts local time to UTC via toISOString()
+    const utcDate = scheduledDate;
+
     setUploading(true);
     setUploadProgress(0);
 
@@ -96,7 +99,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
         platforms: platformNames,
         isShort: false,
         scheduleType: 'scheduled',
-        scheduledFor: scheduledDate.toISOString()
+        scheduledFor: utcDate.toISOString()
       };
 
       const response = await socialAPI.publishAsync(payload);
@@ -151,8 +154,10 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 4,
+          borderRadius: { xs: 2, sm: 4 },
           maxHeight: '90vh',
+          mx: { xs: 1, sm: 0 },
+          width: { xs: 'calc(100% - 16px)', sm: '100%' },
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -161,7 +166,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
       }}
     >
       {/* HEADER */}
-      <Box sx={{ p: 3, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ p: { xs: 2.5, sm: 3 }, pb: { xs: 1.5, sm: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#111827' }}>
           Schedule Post
         </Typography>
@@ -171,7 +176,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
       </Box>
 
       {/* BODY */}
-      <DialogContent sx={{ p: 3, pt: 0, display: 'flex', flexDirection: 'column', gap: 2.5, overflow: 'hidden' }}>
+      <DialogContent sx={{ p: { xs: 2.5, sm: 3 }, pt: 0, display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 }, overflow: 'hidden' }}>
         {/* DROPZONE */}
         <Box
           onClick={() => fileInputRef.current?.click()}
@@ -243,28 +248,28 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
         </Box>
 
         {/* FORM */}
-        <TextField fullWidth label="Title" size="small" value={title} onChange={(e) => setTitle(e.target.value)} sx={sharedInputStyle} />
-        <TextField fullWidth multiline rows={3} label="Caption" size="small" value={caption} onChange={(e) => setCaption(e.target.value)} sx={sharedInputStyle} />
+        <TextField fullWidth label="Title" size="medium" value={title} onChange={(e) => setTitle(e.target.value)} sx={sharedInputStyle} />
+        <TextField fullWidth multiline rows={3} label="Caption" size="medium" value={caption} onChange={(e) => setCaption(e.target.value)} sx={sharedInputStyle} />
 
         {/* DATE & TIME */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 } }}>
           <TextField
             fullWidth
             type="date"
             label="Date"
-            size="small"
+            size="medium"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             InputProps={{ startAdornment: <CalendarToday sx={{ fontSize: 18, mr: 1, color: isDark ? '#94a3b8' : '#6B7280', pointerEvents: 'none' }} /> }}
-            inputProps={{ min: new Date().toISOString().split('T')[0] }}
+            inputProps={{ min: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() }}
             sx={dateTimeInputStyle}
           />
           <TextField
             fullWidth
             type="time"
             label="Time"
-            size="small"
+            size="medium"
             value={time}
             onChange={(e) => setTime(e.target.value)}
             InputLabelProps={{ shrink: true }}
@@ -285,7 +290,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
       </DialogContent>
 
       {/* FOOTER */}
-      <Box sx={{ p: 3, pt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2, borderTop: '1px solid', borderColor: isDark ? '#334155' : '#F3F4F6' }}>
+      <Box sx={{ p: { xs: 2.5, sm: 3 }, pt: { xs: 1.5, sm: 2 }, display: 'flex', justifyContent: 'flex-end', gap: 2, borderTop: '1px solid', borderColor: isDark ? '#334155' : '#F3F4F6' }}>
         <Button onClick={handleClose} sx={{ color: isDark ? '#94a3b8' : '#4B5563', textTransform: 'none', fontWeight: 600 }} disabled={uploading}>
           Cancel
         </Button>
@@ -297,7 +302,8 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
           sx={{
             textTransform: 'none',
             borderRadius: '10px',
-            px: 3,
+            px: { xs: 4, sm: 3 },
+            py: { xs: 1, sm: 'auto' },
             fontWeight: 600,
             bgcolor: '#5E35B1',
             '&:hover': { bgcolor: '#4C2A8E' }

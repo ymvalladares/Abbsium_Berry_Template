@@ -396,6 +396,14 @@ export default function PostComposer() {
 
       // ── SCHEDULED FLOW ──
       if (scheduleType === 'scheduled') {
+        const localDate = new Date(`${scheduledDate}T${scheduledTime}`);
+        const now = new Date();
+        if (localDate <= now) {
+          notify.error('Please select a future date and time', 'Invalid Schedule');
+          setPosting(false);
+          return;
+        }
+
         const payload = {
           videoUrl: s3Url,
           title: title ?? '',
@@ -404,7 +412,7 @@ export default function PostComposer() {
           isShort: type === 'reel',
           scheduleType: 'scheduled',
           scheduledFor: scheduledDate && scheduledTime
-            ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
+            ? localDate.toISOString()
             : null
         };
 
@@ -1290,7 +1298,7 @@ export default function PostComposer() {
                                   }
                                 }}
                                 inputProps={{
-                                  min: new Date(Date.now() + 60000).toISOString().slice(0, 16)
+                                  min: (() => { const d = new Date(Date.now() + 60000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; })()
                                 }}
                               />
                               {scheduledDate && scheduledTime && (

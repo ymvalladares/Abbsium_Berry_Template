@@ -4,6 +4,22 @@ import { IconClockFilled } from '@tabler/icons-react';
 import { formatTime } from '../utils';
 import { PLATFORMS } from '../constants';
 
+const ET_TIMEZONE = 'America/New_York';
+
+function toEasternTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return '';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+  return utcDate.toLocaleString('en-US', {
+    timeZone: ET_TIMEZONE,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short'
+  });
+}
+
 export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick, onEventClick }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -82,6 +98,8 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick
                 const isScheduled = ev.isScheduled === true;
                 const Icon = isScheduled ? IconClockFilled : (ev.platformIcon || PLATFORMS.find(p => p.color === platformColor)?.icon);
 
+                const tooltipTime = toEasternTime(ev.date, ev.time);
+
                 return (
                   <Tooltip
                     key={ev.id}
@@ -90,9 +108,9 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick
                         <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.3 }}>
                           {ev.title}
                         </Typography>
-                        {ev.time && (
+                        {tooltipTime && (
                           <Typography sx={{ fontSize: '0.7rem', opacity: 0.75, fontFamily: 'monospace' }}>
-                            {formatTime(ev.time)}
+                            {tooltipTime}
                           </Typography>
                         )}
                         {isScheduled && (
@@ -111,10 +129,10 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick
                         onEventClick && onEventClick(ev);
                       }}
                       sx={{
-                        width: { xs: 20, sm: 30 },
-                        height: { xs: 20, sm: 30 },
-                        minWidth: { xs: 20, sm: 30 },
-                        minHeight: { xs: 20, sm: 30 },
+                        width: { xs: 26, sm: 34 },
+                        height: { xs: 26, sm: 34 },
+                        minWidth: { xs: 26, sm: 34 },
+                        minHeight: { xs: 26, sm: 34 },
                         borderRadius: '50%',
                         bgcolor: isScheduled
                           ? (isDark ? alpha('#FF9800', 0.3) : alpha('#FF9800', 0.15))
@@ -138,7 +156,7 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick
                     >
                       {Icon && (
                         <Icon
-                          size={10}
+                          size={isScheduled ? 14 : 16}
                           style={{
                             color: isScheduled ? '#FF9800' : platformColor,
                           }}

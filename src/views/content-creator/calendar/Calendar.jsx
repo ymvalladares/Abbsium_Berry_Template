@@ -16,6 +16,22 @@ import { getDaysInMonth, getFirstDayOfMonth, formatTime } from './utils';
 import ScheduleDialog from './components/ScheduleDialog';
 import DayCell from './components/DayCell';
 
+const ET_TIMEZONE = 'America/New_York';
+
+function toEasternTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return '';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+  return utcDate.toLocaleString('en-US', {
+    timeZone: ET_TIMEZONE,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short'
+  });
+}
+
 export default function Calendar() {
   const theme = useTheme();
   const { colorScheme } = useColorScheme();
@@ -40,8 +56,9 @@ export default function Calendar() {
   const mapHistoryToEvents = useCallback((items) => {
     return items.filter(item => item.success && item.publishedAt).map(item => {
       const pubDate = new Date(item.publishedAt);
-      const dateStr = `${pubDate.getFullYear()}-${String(pubDate.getMonth() + 1).padStart(2, '0')}-${String(pubDate.getDate()).padStart(2, '0')}`;
-      const timeStr = `${String(pubDate.getHours()).padStart(2, '0')}:${String(pubDate.getMinutes()).padStart(2, '0')}`;
+      const etDate = new Date(pubDate.toLocaleString('en-US', { timeZone: ET_TIMEZONE }));
+      const dateStr = `${etDate.getFullYear()}-${String(etDate.getMonth() + 1).padStart(2, '0')}-${String(etDate.getDate()).padStart(2, '0')}`;
+      const timeStr = `${String(etDate.getHours()).padStart(2, '0')}:${String(etDate.getMinutes()).padStart(2, '0')}`;
       const plat = PLATFORMS.find(p => p.name === item.platform);
       return {
         id: item.id,
@@ -61,8 +78,9 @@ export default function Calendar() {
   const mapScheduledToEvents = useCallback((items) => {
     return items.filter(item => item.status === 'scheduled').map(item => {
       const schedDate = new Date(item.scheduledFor);
-      const dateStr = `${schedDate.getFullYear()}-${String(schedDate.getMonth() + 1).padStart(2, '0')}-${String(schedDate.getDate()).padStart(2, '0')}`;
-      const timeStr = `${String(schedDate.getHours()).padStart(2, '0')}:${String(schedDate.getMinutes()).padStart(2, '0')}`;
+      const etDate = new Date(schedDate.toLocaleString('en-US', { timeZone: ET_TIMEZONE }));
+      const dateStr = `${etDate.getFullYear()}-${String(etDate.getMonth() + 1).padStart(2, '0')}-${String(etDate.getDate()).padStart(2, '0')}`;
+      const timeStr = `${String(etDate.getHours()).padStart(2, '0')}:${String(etDate.getMinutes()).padStart(2, '0')}`;
       const platforms = JSON.parse(item.platforms || '[]');
       const plat = PLATFORMS.find(p => p.name === platforms[0]);
       return {
@@ -189,7 +207,7 @@ export default function Calendar() {
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
         alignItems: { xs: 'flex-start', sm: 'center' },
-        gap: { xs: 1, sm: 0 },
+        gap: { xs: 0, sm: 0 },
         mb: { xs: 1.5, sm: 3 },
       }}>
         <Box>
@@ -224,6 +242,7 @@ export default function Calendar() {
             py: { xs: 0.75, sm: 1 },
             fontSize: { xs: '0.8rem', sm: '0.875rem' },
             boxShadow: '0 4px 14px rgba(94,53,177,0.3)',
+            alignSelf: { xs: 'flex-end', sm: 'auto' },
             '&:hover': {
               background: 'linear-gradient(135deg, #4a2c8a, #6a3de8)',
               boxShadow: '0 6px 20px rgba(94,53,177,0.4)',
@@ -447,7 +466,7 @@ export default function Calendar() {
                   {detailEvent?.title}
                 </Typography>
                 <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
-                  {detailEvent?.date}{detailEvent?.time ? ` · ${formatTime(detailEvent.time)}` : ''}
+                  {detailEvent?.date}{detailEvent?.time ? ` · ${toEasternTime(detailEvent.date, detailEvent.time)}` : ''}
                 </Typography>
               </Box>
             </Box>
@@ -573,6 +592,7 @@ export default function Calendar() {
           <Stack spacing={1.5}>
             {dayPopupEvents.map((ev) => {
               const PlatIcon = ev.platformIcon || IconPhoto;
+              const etTime = toEasternTime(ev.date, ev.time);
               return (
                 <Box
                   key={ev.id}
@@ -593,22 +613,22 @@ export default function Calendar() {
                 >
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Box sx={{
-                      width: 32, height: 32, borderRadius: 2, flexShrink: 0,
+                      width: 42, height: 42, borderRadius: 2, flexShrink: 0,
                       bgcolor: ev.isScheduled ? alpha('#FF9800', 0.1) : alpha(ev.platformColor || '#5E35B1', 0.1),
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {ev.isScheduled ? (
-                        <AccessTime size={16} style={{ color: '#FF9800' }} />
+                        <AccessTime size={22} style={{ color: '#FF9800' }} />
                       ) : (
-                        <PlatIcon size={16} style={{ color: ev.platformColor || '#5E35B1' }} />
+                        <PlatIcon size={22} style={{ color: ev.platformColor || '#5E35B1' }} />
                       )}
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{ev.title}</Typography>
                       <Stack direction="row" alignItems="center" spacing={1}>
-                        {ev.time && (
+                        {etTime && (
                           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontFamily: 'monospace' }}>
-                            {formatTime(ev.time)}
+                            {etTime}
                           </Typography>
                         )}
                         {ev.isScheduled && (
