@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { showSnackbar } from '../utils/snackbarNotif';
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -87,7 +86,7 @@ axiosInstance.interceptors.response.use(
     if (error.code === 'ERR_CANCELED') return Promise.reject(error);
 
     if (!error.response && error.message === 'Network Error') {
-      showSnackbar('Server is not running', 'error');
+      console.error('Server is not running');
       return Promise.reject(error);
     }
 
@@ -103,8 +102,8 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    if (status >= 500) showSnackbar(`Server error (${status})`, 'error');
-    else if (!status || status < 400) showSnackbar('Unexpected error', 'error');
+    if (status >= 500) console.error(`Server error (${status})`);
+    else if (!status || status < 400) console.error('Unexpected error');
 
     return Promise.reject(error);
   }
@@ -132,7 +131,6 @@ export const socialAPI = {
       .then((res) => openPopup(res.data.url, 'Facebook', onComplete))
       .catch((err) => {
         console.error('Facebook connection error:', err);
-        showSnackbar('Failed to start Facebook connection', 'error');
         onComplete(false);
       });
   },
@@ -143,7 +141,6 @@ export const socialAPI = {
       .then((res) => openPopup(res.data.url, 'Instagram', onComplete))
       .catch((err) => {
         console.error('Instagram connection error:', err);
-        showSnackbar('Failed to start Instagram connection', 'error');
         onComplete(false);
       });
   },
@@ -154,7 +151,6 @@ export const socialAPI = {
       .then((res) => openPopup(res.data.url, 'YouTube', onComplete))
       .catch((err) => {
         console.error('YouTube connection error:', err);
-        showSnackbar('Failed to start YouTube connection', 'error');
         onComplete(false);
       });
   },
@@ -165,7 +161,6 @@ export const socialAPI = {
       .then((res) => openPopup(res.data.url, 'TikTok', onComplete))
       .catch((err) => {
         console.error('TikTok connection error:', err);
-        showSnackbar('Failed to start TikTok connection', 'error');
         onComplete(false);
       });
   },
@@ -286,7 +281,6 @@ function openPopup(url, platform, onComplete) {
   } catch {}
 
   if (!popup) {
-    showSnackbar(`Pop-up blocked. Please allow pop-ups for ${window.location.hostname} in your browser settings, then try again.`, 'error');
     onComplete(false);
     return;
   }
@@ -305,7 +299,6 @@ function openPopup(url, platform, onComplete) {
     try {
       localStorage.removeItem('social_auth_result');
     } catch {}
-    if (message) showSnackbar(message, success ? 'success' : 'error');
     onComplete(success);
   };
 
@@ -328,7 +321,14 @@ function openPopup(url, platform, onComplete) {
 
   window.addEventListener('storage', handleStorage);
 
+  let gracePeriodElapsed = false;
+
+  setTimeout(() => {
+    gracePeriodElapsed = true;
+  }, 3000);
+
   const pollTimer = setInterval(() => {
+    if (!gracePeriodElapsed) return;
     try {
       if (popup && popup.closed) {
         finish(false, `${platform} connection was cancelled`);
