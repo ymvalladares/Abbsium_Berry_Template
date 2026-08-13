@@ -83,7 +83,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
         onClick={() => itemHandler()}
           sx={{
             zIndex: 1201,
-            borderRadius: `${borderRadius}px`,
+            borderRadius: '14px',
             mb: 0.5,
             ...(drawerOpen && level !== 1 && { ml: `${level * 18}px` }),
             ...(!drawerOpen && { pl: 1.25 }),
@@ -94,27 +94,28 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
             '&.Mui-selected': { bgcolor: 'transparent' },
             '&.Mui-selected:hover': { bgcolor: 'transparent' },
             ...(drawerOpen && level === 1 && {
-              bgcolor: isSelected ? (isDark ? 'rgba(255,255,255,0.12)' : 'secondary.light') : 'transparent',
-              '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'secondary.light' },
-              '&.Mui-selected': { bgcolor: isSelected ? (isDark ? 'rgba(255,255,255,0.12)' : 'secondary.light') : 'transparent' },
-              '&.Mui-selected:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'secondary.light' }
+              bgcolor: isSelected ? (isDark ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.08)') : 'transparent',
+              '&:hover': { bgcolor: isDark ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.06)' },
+              '&.Mui-selected': { bgcolor: isSelected ? (isDark ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.08)') : 'transparent' },
+              '&.Mui-selected:hover': { bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)' }
             })
           }}
       >
-        <ButtonBase aria-label="theme-icon" sx={{ borderRadius: `${borderRadius}px` }} disableRipple={drawerOpen}>
+        <ButtonBase aria-label="theme-icon" sx={{ borderRadius: '12px' }} disableRipple={drawerOpen}>
           <ListItemIcon
             sx={{
               minWidth: level === 1 ? 36 : 18,
-              color: isSelected ? 'secondary.main' : 'text.primary',
+              color: isSelected ? '#8b5cf6' : 'text.primary',
               ...(!drawerOpen &&
                 level === 1 && {
-                  borderRadius: `${borderRadius}px`,
+                  borderRadius: '12px',
                   width: 46,
                   height: 46,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  bgcolor: isSelected ? (isDark ? 'rgba(255,255,255,0.12)' : 'secondary.light') : 'transparent',
-                  ...(isSelected ? {} : { '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'secondary.light' } })
+                  bgcolor: isSelected ? (isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.08)') : 'transparent',
+                  boxShadow: isSelected ? (isDark ? '0 4px 12px rgba(139, 92, 246, 0.2)' : '0 4px 12px rgba(139, 92, 246, 0.15)') : 'none',
+                  ...(isSelected ? {} : { '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(139, 92, 246, 0.06)' } })
                 })
           }}
           >
@@ -130,7 +131,9 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                   ref={ref}
                   variant={isSelected ? 'h5' : 'body1'}
                   sx={{
-                    color: 'inherit'
+                    color: isSelected ? '#8b5cf6' : 'inherit',
+                    fontWeight: isSelected ? 700 : 500,
+                    letterSpacing: isSelected ? '-0.01em' : 'normal'
                   }}
                 >
                   {item.title}

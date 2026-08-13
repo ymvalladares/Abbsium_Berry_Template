@@ -12,7 +12,7 @@ function openedMixin(theme) {
     zIndex: 1099,
     background: theme.vars.palette.background.paper,
     overflowX: 'hidden',
-    boxShadow: 'none',
+
     display: 'flex',
     flexDirection: 'column',
     transition: theme.transitions.create('width', {
@@ -23,6 +23,7 @@ function openedMixin(theme) {
 }
 
 function closedMixin(theme) {
+  console.log('closedMixin theme:', theme);
   return {
     borderRight: 'none',
     zIndex: 1099,
@@ -31,6 +32,7 @@ function closedMixin(theme) {
     width: 72,
     display: 'flex',
     flexDirection: 'column',
+    boxShadow: theme.palette.mode === 'dark' ? '4px 0 24px rgba(0,0,0,0.4)' : '4px 0 24px rgba(0,0,0,0.04)',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen + 200

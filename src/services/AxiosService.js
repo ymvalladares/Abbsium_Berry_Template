@@ -247,6 +247,15 @@ export const socialAPI = {
   }
 };
 
+export const clippingAPI = {
+  createJob: (videoUrl, maxClips, minDuration, maxDuration) =>
+    api.post('/Clipping/create', { videoUrl, maxClips, minClipDuration: minDuration, maxClipDuration: maxDuration }),
+  getJobs: () => api.get('/Clipping/jobs'),
+  getJob: (jobId) => api.get(`/Clipping/job/${jobId}`),
+  deleteJob: (jobId) => api.delete(`/Clipping/job/${jobId}`),
+  cleanupPublishedClips: (jobId) => api.post(`/Clipping/job/${jobId}/cleanup`)
+};
+
 export const dealerAPI = {
   getAll: () => api.get('/Dealer/All-Dealers'),
   getById: (id) => api.get(`/Dealer/ById/${id}`),

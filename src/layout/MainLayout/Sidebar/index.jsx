@@ -5,6 +5,7 @@ import Chip from '@mui/material/Chip';
 import Drawer from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
+import { useTheme, alpha } from '@mui/material/styles';
 
 // project imports
 import MenuCard from './MenuCard';
@@ -21,7 +22,9 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
 function Sidebar() {
-  const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const downMD = useMediaQuery(theme.breakpoints.down('md'));
 
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
@@ -44,7 +47,7 @@ function Sidebar() {
       <>
         <MenuCard />
         <Stack direction="row" sx={{ justifyContent: 'center', mb: 2 }}>
-          <Chip label={import.meta.env.VITE_APP_VERSION} size="small" color="default" />
+          <Chip label={import.meta.env.VITE_APP_VERSION} size="large" color="default" />
         </Stack>
       </>
     );
@@ -64,6 +67,10 @@ function Sidebar() {
     );
   }, [downMD, drawerOpen]);
 
+  const sidebarBg = 'theme.palette.background.paper';
+  const sidebarBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+  const sidebarShadow = isDark ? '4px 0 24px rgba(0,0,0,0.4)' : '4px 0 24px rgba(0,0,0,0.04)';
+
   return (
     <Box component="nav" sx={{ flexShrink: { md: 0 }, width: { xs: 'auto', md: drawerWidth } }} aria-label="mailbox folders">
       {downMD || (miniDrawer && drawerOpen) ? (
@@ -78,9 +85,10 @@ function Sidebar() {
                 mt: downMD ? 0 : 11,
                 zIndex: 1099,
                 width: drawerWidth,
-                bgcolor: 'background.paper',
+                background: sidebarBg,
                 color: 'text.primary',
-                borderRight: 'none',
+                borderRight: `1px solid ${sidebarBorder}`,
+                boxShadow: sidebarShadow,
                 display: 'flex',
                 flexDirection: 'column'
               }
