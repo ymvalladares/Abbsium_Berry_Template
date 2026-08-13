@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Box, Typography, IconButton, Dialog, DialogContent, TextField, Button, alpha, Tooltip, CircularProgress } from '@mui/material';
+import { useState, useRef } from 'react';
+import { Box, Typography, IconButton, Dialog, DialogContent, TextField, Button, Tooltip, CircularProgress } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { Close, CloudUpload, CalendarToday, AccessTime, CheckCircle } from '@mui/icons-material';
 import { PLATFORMS } from '../constants';
+import { glassCard } from '../aiUi';
 import { socialAPI } from '../../../../services/AxiosService';
 import { useNotification } from 'contexts/NotificationContext';
 
@@ -128,7 +129,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
       transition: 'all 0.2s ease',
       '& fieldset': { borderColor: isDark ? '#475569' : '#E5E7EB' },
       '&:hover fieldset': { borderColor: isDark ? '#64748b' : '#D1D5DB' },
-      '&.Mui-focused fieldset': { borderColor: '#5E35B1', borderWidth: '2px' }
+      '&.Mui-focused fieldset': { borderColor: '#3b82f6', borderWidth: '2px' }
     }
   };
 
@@ -161,7 +162,8 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          bgcolor: isDark ? '#111827' : undefined
+          ...glassCard(isDark),
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`,
         }
       }}
     >
@@ -192,7 +194,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
             bgcolor: selectedFile ? (isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.05)') : (isDark ? '#1e293b' : '#FAFAFA'),
             cursor: 'pointer',
             transition: 'all 0.2s',
-            '&:hover': { borderColor: selectedFile ? '#10b981' : '#5E35B1', bgcolor: selectedFile ? (isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.08)') : (isDark ? 'rgba(94,53,177,0.1)' : '#F5F3FF') }
+            '&:hover': { borderColor: selectedFile ? '#10b981' : '#3b82f6', bgcolor: selectedFile ? (isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.08)') : (isDark ? 'rgba(59,130,246,0.1)' : '#dbeafe') }
           }}
         >
           <input type="file" ref={fileInputRef} hidden accept="video/*,image/*" onChange={handleFileChange} />
@@ -213,7 +215,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
 
         {/* PLATFORMS */}
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: isDark ? '#e2e8f0' : '#374151' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: isDark ? '#e2e8f0' : '#374151', }}>
             Platforms
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -228,17 +230,17 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
                       borderRadius: '12px',
                       cursor: 'pointer',
                       border: '1px solid',
-                      borderColor: isSelected ? '#5E35B1' : (isDark ? '#475569' : '#E5E7EB'),
-                      bgcolor: isSelected ? (isDark ? 'rgba(94,53,177,0.2)' : 'rgba(94,53,177,0.08)') : 'transparent',
+                      borderColor: isSelected ? '#3b82f6' : (isDark ? '#475569' : '#E5E7EB'),
+                      bgcolor: isSelected ? (isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.08)') : 'transparent',
                       transition: 'all 0.2s',
                       position: 'relative',
-                      boxShadow: isSelected ? (isDark ? '0 0 0 1px #5E35B1' : '0 0 0 1px #5E35B1') : 'none',
-                      '&:hover': { borderColor: isSelected ? '#5E35B1' : (isDark ? '#94a3b8' : '#9CA3AF') }
+                      boxShadow: isSelected ? (isDark ? '0 0 0 1px #3b82f6' : '0 0 0 1px #3b82f6') : 'none',
+                      '&:hover': { borderColor: isSelected ? '#3b82f6' : (isDark ? '#94a3b8' : '#9CA3AF') }
                     }}
                   >
-                    <p.icon size={22} style={{ color: isSelected ? '#5E35B1' : (isDark ? '#64748b' : '#9CA3AF') }} />
+                    <p.icon size={22} style={{ color: isSelected ? '#3b82f6' : (isDark ? '#64748b' : '#9CA3AF') }} />
                     {isSelected && (
-                      <CheckCircle sx={{ fontSize: 12, color: '#5E35B1', position: 'absolute', top: -3, right: -3, bgcolor: isDark ? '#111827' : '#fff', borderRadius: '50%' }} />
+                      <CheckCircle sx={{ fontSize: 12, color: '#3b82f6', position: 'absolute', top: -3, right: -3, bgcolor: isDark ? '#111827' : '#fff', borderRadius: '50%' }} />
                     )}
                   </Box>
                 </Tooltip>
@@ -281,7 +283,7 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
         {/* UPLOAD PROGRESS */}
         {uploading && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <CircularProgress size={20} sx={{ color: '#5E35B1' }} />
+            <CircularProgress size={20} sx={{ color: '#3b82f6' }} />
             <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
               Uploading... {uploadProgress}%
             </Typography>
@@ -305,8 +307,8 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
             px: { xs: 4, sm: 3 },
             py: { xs: 1, sm: 'auto' },
             fontWeight: 600,
-            bgcolor: '#5E35B1',
-            '&:hover': { bgcolor: '#4C2A8E' }
+            bgcolor: '#3b82f6',
+            '&:hover': { bgcolor: '#2563eb' }
           }}
         >
           {uploading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Schedule Post'}

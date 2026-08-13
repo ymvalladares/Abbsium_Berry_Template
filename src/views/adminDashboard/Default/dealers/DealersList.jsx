@@ -19,7 +19,6 @@ import {
   Card,
   CardContent,
   Grid,
-  useTheme,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -28,7 +27,6 @@ import {
   FormControl,
   InputLabel,
   Select,
-  LinearProgress,
   Stack,
   Menu,
   Skeleton
@@ -44,51 +42,61 @@ import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import PeopleIcon from '@mui/icons-material/People';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import api from 'services/AxiosService';
 
-const StatsCard = ({ title, value, subtitle, trend, trendValue, iconBgColor, icon: Icon }) => {
-  const theme = useTheme();
+import {
+  AuroraLayer,
+  glassCard,
+  glassInput,
+  gradientText,
+  gradientButton,
+  gradientIconBox,
+  glowShadow,
+  GRADIENT_MAIN,
+  GRADIENT_DANGER
+} from './aiUi';
+
+const ACCENT_RGB = '59,130,246';
+
+const dialogSx = (isDark) => ({
+  ...glassCard(isDark),
+  borderRadius: '24px',
+  p: 1.5,
+  boxShadow: isDark
+    ? '0 32px 80px -20px rgba(2,6,23,0.85), inset 0 1px 0 rgba(255,255,255,0.08)'
+    : '0 32px 80px -24px rgba(30,58,138,0.3), inset 0 1px 0 rgba(255,255,255,0.95)'
+});
+
+const StatsCard = ({ title, value, subtitle, trend, trendValue, color, isDark, icon: Icon }) => {
   const isPositive = trend === 'up';
 
   return (
-    <Card
-      sx={{ height: '100%', border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 3, bgcolor: 'background.paper' }}
-    >
-      <CardContent sx={{ p: 2.5 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+    <Card elevation={0} sx={{ ...glassCard(isDark), height: '100%' }}>
+      <CardContent sx={{ p: 2.5, position: 'relative', zIndex: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.45rem', md: '1.75rem' }, color: 'text.heading', lineHeight: 1.1 }}>
+            <Typography sx={{ ...gradientText, fontWeight: 800, fontSize: { xs: '1.45rem', md: '1.75rem' }, lineHeight: 1.1, letterSpacing: '-0.03em' }}>
               {value}
             </Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.3 }}>{title}</Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.3, fontWeight: 600 }}>{title}</Typography>
             <Typography sx={{ color: 'text.disabled', fontSize: '0.75rem', mt: 0.3 }}>{subtitle}</Typography>
             {trendValue && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.8 }}>
                 {isPositive ? (
-                  <TrendingUpIcon sx={{ fontSize: 15, color: 'success.main' }} />
+                  <TrendingUpIcon sx={{ fontSize: 15, color: '#34d399' }} />
                 ) : (
-                  <TrendingDownIcon sx={{ fontSize: 15, color: 'error.main' }} />
+                  <TrendingDownIcon sx={{ fontSize: 15, color: '#fb7185' }} />
                 )}
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: isPositive ? 'success.main' : 'error.main' }}>
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: isPositive ? '#34d399' : '#fb7185' }}>
                   {trendValue} this week
                 </Typography>
               </Box>
             )}
           </Box>
-          <Box
-            sx={{
-              width: 42,
-              height: 42,
-              borderRadius: 2,
-              bgcolor: iconBgColor,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
+          <Box sx={gradientIconBox(42, '12px', GRADIENT_MAIN, ACCENT_RGB)}>
             <Icon sx={{ color: '#fff', fontSize: 21 }} />
           </Box>
         </Box>
@@ -98,21 +106,20 @@ const StatsCard = ({ title, value, subtitle, trend, trendValue, iconBgColor, ico
 };
 
 const TH = ({ children, align = 'left' }) => {
-  const { mode } = useColorScheme();
-  const isDark = mode === 'dark';
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   return (
     <TableCell
       align={align}
       sx={{
-        fontWeight: 600,
-        fontSize: '0.75rem',
+        fontWeight: 800,
+        fontSize: '0.72rem',
         textTransform: 'uppercase',
         letterSpacing: '0.06em',
-        color: 'text.secondary',
+        color: isDark ? '#e2e8f0' : '#334155',
         py: 1.5,
-        bgcolor: isDark ? 'grey.900' : 'grey.100',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
+        bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
+        borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`,
         whiteSpace: 'nowrap'
       }}
     >
@@ -127,12 +134,13 @@ const StatusChip = ({ active }) => {
       label={active ? 'Active' : 'Inactive'}
       size="small"
       sx={{
-        fontWeight: 600,
+        fontWeight: 700,
         fontSize: '0.72rem',
         borderRadius: '8px',
         bgcolor: active ? 'rgba(20,184,166,0.12)' : 'rgba(107,114,128,0.1)',
         color: active ? '#0D9488' : '#6B7280',
-        border: 'none',
+        border: `1px solid ${active ? 'rgba(13,148,136,0.4)' : 'rgba(107,114,128,0.3)'}`,
+        boxShadow: active ? glowShadow('20,184,166', 0.4, 10) : 'none',
         px: 0.25,
         height: 26
       }}
@@ -143,6 +151,8 @@ const StatusChip = ({ active }) => {
 const RowMenu = ({ dealerName, onEdit, onDelete }) => {
   const [anchor, setAnchor] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const handleDeleteClick = () => {
     setConfirmOpen(true);
@@ -156,26 +166,26 @@ const RowMenu = ({ dealerName, onEdit, onDelete }) => {
 
   return (
     <>
-      <IconButton size="small" onClick={(e) => setAnchor(e.currentTarget)} sx={{ color: 'text.secondary' }}>
+      <IconButton size="small" onClick={(e) => setAnchor(e.currentTarget)} sx={{ color: 'text.secondary', borderRadius: '10px', bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.05)', transition: 'all 0.2s', '&:hover': { color: '#3b82f6', bgcolor: isDark ? 'rgba(59,130,246,0.14)' : 'rgba(59,130,246,0.1)' } }}>
         <MoreVertIcon fontSize="small" />
       </IconButton>
       <Menu
         anchorEl={anchor}
         open={Boolean(anchor)}
         onClose={() => setAnchor(null)}
-        PaperProps={{ elevation: 2, sx: { borderRadius: 2, minWidth: 148, border: '1px solid', borderColor: 'divider' } }}
+        PaperProps={{ elevation: 0, sx: { ...glassCard(isDark), borderRadius: '16px', width: 168, mt: 0.5, py: 0.75 } }}
       >
         <MenuItem
-          sx={{ fontSize: '0.85rem', gap: 1.25 }}
+          sx={{ fontSize: '0.85rem', gap: 1.25, fontWeight: 600, borderRadius: '10px', mx: 0.5, px: 1.25 }}
           onClick={() => {
             setAnchor(null);
             onEdit();
           }}
         >
-          <EditOutlinedIcon sx={{ fontSize: 17, color: 'text.secondary' }} /> Edit
+          <EditOutlinedIcon sx={{ fontSize: 17, color: '#3b82f6' }} /> Edit
         </MenuItem>
         <MenuItem
-          sx={{ fontSize: '0.85rem', gap: 1.25, color: 'error.main' }}
+          sx={{ fontSize: '0.85rem', gap: 1.25, color: 'error.main', fontWeight: 600, borderRadius: '10px', mx: 0.5, px: 1.25 }}
           onClick={handleDeleteClick}
         >
           <DeleteOutlineIcon sx={{ fontSize: 17 }} /> Delete
@@ -183,11 +193,13 @@ const RowMenu = ({ dealerName, onEdit, onDelete }) => {
       </Menu>
 
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        PaperProps={{ sx: dialogSx(isDark) }}
       >
-        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <WarningAmberRoundedIcon color="warning" />
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={gradientIconBox(36, '10px', GRADIENT_DANGER, '239,68,68')}>
+              <WarningAmberRoundedIcon sx={{ fontSize: 18, color: '#fff' }} />
+            </Box>
             Delete Dealer?
           </Box>
         </DialogTitle>
@@ -197,9 +209,9 @@ const RowMenu = ({ dealerName, onEdit, onDelete }) => {
           </Typography>
         </DialogContent>
         <Box sx={{ px: 3, py: 2, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
-          <Button onClick={() => setConfirmOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+          <Button onClick={() => setConfirmOpen(false)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>Cancel</Button>
           <Button variant="contained" color="error" onClick={handleConfirmDelete}
-            sx={{ textTransform: 'none', fontWeight: 600 }}>Delete</Button>
+            sx={{ ...gradientButton(GRADIENT_DANGER, '239,68,68'), textTransform: 'none', fontWeight: 700 }}>Delete</Button>
         </Box>
       </Dialog>
     </>
@@ -207,9 +219,8 @@ const RowMenu = ({ dealerName, onEdit, onDelete }) => {
 };
 
 export default function DealersList() {
-  const theme = useTheme();
-  const { mode } = useColorScheme();
-  const isDark = mode === 'dark';
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const notify = useNotification();
 
   const [dealers, setDealers] = useState([]);
@@ -350,30 +361,6 @@ export default function DealersList() {
     fetchDealers();
   };
 
-  const inputStyle = {
-    '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
-      bgcolor: isDark ? '#1e293b' : '#f8fafc',
-      transition: 'all 0.2s ease',
-      '& fieldset': { borderColor: isDark ? '#374151' : '#e2e8f0', borderWidth: '1.5px' },
-      '&:hover fieldset': { borderColor: isDark ? '#4B5563' : '#cbd5e1' },
-      '&.Mui-focused fieldset': {
-        borderColor: '#5E35B1',
-        borderWidth: '2px',
-        boxShadow: isDark ? 'none' : '0 0 0 3px rgba(94,53,177,0.1)'
-      },
-      '& input, & textarea': {
-        py: 1.5,
-        fontSize: '0.9rem',
-        color: isDark ? '#f1f5f9' : '#0f172a'
-      }
-    },
-    '& .MuiInputLabel-root': {
-      color: isDark ? '#94a3b8' : '#64748b',
-      '&.Mui-focused': { color: '#5E35B1' }
-    }
-  };
-
   const stats = [
     {
       title: 'Total Dealers',
@@ -402,18 +389,24 @@ export default function DealersList() {
     { title: 'Total Users', value: '—', change: '', subtitle: 'Across all dealers', color: '#fbbf24', isPositive: true }
   ];
 
+  const checkboxSx = { color: '#3b82f6', '&.Mui-checked': { color: '#3b82f6' } };
+
   return (
-    <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
+    <Box sx={{ position: 'relative', py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
+      {/* ===== AURORA / AMBIENT BACKGROUND ===== */}
+      <AuroraLayer isDark={isDark} />
+
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Box>
           {loading ? (
             <>
-              <Skeleton variant="text" width={180} height={32} sx={{ mb: 0.5 }} />
-              <Skeleton variant="text" width={120} height={20} />
+              <Skeleton variant="text" width={180} height={32} sx={{ mb: 0.5, bgcolor: 'rgba(148,163,184,0.18)' }} />
+              <Skeleton variant="text" width={120} height={20} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
             </>
           ) : (
             <>
-              <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', sm: '1.5rem' }, color: 'text.primary' }}>Manage Dealers</Typography>
+              <Typography sx={{ ...gradientText, fontWeight: 800, fontSize: { xs: '1.15rem', sm: '1.5rem' }, letterSpacing: '-0.02em' }}>Manage Dealers</Typography>
               <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25 }}>{dealers.length} dealer(s) registered</Typography>
             </>
           )}
@@ -424,15 +417,15 @@ export default function DealersList() {
         {loading ? (
           stats.map((stat, index) => (
             <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card sx={{ height: '100%', border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 3, bgcolor: 'background.paper' }}>
+              <Card elevation={0} sx={{ ...glassCard(isDark), height: '100%' }}>
                 <CardContent sx={{ p: 2.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Box sx={{ width: '100%' }}>
-                      <Skeleton variant="text" width={100} height={32} sx={{ mb: 1 }} />
-                      <Skeleton variant="text" width={80} height={20} sx={{ mb: 0.5 }} />
-                      <Skeleton variant="text" width={120} height={16} />
+                      <Skeleton variant="text" width={100} height={32} sx={{ mb: 1, bgcolor: 'rgba(148,163,184,0.18)' }} />
+                      <Skeleton variant="text" width={80} height={20} sx={{ mb: 0.5, bgcolor: 'rgba(148,163,184,0.18)' }} />
+                      <Skeleton variant="text" width={120} height={16} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                     </Box>
-                    <Skeleton variant="rounded" width={42} height={42} sx={{ borderRadius: 2 }} />
+                    <Skeleton variant="rounded" width={42} height={42} sx={{ borderRadius: 2, bgcolor: 'rgba(148,163,184,0.18)' }} />
                   </Box>
                 </CardContent>
               </Card>
@@ -441,15 +434,15 @@ export default function DealersList() {
         ) : (
           stats.map((stat, index) => (
           <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
-            <StatsCard {...stat} icon={StorefrontIcon} />
+            <StatsCard {...stat} icon={StorefrontIcon} isDark={isDark} />
           </Grid>
           ))
         )}
       </Grid>
 
       {!loading && (
-        <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', mb: 0 }}>
-        <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Card elevation={0} sx={{ ...glassCard(isDark), mb: 0, boxShadow: 'none' }}>
+        <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)', position: 'relative', zIndex: 1 }}>
           <Box
             sx={{
               display: { xs: 'flex', sm: 'flex' },
@@ -471,10 +464,10 @@ export default function DealersList() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                      <SearchIcon sx={{ fontSize: 18, color: '#3b82f6' }} />
                     </InputAdornment>
                   ),
-                  sx: { borderRadius: 2, bgcolor: 'background.default', '& fieldset': { border: 'none' } }
+                  sx: { borderRadius: '12px', bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)', '& fieldset': { border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}` }, '&:hover fieldset': { borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)' }, '&.Mui-focused fieldset': { borderColor: '#3b82f6', borderWidth: '1.5px' } }
                 }}
                 sx={{ minWidth: { sm: 220, md: 260 } }}
               />
@@ -489,24 +482,27 @@ export default function DealersList() {
                   displayEmpty
                   IconComponent={() => null}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: '12px',
                     fontSize: '0.85rem',
-                    bgcolor: 'background.default',
-                    '& fieldset': { border: 'none' },
+                    bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)',
+                    '& fieldset': { border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}` },
+                    '&:hover fieldset': { borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)' },
+                    '&.Mui-focused fieldset': { borderColor: '#3b82f6', borderWidth: '1.5px' },
                     '& .MuiSelect-select': { pl: 2, pr: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }
                   }}
-                  renderValue={(selected) => (
+                  renderValue={(selectedValue) => (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box
                         sx={{
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          bgcolor: statusFilter === 'All' ? 'text.secondary' : statusFilter === 'Active' ? 'success.main' : 'error.main'
+                          bgcolor: statusFilter === 'All' ? 'text.secondary' : statusFilter === 'Active' ? '#10b981' : '#ef4444',
+                          boxShadow: statusFilter === 'All' ? 'none' : glowShadow(statusFilter === 'Active' ? '16,185,129' : '239,68,68', 0.6, 6)
                         }}
                       />
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {selected === 'All' ? 'All Status' : selected}
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {selectedValue === 'All' ? 'All Status' : selectedValue}
                       </Typography>
                     </Box>
                   )}
@@ -519,13 +515,13 @@ export default function DealersList() {
                   </MenuItem>
                   <MenuItem value="Active">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
                       Active
                     </Box>
                   </MenuItem>
                   <MenuItem value="Inactive">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444' }} />
                       Inactive
                     </Box>
                   </MenuItem>
@@ -539,14 +535,15 @@ export default function DealersList() {
                 onClick={handleDeleteSelected}
                 sx={{
                   textTransform: 'none',
-                  color: 'error.main',
-                  fontWeight: 600,
+                  color: '#ef4444',
+                  fontWeight: 800,
                   fontSize: '0.82rem',
-                  borderRadius: 2,
+                  borderRadius: '10px',
                   px: 1.5,
                   border: '1px solid',
-                  borderColor: 'error.main',
-                  '&:hover': { bgcolor: 'error.main', color: '#fff' }
+                  borderColor: 'rgba(239,68,68,0.5)',
+                  bgcolor: 'rgba(239,68,68,0.06)',
+                  '&:hover': { bgcolor: '#ef4444', color: '#fff', boxShadow: glowShadow('239,68,68', 0.5, 16) }
                 }}
               >
                 Delete Selected ({selected.length})
@@ -560,43 +557,43 @@ export default function DealersList() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell padding="checkbox" sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider', pl: 2, minWidth: 120 }}>
+                  <TableCell padding="checkbox" sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`, pl: 2, minWidth: 120 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Skeleton variant="circular" width={20} height={20} />
-                      <Skeleton variant="text" width={30} height={16} />
+                      <Skeleton variant="circular" width={20} height={20} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
+                      <Skeleton variant="text" width={30} height={16} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={60} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={120} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={60} /></TableCell>
-                  <TableCell align="right" sx={{ bgcolor: isDark ? 'grey.900' : 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={30} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={60} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={120} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={60} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell align="right" sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={30} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Skeleton variant="circular" width={20} height={20} />
-                        <Skeleton variant="text" width={60} height={16} />
+                        <Skeleton variant="circular" width={20} height={20} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
+                        <Skeleton variant="text" width={60} height={16} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                       </Box>
                     </TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                       <Stack direction="row" spacing={1.75} alignItems="center">
-                        <Skeleton variant="rounded" width={48} height={48} sx={{ borderRadius: 2 }} />
+                        <Skeleton variant="rounded" width={48} height={48} sx={{ borderRadius: 2, bgcolor: 'rgba(148,163,184,0.18)' }} />
                         <Box>
-                          <Skeleton variant="text" width={100} height={20} />
-                          <Skeleton variant="text" width={80} height={16} />
+                          <Skeleton variant="text" width={100} height={20} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
+                          <Skeleton variant="text" width={80} height={16} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                         </Box>
                       </Stack>
                     </TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={120} /></TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="text" width={80} /></TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="rounded" width={60} height={26} sx={{ borderRadius: '8px' }} /></TableCell>
-                    <TableCell align="right" sx={{ pr: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}><Skeleton variant="circular" width={32} height={32} /></TableCell>
+                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="text" width={120} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="rounded" width={60} height={26} sx={{ borderRadius: '8px', bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell align="right" sx={{ pr: 1.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="circular" width={32} height={32} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -608,16 +605,15 @@ export default function DealersList() {
                 <TableCell
                   padding="checkbox"
                   sx={{
-                    bgcolor: isDark ? 'grey.900' : 'grey.100',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
+                    bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
+                    borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`,
                     pl: 2,
                     minWidth: 120
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Checkbox size="small" checked={allSelected} indeterminate={selected.length > 0 && !allSelected} onChange={toggleAll} />
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
+                    <Checkbox size="small" sx={checkboxSx} checked={allSelected} indeterminate={selected.length > 0 && !allSelected} onChange={toggleAll} />
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#e2e8f0' : '#334155', fontSize: '0.75rem', letterSpacing: '0.06em' }}>
                       ID
                     </Typography>
                   </Box>
@@ -636,43 +632,45 @@ export default function DealersList() {
                   key={item.id}
                   selected={selected.includes(item.id)}
                   sx={{
-                    '&:hover': { '& td': { bgcolor: isDark ? '#1a202c' : '#f8fafc' } },
+                    '&:hover': { '& td': { bgcolor: isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.045)' } },
                     '&:last-child td': { borderBottom: 0 },
-                    '&.Mui-selected': { '& td': { bgcolor: 'rgba(99,102,241,0.15)' } },
-                    '& td': { bgcolor: 'background.paper', transition: 'background-color 0.15s ease' }
+                    '&.Mui-selected': { '& td': { bgcolor: 'rgba(59,130,246,0.12)' } },
+                    '& td': { transition: 'background-color 0.15s ease' }
                   }}
                 >
-                  <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Checkbox size="small" checked={selected.includes(item.id)} onChange={() => toggleRow(item.id)} />
+                      <Checkbox size="small" sx={checkboxSx} checked={selected.includes(item.id)} onChange={() => toggleRow(item.id)} />
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 600, fontFamily: 'monospace', color: 'primary.main', fontSize: '0.78rem' }}
+                        sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#3b82f6', fontSize: '0.78rem' }}
                       >
                         {item.id.toString().slice(0, 8)}
                       </Typography>
                     </Box>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                     <Stack direction="row" spacing={1.75} alignItems="center">
-                      <Avatar
-                        variant="rounded"
-                        src={item.logo}
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          bgcolor: item.primaryColor || '#9b87f5',
-                          color: '#fff',
-                          fontWeight: 700,
-                          fontSize: '1.1rem'
-                        }}
-                      >
-                        {!item.logo && item.name.charAt(0).toUpperCase()}
-                      </Avatar>
+                      <Box sx={{ position: 'relative', borderRadius: '12px', p: '2px', backgroundImage: GRADIENT_MAIN, boxShadow: glowShadow(ACCENT_RGB, 0.4, 10), lineHeight: 0 }}>
+                        <Avatar
+                          variant="rounded"
+                          src={item.logo}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '10px',
+                            bgcolor: item.primaryColor || '#3b82f6',
+                            color: '#fff',
+                            fontWeight: 700,
+                            fontSize: '1.1rem'
+                          }}
+                        >
+                          {!item.logo && item.name.charAt(0).toUpperCase()}
+                        </Avatar>
+                      </Box>
                       <Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: 'text.primary', lineHeight: 1.3 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: 'text.primary', lineHeight: 1.3 }}>
                           {item.name}
                         </Typography>
                         {item.primaryColor && (
@@ -684,7 +682,7 @@ export default function DealersList() {
                                 borderRadius: 1,
                                 bgcolor: item.primaryColor,
                                 border: '1px solid',
-                                borderColor: 'divider'
+                                borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(59,130,246,0.2)'
                               }}
                             />
                             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Brand color</Typography>
@@ -694,32 +692,32 @@ export default function DealersList() {
                     </Stack>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Typography sx={{ fontSize: '0.85rem', color: 'primary.main', fontWeight: 500 }}>{item.domain}</Typography>
+                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: 600 }}>{item.domain}</Typography>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                     <Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>{item.ownerEmail}</Typography>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Typography sx={{ fontSize: '0.85rem', color: 'text.primary', fontWeight: 500 }}>
+                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                    <Typography sx={{ fontSize: '0.85rem', color: 'text.primary', fontWeight: 600 }}>
                       {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </Typography>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                     <StatusChip active={item.isActive} />
                   </TableCell>
 
-                  <TableCell align="right" sx={{ pr: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <TableCell align="right" sx={{ pr: 1.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                     <RowMenu dealerName={item.name} onEdit={() => openEditDialog(item)} onDelete={() => handleDelete(item.id)} />
                   </TableCell>
                 </TableRow>
               ))}
               {paginated.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 6, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 6, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
                     <StorefrontIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
                       {search || statusFilter !== 'All' ? 'No dealers match your filters' : 'No dealers registered yet'}
@@ -744,7 +742,7 @@ export default function DealersList() {
               setPage(0);
             }}
             rowsPerPageOptions={[5, 10, 25]}
-            sx={{ borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', '& .MuiTablePagination-toolbar': { px: 2 } }}
+            sx={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)', '& .MuiTablePagination-toolbar': { px: 2 } }}
           />
         )}
       </Card>
@@ -752,11 +750,13 @@ export default function DealersList() {
 
       {/* Bulk Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} maxWidth="xs" fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        PaperProps={{ sx: dialogSx(isDark) }}
       >
-        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <WarningAmberRoundedIcon color="warning" />
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={gradientIconBox(36, '10px', GRADIENT_DANGER, '239,68,68')}>
+              <WarningAmberRoundedIcon sx={{ fontSize: 18, color: '#fff' }} />
+            </Box>
             Delete {pendingDeleteIds?.length} Dealer(s)?
           </Box>
         </DialogTitle>
@@ -766,9 +766,9 @@ export default function DealersList() {
           </Typography>
         </DialogContent>
         <Box sx={{ px: 3, py: 2, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
-          <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+          <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>Cancel</Button>
           <Button variant="contained" color="error" onClick={handleConfirmDeleteSelected}
-            sx={{ textTransform: 'none', fontWeight: 600 }}>Delete All</Button>
+            sx={{ ...gradientButton(GRADIENT_DANGER, '239,68,68'), textTransform: 'none', fontWeight: 700 }}>Delete All</Button>
         </Box>
       </Dialog>
 
@@ -778,31 +778,34 @@ export default function DealersList() {
         onClose={() => setOpenDialog(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 5,
-            bgcolor: isDark ? '#1e293b' : '#fff',
-            boxShadow: isDark ? '0 25px 50px rgba(0,0,0,0.5)' : '0 25px 50px rgba(0,0,0,0.15)'
-          }
-        }}
+        PaperProps={{ sx: dialogSx(isDark) }}
       >
-        <DialogTitle sx={{ px: 3, pt: 3, pb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1.25rem', color: 'text.primary' }}>Edit Dealer</Typography>
-            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mt: 0.25 }}>Update dealer information</Typography>
+        <Box sx={{ position: 'sticky', top: 0, zIndex: 5, height: 5, borderRadius: '24px 24px 0 0', backgroundImage: GRADIENT_MAIN, boxShadow: glowShadow(ACCENT_RGB, 0.5, 8) }} />
+        <DialogTitle sx={{ px: 3, pt: 2.5, pb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Avatar sx={{ width: 44, height: 44, backgroundImage: GRADIENT_MAIN, boxShadow: glowShadow(ACCENT_RGB, 0.5, 14), fontWeight: 800 }}>
+              <AutoAwesomeIcon sx={{ fontSize: 22 }} />
+            </Avatar>
+            <Box>
+              <Typography sx={{ ...gradientText, fontWeight: 800, fontSize: '1.25rem' }}>Edit Dealer</Typography>
+              <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mt: 0.25 }}>Update dealer information</Typography>
+            </Box>
           </Box>
           <IconButton
             onClick={() => setOpenDialog(false)}
             sx={{
               color: 'text.secondary',
-              bgcolor: isDark ? '#374151' : '#f1f5f9',
-              '&:hover': { bgcolor: isDark ? '#4B5563' : '#e2e8f0' }
+              borderRadius: '10px',
+              bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(59,130,246,0.05)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(59,130,246,0.2)'}`,
+              transition: 'all 0.2s',
+              '&:hover': { bgcolor: isDark ? 'rgba(251,113,133,0.15)' : 'rgba(251,113,133,0.1)', color: '#fb7185', transform: 'rotate(90deg)' }
             }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <Divider sx={{ borderColor: isDark ? '#374151' : '#e2e8f0' }} />
+        <Divider sx={{ borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(59,130,246,0.1)' }} />
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 3 }}>
             {/* Logo Upload */}
@@ -812,16 +815,17 @@ export default function DealersList() {
                 sx={{
                   width: 80,
                   height: 80,
-                  borderRadius: 3,
-                  border: `2px dashed ${isDark ? '#4B5563' : '#cbd5e1'}`,
+                  borderRadius: '18px',
+                  border: `2px dashed ${isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)'}`,
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  bgcolor: isDark ? '#0f172a' : '#f8fafc',
+                  bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)',
                   overflow: 'hidden',
                   transition: 'all 0.2s ease',
-                  '&:hover': { borderColor: '#5E35B1', bgcolor: isDark ? 'rgba(94,53,177,0.08)' : 'rgba(94,53,177,0.03)' }
+                  boxShadow: glowShadow(ACCENT_RGB, 0.15, 14),
+                  '&:hover': { borderColor: '#3b82f6', bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)' }
                 }}
               >
                 <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleLogoUpload} />
@@ -842,7 +846,7 @@ export default function DealersList() {
                   placeholder="e.g. AutoMax Motors"
                   value={dealerForm.name}
                   onChange={handleFormChange('name')}
-                  sx={inputStyle}
+                  sx={glassInput(isDark)}
                   required
                 />
               </Grid>
@@ -854,7 +858,7 @@ export default function DealersList() {
                   placeholder="e.g. automax"
                   value={dealerForm.domain}
                   onChange={handleFormChange('domain')}
-                  sx={inputStyle}
+                  sx={glassInput(isDark)}
                   required
                 />
               </Grid>
@@ -865,7 +869,7 @@ export default function DealersList() {
                     label="Primary Color"
                     value={dealerForm.primaryColor}
                     onChange={handleFormChange('primaryColor')}
-                    sx={inputStyle}
+                    sx={glassInput(isDark)}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -890,13 +894,13 @@ export default function DealersList() {
                   type="email"
                   value={dealerForm.ownerEmail}
                   onChange={handleFormChange('ownerEmail')}
-                  sx={inputStyle}
+                  sx={glassInput(isDark)}
                   required
                 />
               </Grid>
 
               <Grid size={{ xs: 12 }}>
-                <FormControl fullWidth sx={inputStyle}>
+                <FormControl fullWidth sx={glassInput(isDark)}>
                   <InputLabel>Status</InputLabel>
                   <Select
                     value={dealerForm.isActive ? 'Active' : 'Inactive'}
@@ -916,8 +920,7 @@ export default function DealersList() {
           sx={{
             px: 3,
             py: 2,
-            borderTop: '1px solid',
-            borderColor: isDark ? '#374151' : '#e2e8f0',
+            borderTop: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(59,130,246,0.1)',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 1.5
@@ -926,12 +929,12 @@ export default function DealersList() {
           <Button
             onClick={() => setOpenDialog(false)}
             sx={{
-              borderRadius: 2,
+              borderRadius: '10px',
               textTransform: 'none',
-              fontWeight: 600,
+              fontWeight: 700,
               px: 3,
               color: 'text.secondary',
-              '&:hover': { bgcolor: isDark ? '#374151' : '#f1f5f9' }
+              '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(59,130,246,0.06)', color: '#3b82f6' }
             }}
           >
             Cancel
@@ -940,20 +943,13 @@ export default function DealersList() {
             variant="contained"
             onClick={handleSubmit}
             startIcon={<CheckCircleIcon />}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
-              boxShadow: '0 4px 14px rgba(94,53,177,0.3)',
-              '&:hover': { boxShadow: '0 6px 20px rgba(94,53,177,0.4)' }
-            }}
+            sx={{ ...gradientButton(), px: 3 }}
           >
             Update Dealer
           </Button>
         </Box>
       </Dialog>
+      </Box>
     </Box>
   );
 }

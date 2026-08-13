@@ -36,7 +36,7 @@ const OpenAIResponseDisplay = ({ markdownContent }) => {
             return <img {...props} style={{ maxWidth: '100%', borderRadius: 8, margin: '10px 0' }} />;
           },
           a({ node, ...props }) {
-            return <a {...props} target="_blank" rel="noopener noreferrer" style={{ color: isDark ? '#A78BFA' : '#5E35B1' }} />;
+            return <a {...props} target="_blank" rel="noopener noreferrer" style={{ color: isDark ? '#93c5fd' : '#2563eb' }} />;
           }
         }}
       >

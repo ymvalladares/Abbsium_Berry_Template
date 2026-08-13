@@ -11,11 +11,11 @@ export default function EventPill({ event, onClick, compact }) {
   const Icon = event.platformIcon || IconPhoto;
 
   const bgColor = isScheduled
-    ? (isDark ? alpha('#5E35B1', 0.15) : alpha('#5E35B1', 0.08))
+    ? (isDark ? alpha('#3b82f6', 0.15) : alpha('#3b82f6', 0.08))
     : (isDark ? alpha(platformColor, 0.12) : alpha(platformColor, 0.06));
 
   const textColor = isScheduled
-    ? (isDark ? '#b388ff' : '#5E35B1')
+    ? (isDark ? '#93c5fd' : '#3b82f6')
     : (isDark ? platformColor : platformColor);
 
   return (
@@ -95,7 +95,7 @@ export default function EventPill({ event, onClick, compact }) {
             width: 5,
             height: 5,
             borderRadius: '50%',
-            bgcolor: '#5E35B1',
+            bgcolor: '#3b82f6',
             flexShrink: 0,
             animation: 'pulse 2s infinite',
           }} />

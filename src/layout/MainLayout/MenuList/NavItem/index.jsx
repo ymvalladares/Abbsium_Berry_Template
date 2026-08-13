@@ -16,7 +16,6 @@ import Typography from '@mui/material/Typography';
 
 // project imports
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
-import useConfig from 'hooks/useConfig';
 
 // assets
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -29,9 +28,6 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   const ref = useRef(null);
 
   const { pathname } = useLocation();
-  const {
-    state: { borderRadius }
-  } = useConfig();
 
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
@@ -94,10 +90,10 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
             '&.Mui-selected': { bgcolor: 'transparent' },
             '&.Mui-selected:hover': { bgcolor: 'transparent' },
             ...(drawerOpen && level === 1 && {
-              bgcolor: isSelected ? (isDark ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.08)') : 'transparent',
-              '&:hover': { bgcolor: isDark ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.06)' },
-              '&.Mui-selected': { bgcolor: isSelected ? (isDark ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.08)') : 'transparent' },
-              '&.Mui-selected:hover': { bgcolor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)' }
+              bgcolor: isSelected ? (isDark ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)') : 'transparent',
+              '&:hover': { bgcolor: isDark ? 'rgba(59, 130, 246, 0.08)' : 'rgba(59, 130, 246, 0.06)' },
+              '&.Mui-selected': { bgcolor: isSelected ? (isDark ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)') : 'transparent' },
+              '&.Mui-selected:hover': { bgcolor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)' }
             })
           }}
       >
@@ -105,7 +101,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
           <ListItemIcon
             sx={{
               minWidth: level === 1 ? 36 : 18,
-              color: isSelected ? '#8b5cf6' : 'text.primary',
+              color: isSelected ? '#3b82f6' : 'text.primary',
               ...(!drawerOpen &&
                 level === 1 && {
                   borderRadius: '12px',
@@ -113,9 +109,9 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                   height: 46,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  bgcolor: isSelected ? (isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.08)') : 'transparent',
-                  boxShadow: isSelected ? (isDark ? '0 4px 12px rgba(139, 92, 246, 0.2)' : '0 4px 12px rgba(139, 92, 246, 0.15)') : 'none',
-                  ...(isSelected ? {} : { '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(139, 92, 246, 0.06)' } })
+                  bgcolor: isSelected ? (isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.08)') : 'transparent',
+                  boxShadow: isSelected ? (isDark ? '0 4px 12px rgba(59, 130, 246, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)') : 'none',
+                  ...(isSelected ? {} : { '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59, 130, 246, 0.06)' } })
                 })
           }}
           >
@@ -131,7 +127,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                   ref={ref}
                   variant={isSelected ? 'h5' : 'body1'}
                   sx={{
-                    color: isSelected ? '#8b5cf6' : 'inherit',
+                    color: isSelected ? '#3b82f6' : 'inherit',
                     fontWeight: isSelected ? 700 : 500,
                     letterSpacing: isSelected ? '-0.01em' : 'normal'
                   }}

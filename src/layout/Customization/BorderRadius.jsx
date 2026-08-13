@@ -41,7 +41,7 @@ export default function BorderRadius() {
             max={24}
             color="primary"
             sx={{
-              '& .MuiSlider-valueLabel': { color: isDark ? '#8b5cf6' : 'primary.light' }
+              '& .MuiSlider-valueLabel': { color: isDark ? '#3b82f6' : 'primary.light' }
             }}
           />
         </Grid>

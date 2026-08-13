@@ -43,7 +43,7 @@ const ChatMessage = ({ role, content }) => {
               width: 34,
               height: 34,
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #60a5fa 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -67,7 +67,7 @@ const ChatMessage = ({ role, content }) => {
                 px: 2,
                 py: 1.5,
                 borderRadius: 3,
-                bgcolor: '#7C3AED',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                 color: '#FFF',
                 wordBreak: 'break-word',
                 overflowWrap: 'break-word',
@@ -102,10 +102,10 @@ const ChatMessage = ({ role, content }) => {
                     size="small"
                     onClick={handleCopy}
                     sx={{
-                      color: copied ? '#7C3AED' : '#9CA3AF',
+                      color: copied ? '#3b82f6' : '#9CA3AF',
                       width: 28,
                       height: 28,
-                      '&:hover': { color: isDark ? '#A78BFA' : '#5E35B1', bgcolor: isDark ? '#2D1B69' : '#F5F3FF' }
+                      '&:hover': { color: isDark ? '#93c5fd' : '#2563eb', bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe' }
                     }}
                   >
                     {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}

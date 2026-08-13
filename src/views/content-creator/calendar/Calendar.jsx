@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Box, Typography, Button, IconButton, Paper, alpha, useTheme, useMediaQuery, Chip, CircularProgress, Dialog, Stack
+  Box, Typography, Button, IconButton, Paper, alpha, Chip, CircularProgress, Dialog, Stack
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import {
-  ChevronLeft, ChevronRight, Add, Replay, Close, AccessTime, CalendarToday
+  ChevronLeft, ChevronRight, Add, Replay, Close, AccessTime
 } from '@mui/icons-material';
 import {
-  IconPhoto, IconSend, IconBrandTiktok, IconVideo, IconCheck
+  IconPhoto, IconSend
 } from '@tabler/icons-react';
 import { socialAPI } from '../../../services/AxiosService';
-import { useNotification } from 'contexts/NotificationContext';
 import { PLATFORMS, DAYS_HEADER, MONTHS } from './constants';
-import { getDaysInMonth, getFirstDayOfMonth, formatTime } from './utils';
+import { getDaysInMonth, getFirstDayOfMonth } from './utils';
 import ScheduleDialog from './components/ScheduleDialog';
 import DayCell from './components/DayCell';
+import { AuroraLayer, glassCard, GRADIENT_MAIN } from './aiUi';
 
 const ET_TIMEZONE = 'America/New_York';
 
@@ -33,12 +33,8 @@ function toEasternTime(dateStr, timeStr) {
 }
 
 export default function Calendar() {
-  const theme = useTheme();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  const notify = useNotification();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -48,7 +44,7 @@ export default function Calendar() {
   const [dialogDate, setDialogDate] = useState(null);
   const [detailEvent, setDetailEvent] = useState(null);
   const [historyItems, setHistoryItems] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [loadingHistory] = useState(false);
   const [dayPopupOpen, setDayPopupOpen] = useState(false);
   const [dayPopupEvents, setDayPopupEvents] = useState([]);
   const [dayPopupDate, setDayPopupDate] = useState('');
@@ -164,7 +160,7 @@ export default function Calendar() {
       time: data.time,
       platforms: data.platforms,
       platformIcon: plat?.icon || IconSend,
-      platformColor: plat?.color || '#5E35B1',
+      platformColor: plat?.color || '#3b82f6',
       contentType: data.contentType || 'video',
       isShort: data.isShort || false,
       isScheduled: true,
@@ -200,7 +196,8 @@ export default function Calendar() {
   const publishedCount = currentMonthEvents.filter(e => e.isHistory).length;
 
   return (
-    <Box sx={{ py: { xs: 1, sm: 2, md: 3 }, width: '100%' }}>
+    <Box sx={{ py: { xs: 1, sm: 2, md: 3 }, width: '100%', position: 'relative' }}>
+      <AuroraLayer isDark={isDark} />
       {/* Header */}
       <Box sx={{
         display: 'flex',
@@ -209,13 +206,14 @@ export default function Calendar() {
         alignItems: { xs: 'flex-start', sm: 'center' },
         gap: { xs: 0, sm: 0 },
         mb: { xs: 1.5, sm: 3 },
+        position: 'relative',
       }}>
         <Box>
           <Typography sx={{
             fontWeight: 800,
             fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
             letterSpacing: '-0.5px',
-            background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
+            background: GRADIENT_MAIN,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}>
@@ -237,15 +235,15 @@ export default function Calendar() {
             textTransform: 'none',
             fontWeight: 700,
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
+            background: GRADIENT_MAIN,
             px: { xs: 2, sm: 3 },
             py: { xs: 0.75, sm: 1 },
             fontSize: { xs: '0.8rem', sm: '0.875rem' },
-            boxShadow: '0 4px 14px rgba(94,53,177,0.3)',
+            boxShadow: '0 4px 14px rgba(59,130,246,0.35)',
             alignSelf: { xs: 'flex-end', sm: 'auto' },
             '&:hover': {
-              background: 'linear-gradient(135deg, #4a2c8a, #6a3de8)',
-              boxShadow: '0 6px 20px rgba(94,53,177,0.4)',
+              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              boxShadow: '0 6px 20px rgba(59,130,246,0.45)',
             },
           }}
         >
@@ -255,13 +253,12 @@ export default function Calendar() {
 
       {/* Calendar Card */}
       <Paper elevation={0} sx={{
-        border: '1px solid',
-        borderColor: isDark ? alpha('#fff', 0.08) : alpha('#000', 0.06),
+        ...glassCard(isDark),
+        boxShadow: 'none',
+        border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`,
         borderRadius: { xs: '10px', sm: '16px', md: '20px' },
         overflow: 'hidden',
-        boxShadow: isDark
-          ? '0 4px 24px rgba(0,0,0,0.3)'
-          : '0 4px 24px rgba(0,0,0,0.06)',
+        position: 'relative',
       }}>
         {/* Calendar Navigation */}
         <Box sx={{
@@ -320,9 +317,9 @@ export default function Calendar() {
                 borderColor: isDark ? alpha('#fff', 0.15) : alpha('#000', 0.12),
                 color: 'text.primary',
                 '&:hover': {
-                  borderColor: '#5E35B1',
-                  color: isDark ? '#b388ff' : '#5E35B1',
-                  bgcolor: isDark ? alpha('#5E35B1', 0.1) : alpha('#5E35B1', 0.04),
+                  borderColor: '#3b82f6',
+                  color: isDark ? '#93c5fd' : '#3b82f6',
+                  bgcolor: isDark ? alpha('#3b82f6', 0.1) : alpha('#3b82f6', 0.04),
                 },
               }}
             >
@@ -441,7 +438,8 @@ export default function Calendar() {
         PaperProps={{
           sx: {
             borderRadius: { xs: '12px', sm: '16px' },
-            bgcolor: isDark ? '#1e293b' : undefined,
+            ...glassCard(isDark),
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`,
           },
         }}
       >
@@ -451,17 +449,17 @@ export default function Calendar() {
               {detailEvent?.platformIcon && (
                 <Box sx={{
                   width: 44, height: 44, borderRadius: '12px',
-                  bgcolor: alpha(detailEvent.platformColor || '#5E35B1', isDark ? 0.2 : 0.1),
+                  bgcolor: alpha(detailEvent.platformColor || '#3b82f6', isDark ? 0.2 : 0.1),
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <detailEvent.platformIcon size={22} style={{ color: detailEvent.platformColor || '#5E35B1' }} />
+                  <detailEvent.platformIcon size={22} style={{ color: detailEvent.platformColor || '#3b82f6' }} />
                 </Box>
               )}
               <Box>
                 <Typography sx={{
                   fontWeight: 700,
                   fontSize: '0.85rem',
-                  color: detailEvent?.platformColor || '#5E35B1',
+                  color: detailEvent?.platformColor || '#3b82f6',
                 }}>
                   {detailEvent?.title}
                 </Typography>
@@ -484,14 +482,14 @@ export default function Calendar() {
                 mb: 2,
                 ...(isDark
                   ? {
-                    bgcolor: detailEvent.contentType === 'reel' ? alpha('#E4405F', 0.15) : alpha('#5E35B1', 0.15),
-                    borderColor: detailEvent.contentType === 'reel' ? '#E4405F' : '#5E35B1',
-                    color: detailEvent.contentType === 'reel' ? '#f06292' : '#b388ff',
+                    bgcolor: detailEvent.contentType === 'reel' ? alpha('#E4405F', 0.15) : alpha('#3b82f6', 0.15),
+                    borderColor: detailEvent.contentType === 'reel' ? '#E4405F' : '#3b82f6',
+                    color: detailEvent.contentType === 'reel' ? '#f06292' : '#93c5fd',
                     fontWeight: 600,
                   }
                   : {
-                    bgcolor: detailEvent.contentType === 'reel' ? alpha('#E4405F', 0.1) : alpha('#5E35B1', 0.08),
-                    color: detailEvent.contentType === 'reel' ? '#E4405F' : '#5E35B1',
+                    bgcolor: detailEvent.contentType === 'reel' ? alpha('#E4405F', 0.1) : alpha('#3b82f6', 0.08),
+                    color: detailEvent.contentType === 'reel' ? '#E4405F' : '#3b82f6',
                   })
               }}
             />
@@ -529,8 +527,8 @@ export default function Calendar() {
                 textTransform: 'none',
                 fontWeight: 600,
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
-                boxShadow: '0 4px 14px rgba(94,53,177,0.25)',
+                background: GRADIENT_MAIN,
+                boxShadow: '0 4px 14px rgba(59,130,246,0.25)',
               }}
             >
               View Post
@@ -560,7 +558,8 @@ export default function Calendar() {
         PaperProps={{
           sx: {
             borderRadius: { xs: '12px', sm: '16px' },
-            bgcolor: isDark ? '#1e293b' : undefined,
+            ...glassCard(isDark),
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`,
           },
         }}
       >
@@ -606,21 +605,21 @@ export default function Calendar() {
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     '&:hover': {
-                      borderColor: ev.isScheduled ? '#FF9800' : (ev.platformColor || '#5E35B1'),
-                      bgcolor: isDark ? alpha('#fff', 0.06) : '#f5f3ff',
+                      borderColor: ev.isScheduled ? '#FF9800' : (ev.platformColor || '#3b82f6'),
+                      bgcolor: isDark ? alpha('#fff', 0.06) : '#dbeafe',
                     }
                   }}
                 >
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Box sx={{
                       width: 42, height: 42, borderRadius: 2, flexShrink: 0,
-                      bgcolor: ev.isScheduled ? alpha('#FF9800', 0.1) : alpha(ev.platformColor || '#5E35B1', 0.1),
+                      bgcolor: ev.isScheduled ? alpha('#FF9800', 0.1) : alpha(ev.platformColor || '#3b82f6', 0.1),
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {ev.isScheduled ? (
                         <AccessTime size={22} style={{ color: '#FF9800' }} />
                       ) : (
-                        <PlatIcon size={22} style={{ color: ev.platformColor || '#5E35B1' }} />
+                        <PlatIcon size={22} style={{ color: ev.platformColor || '#3b82f6' }} />
                       )}
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>

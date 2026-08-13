@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { keyframes } from '@mui/system';
@@ -46,7 +46,7 @@ const PricingCallout = () => {
         cursor: 'pointer',
         overflow: 'hidden',
         isolation: 'isolate',
-        bgcolor: hovered ? (isDark ? '#818cf8' : '#6366f1') : (isDark ? '#1E293B' : '#f5f3ff'),
+        bgcolor: hovered ? (isDark ? '#3b82f6' : '#2563eb') : (isDark ? '#1E293B' : '#eff6ff'),
         transition: 'background .25s ease',
 
         // animated gradient border via outline trick
@@ -61,10 +61,10 @@ const PricingCallout = () => {
           borderRadius: '10px',
           padding: '1.5px',
           background: hovered
-            ? 'linear-gradient(90deg,#818cf8,#6366f1,#4f46e5,#818cf8)'
+            ? 'linear-gradient(90deg,#60a5fa,#3b82f6,#2563eb,#60a5fa)'
             : isDark
               ? 'linear-gradient(90deg,#4B5563,#6B7280,#4B5563)'
-              : 'linear-gradient(90deg,#c7d2fe,#a5b4fc,#818cf8,#c7d2fe)',
+              : 'linear-gradient(90deg,#bfdbfe,#93c5fd,#60a5fa,#bfdbfe)',
           backgroundSize: '200% 100%',
           animation: `${borderRun} 2.5s linear infinite`,
           WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
@@ -77,7 +77,7 @@ const PricingCallout = () => {
       <AutoAwesomeIcon
         sx={{
           fontSize: '15px',
-          color: hovered ? '#fff' : (isDark ? '#A5B4FC' : '#6366f1'),
+          color: hovered ? '#fff' : (isDark ? '#93c5fd' : '#2563eb'),
           transition: 'color .25s',
           animation: `${sparkle} 2.2s ease-in-out infinite`,
           flexShrink: 0
@@ -90,7 +90,7 @@ const PricingCallout = () => {
           fontSize: '12.5px',
           fontWeight: 600,
           letterSpacing: '.01em',
-          color: hovered ? '#fff' : (isDark ? '#A5B4FC' : '#4f46e5'),
+          color: hovered ? '#fff' : (isDark ? '#93c5fd' : '#2563eb'),
           userSelect: 'none',
           transition: 'color .25s',
           lineHeight: 1,

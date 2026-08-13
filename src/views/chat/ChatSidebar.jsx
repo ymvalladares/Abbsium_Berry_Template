@@ -1,17 +1,18 @@
 import { useState, useMemo } from 'react';
-import { Box, TextField, InputAdornment, Typography, IconButton, CircularProgress, Badge, Paper, Skeleton } from '@mui/material';
+import { Box, TextField, InputAdornment, Typography, IconButton, Paper, Skeleton } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { Search, Close, Chat, People, Forum } from '@mui/icons-material';
 import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
+import { glassCard } from './aiUi';
 
-const primaryColor = '#8B5CF6';
-const primaryLight = '#F3E8FF';
+const primaryColor = '#3b82f6';
+const primaryLight = '#dbeafe';
 
 const ChatSidebar = ({ isMobile }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const primLight = isDark ? '#2D1B69' : primaryLight;
+  const primLight = isDark ? 'rgba(59,130,246,0.16)' : primaryLight;
   const { isAdmin, conversations, admins, isConnected, isLoading, selectChat, selectedChat } = useChat();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,17 +36,18 @@ const ChatSidebar = ({ isMobile }) => {
     <Paper
       elevation={0}
       sx={{
+        ...glassCard(isDark),
         width: isMobile ? '100%' : '360px',
         minWidth: isMobile ? '100%' : '360px',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        borderRadius: isMobile ? 0 : '12px 0 0 12px',
+        borderRadius: isMobile ? 0 : '16px 0 0 16px',
         border: isMobile ? 'none' : '1px solid',
-        borderColor: 'divider',
+        borderColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)',
         borderRight: isMobile ? 'none' : '1px solid',
-        borderRightColor: 'divider',
-        boxShadow: isMobile ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+        borderRightColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)',
+        boxShadow: 'none',
         overflow: 'hidden',
         touchAction: 'manipulation'
       }}

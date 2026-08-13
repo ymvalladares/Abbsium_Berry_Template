@@ -8,9 +8,9 @@ import {
 import CircularProgress from '@mui/material/CircularProgress';
 import { showSnackbar } from '../../utils/snackbarNotif';
 
-const primaryColor = '#8B5CF6';
-const primaryHover = '#7C3AED';
-const primaryLight = '#F3E8FF';
+const primaryColor = '#3b82f6';
+const primaryHover = '#2563eb';
+const primaryLight = '#dbeafe';
 const greyBorder = '#e2e8f0';
 const greyText = '#64748b';
 
@@ -19,7 +19,7 @@ const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 const MessageBubble = ({ message, isAdmin, onReply, isHighlighted, onDelete, onToggleReaction }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const primLight = isDark ? '#2D1B69' : primaryLight;
+  const primLight = isDark ? 'rgba(59,130,246,0.16)' : primaryLight;
   const textClr = isDark ? '#F1F5F9' : '#0f172a';
   const bgClr = isDark ? '#1E293B' : '#fff';
   const borderClr = isDark ? '#374151' : greyBorder;

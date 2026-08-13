@@ -2,15 +2,16 @@ import { Box, Typography, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { AutoAwesome } from '@mui/icons-material';
 import { PLATFORMS } from '../constants';
+import { GRADIENT_MAIN } from '../aiUi';
 
 export default function PreviewCard({ title, platforms }) {
   if (!title && platforms.length === 0) return null;
   return (
     <Box sx={{ border: '1.5px solid', borderColor: 'divider', borderRadius: '12px', overflow: 'hidden', mt: 1.5 }}>
-      <Box sx={{ height: 3, background: 'linear-gradient(90deg,#5E35B1,#9C72F8)' }} />
+      <Box sx={{ height: 3, background: GRADIENT_MAIN }} />
       <Box sx={{ p: '10px 14px' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mb: 0.8 }}>
-          <AutoAwesome sx={{ fontSize: 12, color: '#5E35B1' }} />
+          <AutoAwesome sx={{ fontSize: 12, color: '#3b82f6' }} />
           <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'text.secondary' }}>Preview</Typography>
         </Box>
         {title && <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, mb: 0.8 }}>{title}</Typography>}

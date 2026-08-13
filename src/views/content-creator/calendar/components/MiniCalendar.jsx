@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import { alpha, useColorScheme } from '@mui/material/styles';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { PLATFORMS, MONTHS } from '../constants';
+import { MONTHS } from '../constants';
 import { getDaysInMonth } from '../utils';
 
 export default function MiniCalendar({ year, month, onSelectDay, events, today }) {
@@ -108,7 +108,7 @@ export default function MiniCalendar({ year, month, onSelectDay, events, today }
                 borderRadius: '6px',
                 transition: 'all 0.15s ease',
                 '&:hover': d ? {
-                  bgcolor: isDark ? alpha('#5E35B1', 0.15) : alpha('#5E35B1', 0.08),
+                  bgcolor: isDark ? alpha('#3b82f6', 0.15) : alpha('#3b82f6', 0.08),
                 } : {},
               }}
             >
@@ -149,7 +149,7 @@ export default function MiniCalendar({ year, month, onSelectDay, events, today }
                             width: 4,
                             height: 4,
                             borderRadius: '50%',
-                            bgcolor: ev.isHistory ? platformColor : '#5E35B1',
+                            bgcolor: ev.isHistory ? platformColor : '#3b82f6',
                           }} />
                         );
                       })}

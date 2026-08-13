@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Card,
   Grid,
@@ -26,6 +25,38 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 import { useFilters } from '../../../../contexts/FiltersContext';
 
+import { glassCard, glassInput, gradientButton, gradientText } from './aiUi';
+
+const toggleGroupSx = (isDark) => ({
+  '& .MuiToggleButton-root': {
+    borderRadius: '12px',
+    textTransform: 'none',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}`,
+    bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)',
+    py: 1,
+    m: 0,
+    color: 'text.secondary',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    transition: 'all 0.2s',
+    '&:hover': {
+      bgcolor: isDark ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)',
+      borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)'
+    },
+    '&.Mui-selected': {
+      bgcolor: isDark ? 'rgba(59,130,246,0.18)' : 'rgba(59,130,246,0.1)',
+      color: isDark ? '#93c5fd' : '#1d4ed8',
+      fontWeight: 800,
+      borderColor: 'transparent',
+      boxShadow: 'inset 0 0 0 1.5px rgba(59,130,246,0.85), 0 6px 18px -6px rgba(59,130,246,0.55)',
+      '&:hover': {
+        bgcolor: isDark ? 'rgba(59,130,246,0.24)' : 'rgba(59,130,246,0.14)'
+      }
+    }
+  },
+  '&:not(:first-of-type)': { ml: 1 }
+});
+
 const UsersFilters = ({ onAddUser }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -35,37 +66,32 @@ const UsersFilters = ({ onAddUser }) => {
   const activeFiltersCount = [filters.role, filters.sortBy, filters.dateRange].filter(Boolean).length;
 
   return (
-    <Card
-      sx={{
-        borderRadius: 3,
-        mb: 3,
-        boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.08)',
-        border: '1px solid',
-        borderColor: 'divider'
-      }}
-    >
-      <Box sx={{ p: 3 }}>
+    <Card elevation={0} sx={{ ...glassCard(isDark), mb: 3 }}>
+      <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
         {/* ===== HEADER ===== */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1 }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-              Filters
+            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box component="span" sx={gradientText}>
+                Filters
+              </Box>
               {activeFiltersCount > 0 && (
                 <Chip
                   label={activeFiltersCount}
                   size="small"
                   sx={{
-                    bgcolor: '#9b87f5',
+                    backgroundImage: 'linear-gradient(135deg, #60a5fa 0%, #2563eb 50%, #14b8a6 100%)',
                     color: '#fff',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     height: 20,
                     minWidth: 20,
+                    boxShadow: '0 4px 12px -4px rgba(59,130,246,0.6)',
                     '& .MuiChip-label': { px: 0.75 }
                   }}
                 />
               )}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
               Refine your user search
             </Typography>
           </Box>
@@ -76,27 +102,24 @@ const UsersFilters = ({ onAddUser }) => {
               variant="outlined"
               size="small"
               sx={{
-                borderRadius: 2,
+                borderRadius: '12px',
                 textTransform: 'none',
-                display: { xs: 'none', sm: 'flex' }
+                fontWeight: 700,
+                display: { xs: 'none', sm: 'flex' },
+                color: isDark ? '#93c5fd' : '#1d4ed8',
+                borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)',
+                bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
+                '&:hover': {
+                  borderColor: '#3b82f6',
+                  bgcolor: isDark ? 'rgba(59,130,246,0.16)' : 'rgba(59,130,246,0.1)',
+                  boxShadow: '0 6px 16px -6px rgba(59,130,246,0.5)'
+                }
               }}
             >
               Export
             </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<PersonAddIcon />}
-              onClick={onAddUser}
-              size="small"
-              sx={{
-                bgcolor: '#9b87f5',
-                '&:hover': { bgcolor: '#8b77e5' },
-                borderRadius: 2,
-                textTransform: 'none',
-                boxShadow: '0 4px 12px rgba(155,135,245,0.35)'
-              }}
-            >
+            <Button variant="contained" startIcon={<PersonAddIcon />} onClick={onAddUser} size="small" sx={gradientButton()}>
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                 Add User
               </Box>
@@ -113,38 +136,23 @@ const UsersFilters = ({ onAddUser }) => {
           placeholder="Search by name, username or email..."
           value={filters.search || ''}
           onChange={(e) => updateFilter('search', e.target.value)}
-          sx={{
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2.5,
-              bgcolor: isDark ? '#0f172a' : '#fafafa',
-              transition: 'all 0.2s',
-              '&:hover': {
-                bgcolor: isDark ? '#1e293b' : '#fff',
-                boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.08)'
-              },
-              '&.Mui-focused': {
-                bgcolor: isDark ? '#1e293b' : '#fff',
-                boxShadow: isDark ? '0 0 0 3px rgba(155,135,245,0.15)' : '0 0 0 3px rgba(155,135,245,0.15)'
-              }
-            }
-          }}
+          sx={{ mb: 3, ...glassInput(isDark) }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'text.secondary' }} />
+                <SearchIcon sx={{ color: '#3b82f6' }} />
               </InputAdornment>
             )
           }}
         />
 
-        <Divider sx={{ mb: 3, borderColor: isDark ? '#374151' : undefined }} />
+        <Divider sx={{ mb: 3, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)' }} />
 
         {/* ===== FILTER OPTIONS ===== */}
         <Grid container spacing={3}>
           {/* ROLE FILTER */}
           <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ mb: 1, display: 'block', letterSpacing: '0.08em' }}>
               ROLE
             </Typography>
             <ToggleButtonGroup
@@ -153,34 +161,17 @@ const UsersFilters = ({ onAddUser }) => {
               onChange={(e, newValue) => updateFilter('role', newValue)}
               fullWidth
               size="small"
-              sx={{
-                '& .MuiToggleButton-root': {
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  py: 1,
-                  '&.Mui-selected': {
-                    bgcolor: 'rgba(155,135,245,0.12)',
-                    borderColor: '#9b87f5',
-                    color: '#9b87f5',
-                    fontWeight: 600,
-                    '&:hover': {
-                      bgcolor: 'rgba(155,135,245,0.18)'
-                    }
-                  }
-                }
-              }}
+              sx={toggleGroupSx(isDark)}
             >
-              <ToggleButton value="" sx={{ mr: 1 }}>
+              <ToggleButton value="">
                 <PersonIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 All
               </ToggleButton>
-              <ToggleButton value="Admin" sx={{ mr: 1 }}>
+              <ToggleButton value="Admin">
                 <AdminPanelSettingsIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 Admin
               </ToggleButton>
-              <ToggleButton value="User" sx={{ mr: 1 }}>
+              <ToggleButton value="User">
                 <PersonIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 User
               </ToggleButton>
@@ -189,7 +180,7 @@ const UsersFilters = ({ onAddUser }) => {
 
           {/* SORT BY FILTER */}
           <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ mb: 1, display: 'block', letterSpacing: '0.08em' }}>
               SORT BY
             </Typography>
             <ToggleButtonGroup
@@ -198,34 +189,17 @@ const UsersFilters = ({ onAddUser }) => {
               onChange={(e, newValue) => updateFilter('sortBy', newValue)}
               fullWidth
               size="small"
-              sx={{
-                '& .MuiToggleButton-root': {
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  py: 1,
-                  '&.Mui-selected': {
-                    bgcolor: 'rgba(155,135,245,0.12)',
-                    borderColor: '#9b87f5',
-                    color: '#9b87f5',
-                    fontWeight: 600,
-                    '&:hover': {
-                      bgcolor: 'rgba(155,135,245,0.18)'
-                    }
-                  }
-                }
-              }}
+              sx={toggleGroupSx(isDark)}
             >
-              <ToggleButton value="" sx={{ mr: 1 }}>
+              <ToggleButton value="">
                 <SortIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 Default
               </ToggleButton>
-              <ToggleButton value="nameAsc" sx={{ mr: 1 }}>
+              <ToggleButton value="nameAsc">
                 <ArrowUpwardIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 A-Z
               </ToggleButton>
-              <ToggleButton value="nameDesc" sx={{ mr: 1 }}>
+              <ToggleButton value="nameDesc">
                 <ArrowDownwardIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 Z-A
               </ToggleButton>
@@ -234,7 +208,7 @@ const UsersFilters = ({ onAddUser }) => {
 
           {/* DATE RANGE FILTER */}
           <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ mb: 1, display: 'block', letterSpacing: '0.08em' }}>
               JOINED DATE
             </Typography>
             <ToggleButtonGroup
@@ -243,35 +217,14 @@ const UsersFilters = ({ onAddUser }) => {
               onChange={(e, newValue) => updateFilter('dateRange', newValue)}
               fullWidth
               size="small"
-              sx={{
-                '& .MuiToggleButton-root': {
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  py: 1,
-                  '&.Mui-selected': {
-                    bgcolor: 'rgba(155,135,245,0.12)',
-                    borderColor: '#9b87f5',
-                    color: '#9b87f5',
-                    fontWeight: 600,
-                    '&:hover': {
-                      bgcolor: 'rgba(155,135,245,0.18)'
-                    }
-                  }
-                }
-              }}
+              sx={toggleGroupSx(isDark)}
             >
-              <ToggleButton value="" sx={{ mr: 1 }}>
+              <ToggleButton value="">
                 <CalendarTodayIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 All
               </ToggleButton>
-              <ToggleButton value="7days" sx={{ mr: 1 }}>
-                7 days
-              </ToggleButton>
-              <ToggleButton value="30days" sx={{ mr: 1 }}>
-                30 days
-              </ToggleButton>
+              <ToggleButton value="7days">7 days</ToggleButton>
+              <ToggleButton value="30days">30 days</ToggleButton>
             </ToggleButtonGroup>
           </Grid>
         </Grid>
@@ -288,8 +241,13 @@ const UsersFilters = ({ onAddUser }) => {
               }}
               sx={{
                 textTransform: 'none',
+                fontWeight: 700,
                 color: 'text.secondary',
-                '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' }
+                borderRadius: '10px',
+                '&:hover': {
+                  bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)',
+                  color: '#3b82f6'
+                }
               }}
             >
               Clear all filters
@@ -299,7 +257,18 @@ const UsersFilters = ({ onAddUser }) => {
 
         {/* ===== EXPORT MOBILE ===== */}
         <Box sx={{ mt: 2, display: { xs: 'block', sm: 'none' } }}>
-          <Button startIcon={<FileDownloadIcon />} variant="outlined" fullWidth sx={{ borderRadius: 2, textTransform: 'none' }}>
+          <Button
+            startIcon={<FileDownloadIcon />}
+            variant="outlined"
+            fullWidth
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              color: isDark ? '#93c5fd' : '#1d4ed8',
+              borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)'
+            }}
+          >
             Export Users
           </Button>
         </Box>

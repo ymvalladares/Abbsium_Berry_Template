@@ -1,0 +1,9 @@
+TOTAL=1114
+DEF L156: const StatCard = ({ title, value, subtitle, icon, color, isDark }) => (
+STATCALL L403: <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Total Revenue" value={fmt.currency(stats.totalRevenue)} subtitle=
+STATCALL L404: <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Active Subscriptions" value={stats.activeSubscriptions || 0} subt
+STATCALL L405: <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Pending / Failed" value={`${stats.pendingOrders || 0} / ${stats.f
+STATCALL L406: <Grid size={{ xs: 12, sm: 6, md: 3 }}><StatCard title="Cancelled" value={stats.cancelledSubscriptions || 0} subtitle="Lo
+STATCARD_DEF_LINE=156
+LAST_STATCALL_LINE=406
+SKELETON_LINE=396

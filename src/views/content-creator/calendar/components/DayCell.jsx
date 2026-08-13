@@ -1,7 +1,6 @@
 import { Box, Typography, Tooltip } from '@mui/material';
 import { alpha, useColorScheme } from '@mui/material/styles';
 import { IconClockFilled } from '@tabler/icons-react';
-import { formatTime } from '../utils';
 import { PLATFORMS } from '../constants';
 
 const ET_TIMEZONE = 'America/New_York';
@@ -43,10 +42,10 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick
         '&:hover': day ? {
           bgcolor: isOtherMonth
             ? (isDark ? '#1a1f35' : '#f0f4ff')
-            : (isDark ? '#1e293b' : '#f5f3ff'),
+            : (isDark ? '#1e293b' : '#dbeafe'),
           boxShadow: {
             xs: 'none',
-            sm: isDark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(94,53,177,0.08)',
+            sm: isDark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(59,130,246,0.08)',
           },
           zIndex: 1,
         } : {},

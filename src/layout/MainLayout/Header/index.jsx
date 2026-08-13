@@ -6,7 +6,6 @@ import Box from '@mui/material/Box';
 import LogoSection from '../LogoSection';
 import ProfileSection from './ProfileSection';
 import NotificationSection from './NotificationSection';
-import DarkModeToggle from './DarkModeToggle';
 import Button from '@mui/material/Button';
 import { Link } from 'react-router-dom';
 
@@ -43,11 +42,11 @@ export default function Header() {
             ...theme.typography.mediumAvatar,
             overflow: 'hidden',
             transition: 'all .2s ease-in-out',
-            color: isDark ? theme.vars.palette.secondary[200] : theme.vars.palette.secondary.dark,
-            background: isDark ? theme.vars.palette.secondary[800] : theme.vars.palette.secondary.light,
+            color: isDark ? theme.vars.palette.primary[200] : theme.vars.palette.primary.dark,
+            background: isDark ? theme.vars.palette.primary[800] : theme.vars.palette.primary.light,
             '&:hover': {
-              color: isDark ? theme.vars.palette.secondary.light : theme.vars.palette.secondary[800],
-              background: isDark ? theme.vars.palette.secondary[700] : theme.vars.palette.secondary.dark
+              color: isDark ? theme.vars.palette.primary.light : theme.vars.palette.primary[800],
+              background: isDark ? theme.vars.palette.primary[800] : theme.vars.palette.primary.dark
             }
           }}
           onClick={() => handlerDrawerOpen(!drawerOpen)}

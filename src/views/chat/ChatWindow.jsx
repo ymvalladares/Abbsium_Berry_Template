@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Avatar, Typography, IconButton, TextField,
-  CircularProgress, Badge, Paper, Fade,
+  Badge, Paper, Fade,
   Tooltip, Skeleton,
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
@@ -10,22 +10,20 @@ import {
   MicOutlined, EmojiEmotionsOutlined, AddPhotoAlternateOutlined, Forum,
   CallOutlined, VideocamOutlined, InfoOutlined,
   SearchOutlined, KeyboardArrowDown,
-  Done, DoneAll,
+  DoneAll,
 } from '@mui/icons-material';
 import MessageBubble from './MessageBubble';
 import EmojiPicker from './EmojiPicker';
 import { useChat } from '../../contexts/ChatContext';
 import { useNotification } from 'contexts/NotificationContext';
+import { glassCard, gradientIconBox } from './aiUi';
 
-const primaryColor = '#8B5CF6';
-const primaryHover = '#7C3AED';
-const primaryLight = '#F3E8FF';
-const primaryLightDark = '#2D1B69';
+const primaryColor = '#3b82f6';
+const primaryHover = '#2563eb';
+const primaryLight = '#dbeafe';
+const primaryLightDark = 'rgba(59,130,246,0.16)';
 const iconColor = '#475569';
 const iconColorDark = '#9CA3AF';
-const darkBg = '#1e293b';
-const darkBg2 = '#111827';
-const darkBorder = '#374151';
 
 const formatDateLabel = (dateString) => {
   const date = new Date(dateString);
@@ -69,7 +67,7 @@ const ChatWindow = ({ isMobile }) => {
     isLoading, sendMessage, deleteMessage, goBackToList,
     isOtherTyping, sendTypingIndicator, toggleReaction,
     saveDraft, getDraft, clearDraft, updateUnreadBadge,
-    markMessagesAsRead, selectedConversationId,
+    markMessagesAsRead,
   } = useChat();
 
   const [message, setMessage] = useState('');
@@ -255,13 +253,14 @@ const ChatWindow = ({ isMobile }) => {
   if (isLoading) {
     return (
       <Paper elevation={0} sx={{
+        ...glassCard(isDark),
         flex: 1, display: 'flex', flexDirection: 'column',
         height: '100%', borderRadius: isMobile ? 0 : '0 24px 24px 0',
         border: isMobile ? 'none' : '1px solid',
-        borderColor: 'divider',
-        boxShadow: isMobile ? 'none' : '0 4px 24px rgba(0,0,0,0.04)',
+        borderColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)',
+        borderLeft: 'none',
+        boxShadow: 'none',
         overflow: 'hidden',
-        bgcolor: isDark ? darkBg2 : '#ffffff',
       }}>
         <Box sx={{ px: 3, py: 2.5, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid', borderColor: isDark ? '#1e293b' : '#f1f5f9' }}>
           <Skeleton variant="circular" width={48} height={48} />
@@ -300,30 +299,24 @@ const ChatWindow = ({ isMobile }) => {
   if (!selectedChat) {
     return (
       <Paper elevation={0} sx={{
+        ...glassCard(isDark),
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         height: '100%', borderRadius: isMobile ? 0 : '0 24px 24px 0',
         border: isMobile ? 'none' : '1px solid',
-        borderColor: 'divider',
-        boxShadow: isMobile ? 'none' : '0 4px 24px rgba(0,0,0,0.04)',
+        borderColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)',
+        borderLeft: 'none',
+        boxShadow: 'none',
         px: 4,
-        bgcolor: isDark ? darkBg2 : '#ffffff',
         position: 'relative',
         overflow: 'hidden',
       }}>
         {/* Decorative orbs */}
-        <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: 300, height: 300, borderRadius: '50%', bgcolor: isDark ? 'rgba(139,92,246,0.03)' : 'rgba(139,92,246,0.04)', filter: 'blur(60px)' }} />
-        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-5%', width: 250, height: 250, borderRadius: '50%', bgcolor: isDark ? 'rgba(99,102,241,0.03)' : 'rgba(99,102,241,0.04)', filter: 'blur(50px)' }} />
+        <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: 300, height: 300, borderRadius: '50%', bgcolor: isDark ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.06)', filter: 'blur(60px)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-5%', width: 250, height: 250, borderRadius: '50%', bgcolor: isDark ? 'rgba(20,184,166,0.05)' : 'rgba(20,184,166,0.06)', filter: 'blur(50px)' }} />
 
-        <Box sx={{
-          width: 88, height: 88, borderRadius: '24px',
-          background: isDark ? 'linear-gradient(135deg, #2D1B69 0%, #1e293b 100%)' : 'linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%)',
-          display: 'flex',
-          alignItems: 'center', justifyContent: 'center', mb: 3,
-          boxShadow: isDark ? '0 8px 32px rgba(139,92,246,0.15)' : '0 8px 32px rgba(139,92,246,0.12)',
-          position: 'relative', zIndex: 1,
-        }}>
-          <Forum sx={{ color: primaryColor, fontSize: 40 }} />
+        <Box sx={{ ...gradientIconBox(88, '24px'), mb: 3, position: 'relative', zIndex: 1 }}>
+          <Forum sx={{ color: '#fff', fontSize: 40 }} />
         </Box>
         <Typography sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: '1.3rem', mb: 1, letterSpacing: '-0.02em' }}>
           {isAdmin ? 'Select a conversation' : 'Start a conversation'}
@@ -338,15 +331,16 @@ const ChatWindow = ({ isMobile }) => {
   // ===== MAIN CHAT VIEW =====
   return (
     <Paper elevation={0} sx={{
+      ...glassCard(isDark),
       flex: 1, display: 'flex', flexDirection: 'column',
       height: '100%', borderRadius: isMobile ? 0 : '0 24px 24px 0',
       overflow: 'hidden',
       border: isMobile ? 'none' : '1px solid',
-      borderColor: 'divider',
-      boxShadow: isMobile ? 'none' : '0 4px 24px rgba(0,0,0,0.04)',
+      borderColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)',
+      borderLeft: 'none',
+      boxShadow: 'none',
       position: 'relative',
       touchAction: 'manipulation',
-      bgcolor: isDark ? darkBg2 : '#ffffff',
     }}>
       {/* ===== HEADER ===== */}
       <Box sx={{
@@ -355,8 +349,8 @@ const ChatWindow = ({ isMobile }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        bgcolor: isDark ? '#0f172a' : '#ffffff',
-        borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
+        bgcolor: isDark ? 'rgba(15,23,42,0.35)' : 'rgba(255,255,255,0.55)',
+        borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)'}`,
         minHeight: { xs: 64, sm: 72 },
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
@@ -503,7 +497,7 @@ const ChatWindow = ({ isMobile }) => {
         onScroll={handleScroll}
         sx={{
           flex: 1, overflowY: 'auto', px: { xs: 1.5, sm: 2.5 }, py: 1.5,
-          bgcolor: isDark ? '#0f172a' : '#fafbfc',
+          bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(241,245,249,0.55)',
           position: 'relative',
           '&::-webkit-scrollbar': { width: '6px' },
           '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
@@ -516,14 +510,8 @@ const ChatWindow = ({ isMobile }) => {
             alignItems: 'center', justifyContent: 'center',
             py: 8, px: 3,
           }}>
-            <Box sx={{
-              width: 64, height: 64, borderRadius: '20px',
-              background: isDark ? 'linear-gradient(135deg, #2D1B69 0%, #1e293b 100%)' : 'linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%)',
-              display: 'flex',
-              alignItems: 'center', justifyContent: 'center', mb: 2.5,
-              boxShadow: isDark ? '0 6px 24px rgba(139,92,246,0.12)' : '0 6px 24px rgba(139,92,246,0.1)',
-            }}>
-              <Forum sx={{ color: primaryColor, fontSize: 28 }} />
+            <Box sx={{ ...gradientIconBox(64, '20px'), mb: 2.5 }}>
+              <Forum sx={{ color: '#fff', fontSize: 28 }} />
             </Box>
             <Typography sx={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 700, fontSize: '1rem', mb: 0.5 }}>
               No messages yet
@@ -616,17 +604,17 @@ const ChatWindow = ({ isMobile }) => {
       <Box sx={{
         px: { xs: 2, sm: 3 },
         py: { xs: 1.25, sm: 1.5 },
-        bgcolor: isDark ? '#0f172a' : '#ffffff',
-        borderTop: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
+        bgcolor: isDark ? 'rgba(15,23,42,0.35)' : 'rgba(255,255,255,0.6)',
+        borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)'}`,
       }}>
         {replyTo && (
           <Box sx={{
             display: 'flex', alignItems: 'center', gap: 1,
             mb: 1, px: 1.5, py: 1,
-            bgcolor: isDark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.05)',
+            bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)',
             borderRadius: '14px',
             borderLeft: `3px solid ${primaryColor}`,
-            border: `1px solid ${isDark ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)'}`,
+            border: `1px solid ${isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.14)'}`,
             borderLeftWidth: '3px',
           }}>
             <Box sx={{ flex: 1, minWidth: 0 }}>

@@ -61,7 +61,7 @@ export default function FontFamilyPage() {
                     sx={{
                       p: 1.75,
                       borderWidth: 1,
-                      borderColor: selected ? (isDark ? '#8b5cf6' : 'primary.main') : (isDark ? '#334155' : undefined)
+                      borderColor: selected ? (isDark ? '#3b82f6' : 'primary.main') : (isDark ? '#334155' : undefined)
                     }}
                   >
                     <FormControlLabel

@@ -10,7 +10,7 @@ export default function Footer() {
     <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', pt: 3, mt: 'auto' }}>
       <Typography variant="caption">
         &copy; All rights reserved{' '}
-        <Typography component={Link} href="https://abbsium.com" underline="hover" target="_blank" sx={{ color: 'secondary.main' }}>
+        <Typography component={Link} href="https://abbsium.com" underline="hover" target="_blank" sx={{ color: 'primary.main' }}>
           Abbsium
         </Typography>
       </Typography>

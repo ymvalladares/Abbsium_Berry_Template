@@ -57,10 +57,6 @@ export default function NavCollapse({ menu, level, parentId }) {
 
   const openMini = Boolean(anchorEl);
 
-  const handleMiniClose = () => {
-    setAnchorEl(null);
-  };
-
   const handleClosePopper = () => {
     setOpen(false);
     if (!openMini) {
@@ -153,10 +149,10 @@ export default function NavCollapse({ menu, level, parentId }) {
             '&.Mui-selected': { bgcolor: 'transparent' },
             '&.Mui-selected:hover': { bgcolor: 'transparent' },
             ...(drawerOpen && level === 1 && {
-              bgcolor: isSelected ? (isDark ? 'rgba(255,255,255,0.12)' : 'secondary.light') : 'transparent',
-              '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'secondary.light' },
-              '&.Mui-selected': { bgcolor: isSelected ? (isDark ? 'rgba(255,255,255,0.12)' : 'secondary.light') : 'transparent' },
-              '&.Mui-selected:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'secondary.light' }
+              bgcolor: isSelected ? (isDark ? 'rgba(59, 130, 246, 0.12)' : 'primary.light') : 'transparent',
+              '&:hover': { bgcolor: isDark ? 'rgba(59, 130, 246, 0.08)' : 'primary.light' },
+              '&.Mui-selected': { bgcolor: isSelected ? (isDark ? 'rgba(59, 130, 246, 0.12)' : 'primary.light') : 'transparent' },
+              '&.Mui-selected:hover': { bgcolor: isDark ? 'rgba(59, 130, 246, 0.08)' : 'primary.light' }
             })
           }}
       >
@@ -164,7 +160,7 @@ export default function NavCollapse({ menu, level, parentId }) {
           <ListItemIcon
             sx={{
               minWidth: level === 1 ? 36 : 18,
-              color: isSelected ? 'secondary.main' : 'text.primary',
+              color: isSelected ? 'primary.main' : 'text.primary',
               ...(!drawerOpen &&
                 level === 1 && {
                   borderRadius: `${borderRadius}px`,
@@ -172,8 +168,8 @@ export default function NavCollapse({ menu, level, parentId }) {
                   height: 46,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  bgcolor: isSelected || anchorEl ? (isDark ? 'rgba(255,255,255,0.12)' : 'secondary.light') : 'transparent',
-                  ...(isSelected || anchorEl ? {} : { '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'secondary.light' } })
+                  bgcolor: isSelected || anchorEl ? (isDark ? 'rgba(59, 130, 246, 0.15)' : 'primary.light') : 'transparent',
+                  ...(isSelected || anchorEl ? {} : { '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'primary.light' } })
                 })
             }}
           >

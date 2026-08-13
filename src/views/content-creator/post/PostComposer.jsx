@@ -5,17 +5,10 @@ import {
   Stack,
   Button,
   TextField,
-  LinearProgress,
   IconButton,
-  useMediaQuery,
-  useTheme,
   CircularProgress,
-  Stepper,
-  Step,
-  StepLabel,
   Dialog,
-  DialogContent,
-  Divider
+  DialogContent
 } from '@mui/material';
 import { alpha, useColorScheme } from '@mui/material/styles';
 import { useDropzone } from 'react-dropzone';
@@ -38,12 +31,12 @@ import {
   IconAlertCircle,
   IconRefresh,
   IconChevronRight,
-  IconChevronLeft,
-  IconConfetti
+  IconChevronLeft
 } from '@tabler/icons-react';
 import { socialAPI } from '../../../services/AxiosService';
 import { useNotification } from 'contexts/NotificationContext';
 import publishingSignalR from '../../../services/PublishingSignalRService';
+import { AuroraLayer, glassCard, GRADIENT_MAIN } from './aiUi';
 
 const PLATFORMS = [
   { id: 'facebook', name: 'Facebook', icon: IconBrandFacebook, color: '#1877F2' },
@@ -64,7 +57,7 @@ const TYPES = [
 const ACCEPTED = { 'image/*': [], 'video/*': [] };
 const STEP_LABELS = ['Platforms', 'Content', 'Review'];
 
-const CONFETTI_COLORS = ['#5E35B1', '#E4405F', '#1877F2', '#FF9800', '#4CAF50', '#FF0000', '#7C4DFF', '#FCAF45'];
+const CONFETTI_COLORS = ['#3b82f6', '#E4405F', '#1877F2', '#FF9800', '#4CAF50', '#FF0000', '#2563eb', '#FCAF45'];
 
 function Confetti() {
   const pieces = useMemo(
@@ -132,38 +125,33 @@ function Confetti() {
 }
 
 export default function PostComposer() {
-  const theme = useTheme();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const isMobile = theme ? useMediaQuery(theme.breakpoints.down('sm')) : false;
   const notify = useNotification();
 
   const [step, setStep] = useState(0);
   const [platforms, setPlatforms] = useState([]);
   const [connectedPlatforms, setConnectedPlatforms] = useState([]);
   const [type, setType] = useState('post');
-  const [mode, setMode] = useState('manual');
+  const [mode] = useState('manual');
   const [files, setFiles] = useState([]);
   const [title, setTitle] = useState('Summer Collection 2026');
   const [description, setDescription] = useState('New arrivals are here. Shop now and get 20% off.\n\n#Summer #NewCollection');
   const [prompt, setPrompt] = useState('');
   const [posting, setPosting] = useState(false);
-  const [progress, setProgress] = useState({});
+  const [, setProgress] = useState({});
   const [results, setResults] = useState(null);
-  const [serverResponse, setServerResponse] = useState(null);
+  const [, setServerResponse] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [scheduleType, setScheduleType] = useState('now');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  const [visibility, setVisibility] = useState('public');
-  const [location, setLocation] = useState('');
-  const [tags, setTags] = useState(['summer', 'newcollection', 'sale']);
   const [pages, setPages] = useState({});
-  const [selectedPages, setSelectedPages] = useState({});
+  const [, setSelectedPages] = useState({});
   const [loadingPages, setLoadingPages] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
+  const [, setSessionId] = useState(null);
   const [networkStatuses, setNetworkStatuses] = useState({});
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [, setUploadProgress] = useState(0);
   const [publishSummary, setPublishSummary] = useState(null);
 
   const fetchPages = useCallback(async () => {
@@ -363,7 +351,6 @@ export default function PostComposer() {
 
     try {
       let s3Url = null;
-      let s3Key = null;
 
       if (file) {
         setUploadProgress(0);
@@ -379,8 +366,6 @@ export default function PostComposer() {
           setPosting(false);
           return;
         }
-
-        s3Key = key;
 
         await socialAPI.uploadToS3(uploadUrl, file, contentType, (percent) => {
           setUploadProgress(percent);
@@ -585,14 +570,6 @@ export default function PostComposer() {
     }
   };
 
-  const toBase64 = (f) =>
-    new Promise((res, rej) => {
-      const r = new FileReader();
-      r.readAsDataURL(f);
-      r.onload = () => res(r.result);
-      r.onerror = rej;
-    });
-
   const reset = () => {
     setPlatforms([]);
     setType('post');
@@ -621,8 +598,10 @@ export default function PostComposer() {
   const successCount = results ? Object.values(results).filter((v) => v === 'ok').length : 0;
 
   return (
-    <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
+    <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%', position: 'relative' }}>
+      <AuroraLayer isDark={isDark} />
       {/* Header */}
+      <Box sx={{ position: 'relative' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
@@ -630,7 +609,8 @@ export default function PostComposer() {
                 width: 40,
                 height: 40,
                 borderRadius: 2,
-                bgcolor: '#5E35B1',
+                background: GRADIENT_MAIN,
+                boxShadow: '0 4px 12px rgba(59,130,246,0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -655,8 +635,9 @@ export default function PostComposer() {
             </Button>
           )}
         </Box>
+      </Box>
 
-        {/* Stepper */}
+      {/* Stepper */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, px: 1 }}>
           {STEP_LABELS.map((label, i) => {
             const isActive = i === step;
@@ -681,7 +662,7 @@ export default function PostComposer() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      bgcolor: isActive ? '#5E35B1' : isCompleted ? '#4CAF50' : isDark ? '#374151' : '#e5e7eb',
+                      bgcolor: isActive ? '#3b82f6' : isCompleted ? '#4CAF50' : isDark ? '#374151' : '#e5e7eb',
                       color: '#fff',
                       fontSize: '0.7rem',
                       fontWeight: 700,
@@ -721,7 +702,7 @@ export default function PostComposer() {
         </Box>
 
         {/* Card */}
-        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper', overflow: 'hidden' }}>
+        <Box sx={{ ...glassCard(isDark), boxShadow: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`, borderRadius: 3, overflow: 'hidden' }}>
           <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             {/* Step 0 */}
             {step === 0 && (
@@ -731,7 +712,7 @@ export default function PostComposer() {
                   <Button
                     size="small"
                     onClick={selectAll}
-                    sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', color: '#5E35B1', px: 1 }}
+                    sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', color: '#3b82f6', px: 1 }}
                   >
                     Select all
                   </Button>
@@ -835,7 +816,7 @@ export default function PostComposer() {
                     }}
                   >
                     <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <IconSend size={16} style={{ color: '#5E35B1' }} />
+                      <IconSend size={16} style={{ color: '#3b82f6' }} />
                       <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                         {platforms.length} {platforms.length === 1 ? 'platform' : 'platforms'} selected
                       </Typography>
@@ -898,7 +879,7 @@ export default function PostComposer() {
 
                 {loadingPages && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                    <CircularProgress size={20} sx={{ color: '#5E35B1' }} />
+                    <CircularProgress size={20} sx={{ color: '#3b82f6' }} />
                   </Box>
                 )}
               </Stack>
@@ -925,15 +906,15 @@ export default function PostComposer() {
                           p: 1.5,
                           borderRadius: 2.5,
                           border: '2px solid',
-                          borderColor: a ? '#5E35B1' : 'divider',
-                          bgcolor: a ? alpha('#5E35B1', 0.06) : isDark ? '#1e293b' : 'white',
+                          borderColor: a ? '#3b82f6' : 'divider',
+                          bgcolor: a ? alpha('#3b82f6', 0.06) : isDark ? '#1e293b' : 'white',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
-                          '&:hover': { borderColor: a ? '#5E35B1' : alpha('#5E35B1', 0.2) }
+                          '&:hover': { borderColor: a ? '#3b82f6' : alpha('#3b82f6', 0.2) }
                         }}
                       >
-                        <Icon size={20} style={{ color: a ? '#5E35B1' : isDark ? '#64748b' : '#999' }} />
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: a ? '#5E35B1' : 'text.secondary' }}>{t.label}</Typography>
+                        <Icon size={20} style={{ color: a ? '#3b82f6' : isDark ? '#64748b' : '#999' }} />
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: a ? '#3b82f6' : 'text.secondary' }}>{t.label}</Typography>
                       </Box>
                     );
                   })}
@@ -947,8 +928,8 @@ export default function PostComposer() {
                         sx={{
                           borderRadius: 2.5,
                           border: '2px dashed',
-                          borderColor: isDragActive ? '#5E35B1' : fileError ? '#f44336' : 'divider',
-                          bgcolor: isDragActive ? alpha('#5E35B1', 0.08) : fileError ? alpha('#f44336', 0.06) : isDark ? '#1e293b' : 'white',
+                          borderColor: isDragActive ? '#3b82f6' : fileError ? '#f44336' : 'divider',
+                          bgcolor: isDragActive ? alpha('#3b82f6', 0.08) : fileError ? alpha('#f44336', 0.06) : isDark ? '#1e293b' : 'white',
                           cursor: 'pointer',
                           p: 3,
                           textAlign: 'center',
@@ -1057,7 +1038,7 @@ export default function PostComposer() {
                         textTransform: 'none',
                         fontWeight: 600,
                         width: 'fit-content',
-                        background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)'
+                        background: GRADIENT_MAIN
                       }}
                     >
                       Generate
@@ -1090,7 +1071,7 @@ export default function PostComposer() {
                         width: 36,
                         height: 36,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
+                        background: GRADIENT_MAIN,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -1110,8 +1091,8 @@ export default function PostComposer() {
                           <Box component="img" src={preview} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
-                          <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: alpha('#5E35B1', 0.12), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <IconVideo size={28} style={{ color: '#5E35B1' }} />
+                          <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: alpha('#3b82f6', 0.12), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <IconVideo size={28} style={{ color: '#3b82f6' }} />
                           </Box>
                           <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{file.name}</Typography>
                           </Box>
@@ -1144,14 +1125,14 @@ export default function PostComposer() {
                     {/* Action bar */}
                     <Box sx={{ px: 1.5, py: 1, borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Box sx={{ width: 18, height: 18, borderRadius: 1, bgcolor: alpha('#5E35B1', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <IconPhoto size={12} style={{ color: '#5E35B1' }} />
+                        <Box sx={{ width: 18, height: 18, borderRadius: 1, bgcolor: alpha('#3b82f6', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <IconPhoto size={12} style={{ color: '#3b82f6' }} />
                         </Box>
                         <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 500 }}>Like</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Box sx={{ width: 18, height: 18, borderRadius: 1, bgcolor: alpha('#5E35B1', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <IconSend size={12} style={{ color: '#5E35B1' }} />
+                        <Box sx={{ width: 18, height: 18, borderRadius: 1, bgcolor: alpha('#3b82f6', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <IconSend size={12} style={{ color: '#3b82f6' }} />
                         </Box>
                         <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 500 }}>Share</Typography>
                       </Box>
@@ -1170,7 +1151,7 @@ export default function PostComposer() {
                     <Box sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 2.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                         <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Target Platforms</Typography>
-                        <Box sx={{ px: 1.5, py: 0.5, borderRadius: 2, bgcolor: alpha('#5E35B1', 0.08), color: '#5E35B1', fontSize: '0.75rem', fontWeight: 700 }}>
+                        <Box sx={{ px: 1.5, py: 0.5, borderRadius: 2, bgcolor: alpha('#3b82f6', 0.08), color: '#3b82f6', fontSize: '0.75rem', fontWeight: 700 }}>
                           {platforms.length} selected
                         </Box>
                       </Box>
@@ -1204,14 +1185,14 @@ export default function PostComposer() {
                         <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', color: 'text.secondary', mb: 1.5, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Content Type
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 2.5, bgcolor: alpha('#5E35B1', 0.04), border: '1px solid', borderColor: alpha('#5E35B1', 0.1) }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 2.5, bgcolor: alpha('#3b82f6', 0.04), border: '1px solid', borderColor: alpha('#3b82f6', 0.1) }}>
                           {(() => {
                             const t = TYPES.find((t) => t.id === type);
                             const TIcon = t?.icon || IconPhoto;
                             return (
                               <>
-                                <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: alpha('#5E35B1', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <TIcon size={20} style={{ color: '#5E35B1' }} />
+                                <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: alpha('#3b82f6', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <TIcon size={20} style={{ color: '#3b82f6' }} />
                                 </Box>
                                 <Box>
                                   <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{t?.label}</Typography>
@@ -1261,10 +1242,10 @@ export default function PostComposer() {
                                 fontWeight: 600,
                                 fontSize: '0.75rem',
                                 borderRadius: 2,
-                                bgcolor: scheduleType === 'scheduled' ? '#5E35B1' : 'transparent',
+                                bgcolor: scheduleType === 'scheduled' ? '#3b82f6' : 'transparent',
                                 color: scheduleType === 'scheduled' ? '#fff' : 'text.primary',
                                 borderColor: 'divider',
-                                '&:hover': { bgcolor: scheduleType === 'scheduled' ? '#4527A0' : alpha('#5E35B1', 0.04) }
+                                '&:hover': { bgcolor: scheduleType === 'scheduled' ? '#2563eb' : alpha('#3b82f6', 0.04) }
                               }}
                             >
                               Schedule
@@ -1293,8 +1274,8 @@ export default function PostComposer() {
                                     fontSize: '0.8rem',
                                     bgcolor: isDark ? '#1e293b' : '#f8fafc',
                                     '& fieldset': { borderColor: isDark ? '#374151' : '#e2e8f0' },
-                                    '&:hover fieldset': { borderColor: '#5E35B1' },
-                                    '&.Mui-focused fieldset': { borderColor: '#5E35B1' }
+                                    '&:hover fieldset': { borderColor: '#3b82f6' },
+                                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' }
                                   }
                                 }}
                                 inputProps={{
@@ -1302,7 +1283,7 @@ export default function PostComposer() {
                                 }}
                               />
                               {scheduledDate && scheduledTime && (
-                                <Typography sx={{ fontSize: '0.7rem', color: '#5E35B1', fontWeight: 600 }}>
+                                <Typography sx={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 600 }}>
                                   Will publish on {new Date(`${scheduledDate}T${scheduledTime}`).toLocaleString()}
                                 </Typography>
                               )}
@@ -1331,15 +1312,15 @@ export default function PostComposer() {
                       </Typography>
                       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
                         <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', textAlign: 'center' }}>
-                          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#5E35B1' }}>{title?.length || 0}</Typography>
+                          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#3b82f6' }}>{title?.length || 0}</Typography>
                           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mt: 0.25 }}>Title chars</Typography>
                         </Box>
                         <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', textAlign: 'center' }}>
-                          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#5E35B1' }}>{description?.length || 0}</Typography>
+                          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#3b82f6' }}>{description?.length || 0}</Typography>
                           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mt: 0.25 }}>Caption chars</Typography>
                         </Box>
                         <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', textAlign: 'center' }}>
-                          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#5E35B1' }}>{(description?.match(/#/g) || []).length}</Typography>
+                          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#3b82f6' }}>{(description?.match(/#/g) || []).length}</Typography>
                           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mt: 0.25 }}>Hashtags</Typography>
                         </Box>
                       </Box>
@@ -1379,7 +1360,7 @@ export default function PostComposer() {
                 onClick={() => setStep((s) => s + 1)}
                 disabled={!canNext}
                 variant="contained"
-                sx={{ textTransform: 'none', fontWeight: 600, bgcolor: '#5E35B1', '&:disabled': { bgcolor: alpha('#5E35B1', 0.3) } }}
+                sx={{ textTransform: 'none', fontWeight: 600, bgcolor: '#3b82f6', '&:disabled': { bgcolor: alpha('#3b82f6', 0.3) } }}
               >
                 Next
               </Button>
@@ -1390,7 +1371,7 @@ export default function PostComposer() {
                 disabled={!canNext || posting}
                 onClick={publish}
                 variant="contained"
-                sx={{ px: 2.5, textTransform: 'none', fontWeight: 600, background: scheduleType === 'scheduled' ? 'linear-gradient(135deg, #4CAF50, #66BB6A)' : 'linear-gradient(135deg, #5E35B1, #7C4DFF)' }}
+                sx={{ px: 2.5, textTransform: 'none', fontWeight: 600, background: scheduleType === 'scheduled' ? 'linear-gradient(135deg, #4CAF50, #66BB6A)' : GRADIENT_MAIN }}
               >
                 {posting ? 'Processing...' : scheduleType === 'scheduled' ? 'Schedule Post' : 'Publish'}
               </Button>
@@ -1444,21 +1425,21 @@ export default function PostComposer() {
               <Box sx={{ mb: 2.5, position: 'relative', width: 88, height: 88, mx: 'auto' }}>
                 <Box sx={{
                   position: 'absolute', inset: 0, borderRadius: '50%',
-                  border: '3px solid', borderColor: alpha('#5E35B1', 0.15),
+                  border: '3px solid', borderColor: alpha('#3b82f6', 0.15),
                   animation: 'pulse 2s ease-in-out infinite'
                 }} />
                 <Box sx={{
                   position: 'absolute', inset: 8, borderRadius: '50%',
-                  border: '3px solid', borderColor: alpha('#5E35B1', 0.25),
+                  border: '3px solid', borderColor: alpha('#3b82f6', 0.25),
                   animation: 'pulse 2s ease-in-out infinite 0.3s'
                 }} />
                 <Box sx={{
                   position: 'relative',
                   width: 88, height: 88,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
+                  background: GRADIENT_MAIN,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 8px 30px rgba(94,53,177,0.3)'
+                  boxShadow: '0 8px 30px rgba(59,130,246,0.3)'
                 }}>
                   <CircularProgress size={40} sx={{ color: '#fff' }} />
                 </Box>
@@ -1482,7 +1463,7 @@ export default function PostComposer() {
 
             <Typography sx={{
               fontWeight: 800, fontSize: { xs: '1.3rem', sm: '1.5rem' }, mb: 0.5,
-              color: posting ? '#5E35B1'
+              color: posting ? '#3b82f6'
                 : publishSummary && publishSummary.successful === publishSummary.total ? '#4CAF50'
                 : '#FF9800'
             }}>
@@ -1501,14 +1482,14 @@ export default function PostComposer() {
               <Box sx={{ mb: 3, px: { xs: 1, sm: 2 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary' }}>Progress</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#5E35B1' }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#3b82f6' }}>
                     {Object.values(networkStatuses).filter(s => s.status === 'success').length}/{platforms.length}
                   </Typography>
                 </Box>
                 <Box sx={{ height: 8, borderRadius: 4, bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
                   <Box sx={{
                     height: '100%', borderRadius: 4,
-                    background: 'linear-gradient(90deg, #5E35B1, #7C4DFF)',
+                    background: GRADIENT_MAIN,
                     width: `${(Object.values(networkStatuses).filter(s => s.status === 'success').length / Math.max(platforms.length, 1)) * 100}%`,
                     transition: 'width 0.5s ease'
                   }} />
@@ -1531,9 +1512,9 @@ export default function PostComposer() {
                       sx={{
                         p: { xs: 1.25, sm: 1.5 },
                         borderRadius: 3,
-                        bgcolor: ok ? alpha('#4CAF50', 0.06) : err ? alpha('#f44336', 0.06) : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(94,53,177,0.04)',
+                        bgcolor: ok ? alpha('#4CAF50', 0.06) : err ? alpha('#f44336', 0.06) : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.04)',
                         border: '1px solid',
-                        borderColor: ok ? alpha('#4CAF50', 0.2) : err ? alpha('#f44336', 0.2) : alpha('#5E35B1', 0.12),
+                        borderColor: ok ? alpha('#4CAF50', 0.2) : err ? alpha('#f44336', 0.2) : alpha('#3b82f6', 0.12),
                         transition: 'all 0.3s ease',
                         animation: ok ? 'slideIn 0.4s ease' : 'none'
                       }}
@@ -1586,7 +1567,7 @@ export default function PostComposer() {
                               <Box sx={{ height: 5, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
                                 <Box sx={{
                                   height: '100%', borderRadius: 3,
-                                  background: 'linear-gradient(90deg, #5E35B1, #7C4DFF)',
+                                  background: GRADIENT_MAIN,
                                   width: `${progress}%`,
                                   transition: 'width 0.3s ease'
                                 }} />
@@ -1601,9 +1582,9 @@ export default function PostComposer() {
                         {/* Status badge */}
                         <Box sx={{
                           px: 1, py: 0.5, borderRadius: 2,
-                          bgcolor: ok ? alpha('#4CAF50', 0.12) : err ? alpha('#f44336', 0.12) : alpha('#5E35B1', 0.1),
+                          bgcolor: ok ? alpha('#4CAF50', 0.12) : err ? alpha('#f44336', 0.12) : alpha('#3b82f6', 0.1),
                           fontSize: '0.65rem', fontWeight: 700,
-                          color: ok ? '#4CAF50' : err ? '#f44336' : '#5E35B1',
+                          color: ok ? '#4CAF50' : err ? '#f44336' : '#3b82f6',
                           flexShrink: 0
                         }}>
                           {ok ? 'Done' : err ? 'Error' : '...'}
@@ -1629,10 +1610,10 @@ export default function PostComposer() {
                     fontWeight: 700,
                     py: 1.4,
                     fontSize: '0.95rem',
-                    background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
-                    boxShadow: '0 4px 20px rgba(94,53,177,0.35)',
+                    background: GRADIENT_MAIN,
+                    boxShadow: '0 4px 20px rgba(59,130,246,0.35)',
                     '&:hover': {
-                      boxShadow: '0 6px 25px rgba(94,53,177,0.45)',
+                      boxShadow: '0 6px 25px rgba(59,130,246,0.45)',
                       transform: 'translateY(-1px)'
                     },
                     transition: 'all 0.2s ease'

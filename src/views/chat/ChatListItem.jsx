@@ -1,12 +1,12 @@
 import { Box, Avatar, Typography, Badge } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 
-const primaryColor = '#8B5CF6';
+const primaryColor = '#3b82f6';
 
 const ChatListItem = ({ chat, isSelected, onClick }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const primLight = isDark ? '#2D1B69' : '#F3E8FF';
+  const primLight = isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe';
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);

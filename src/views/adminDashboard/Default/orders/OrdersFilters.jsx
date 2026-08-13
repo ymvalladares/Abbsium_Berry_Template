@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Card,
   Grid,
@@ -11,22 +10,52 @@ import {
   ToggleButtonGroup,
   Typography,
   Divider,
-  Stack,
-  alpha
+  Stack
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 
 import SearchIcon from '@mui/icons-material/Search';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import AddIcon from '@mui/icons-material/Add';
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TuneIcon from '@mui/icons-material/Tune';
 
 import { useFilters } from '../../../../contexts/FiltersContext';
 
-const radius = 2.5; // Tu firma visual
+import { glassCard, glassInput, gradientButton, gradientText, glowShadow, GRADIENT_MAIN } from './aiUi';
+
+const ACCENT_RGB = '59,130,246';
+
+const toggleGroupSx = (isDark) => ({
+  '& .MuiToggleButton-root': {
+    borderRadius: '12px',
+    textTransform: 'none',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}`,
+    bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)',
+    py: 1,
+    fontSize: '13px',
+    color: 'text.secondary',
+    fontWeight: 600,
+    m: 0,
+    transition: 'all 0.2s',
+    '&:hover': {
+      bgcolor: isDark ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)',
+      borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)'
+    },
+    '&.Mui-selected': {
+      bgcolor: isDark ? 'rgba(59,130,246,0.18)' : 'rgba(59,130,246,0.1)',
+      borderColor: 'transparent',
+      color: isDark ? '#93c5fd' : '#1d4ed8',
+      fontWeight: 800,
+      boxShadow: `inset 0 0 0 1.5px rgba(${ACCENT_RGB},0.85), 0 6px 18px -6px rgba(${ACCENT_RGB},0.55)`,
+      '&:hover': {
+        bgcolor: isDark ? 'rgba(59,130,246,0.24)' : 'rgba(59,130,246,0.14)'
+      }
+    }
+  },
+  '&:not(:first-of-type)': { ml: 1 }
+});
 
 const OrdersFilters = ({ onAddOrder }) => {
   const { colorScheme } = useColorScheme();
@@ -36,57 +65,29 @@ const OrdersFilters = ({ onAddOrder }) => {
   // Contador real de filtros aplicados
   const activeCount = [filters.status, filters.priority, filters.search].filter(Boolean).length;
 
-  const toggleGroupStyle = {
-    '& .MuiToggleButton-root': {
-      borderRadius: radius,
-      textTransform: 'none',
-      border: '1px solid',
-      borderColor: isDark ? '#374151' : '#e2e8f0',
-      py: 1,
-      fontSize: '13px',
-      color: isDark ? '#94a3b8' : '#64748b',
-      fontWeight: 500,
-      ml: 2,
-      '&.Mui-selected': {
-        bgcolor: alpha('#6366f1', 0.08),
-        borderColor: '#6366f1',
-        color: '#6366f1',
-        fontWeight: 700,
-        '&:hover': { bgcolor: alpha('#6366f1', 0.12) }
-      }
-    }
-  };
-
   return (
-    <Card
-      elevation={0}
-      sx={{
-        borderRadius: radius,
-        mb: 3,
-        border: '1px solid',
-        borderColor: isDark ? '#374151' : '#e2e8f0',
-        boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.02)'
-      }}
-    >
-      <Box sx={{ p: 3 }}>
+    <Card elevation={0} sx={{ ...glassCard(isDark), mb: 3 }}>
+      <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
         {/* ===== HEADER SECTION ===== */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Box>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.1rem', color: isDark ? '#f1f5f9' : '#0f172a' }}>
-                Orders
+              <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>
+                <Box component="span" sx={gradientText}>Orders</Box>
               </Typography>
               {activeCount > 0 && (
                 <Chip
                   label={activeCount}
                   size="small"
                   sx={{
-                    bgcolor: '#6366f1',
+                    backgroundImage: GRADIENT_MAIN,
                     color: '#fff',
                     fontWeight: 900,
-                    height: 18,
+                    height: 20,
+                    minWidth: 20,
                     fontSize: '10px',
-                    borderRadius: '4px'
+                    borderRadius: '6px',
+                    boxShadow: glowShadow(ACCENT_RGB, 0.6, 10)
                   }}
                 />
               )}
@@ -102,13 +103,19 @@ const OrdersFilters = ({ onAddOrder }) => {
               variant="outlined"
               size="small"
               sx={{
-                borderRadius: radius,
+                borderRadius: '12px',
                 textTransform: 'none',
-                borderColor: isDark ? '#475569' : '#e2e8f0',
-                color: isDark ? '#cbd5e1' : '#64748b',
+                borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)',
+                color: isDark ? '#93c5fd' : '#1d4ed8',
+                bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
                 fontWeight: 700,
                 px: 2,
-                display: { xs: 'none', sm: 'flex' }
+                display: { xs: 'none', sm: 'flex' },
+                '&:hover': {
+                  borderColor: '#3b82f6',
+                  bgcolor: isDark ? 'rgba(59,130,246,0.16)' : 'rgba(59,130,246,0.1)',
+                  boxShadow: glowShadow(ACCENT_RGB, 0.5, 16)
+                }
               }}
             >
               Export
@@ -120,14 +127,7 @@ const OrdersFilters = ({ onAddOrder }) => {
               startIcon={<AddIcon />}
               onClick={onAddOrder}
               size="small"
-              sx={{
-                bgcolor: isDark ? '#6366f1' : '#0f172a',
-                '&:hover': { bgcolor: isDark ? '#4f46e5' : '#000' },
-                borderRadius: radius,
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 2.5
-              }}
+              sx={{ ...gradientButton(), px: 2.5 }}
             >
               New Order
             </Button>
@@ -141,33 +141,23 @@ const OrdersFilters = ({ onAddOrder }) => {
           placeholder="Search by ID, Customer name or tracking..."
           value={filters.search || ''}
           onChange={(e) => updateFilter('search', e.target.value)}
-          sx={{
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: radius,
-              bgcolor: isDark ? '#0f172a' : '#fafafa',
-              transition: '0.2s',
-              '& fieldset': { borderColor: isDark ? '#374151' : '#e2e8f0' },
-              '&:hover': { bgcolor: isDark ? '#1e293b' : '#fff' },
-              '&.Mui-focused': { bgcolor: isDark ? '#1e293b' : '#fff', '& fieldset': { borderColor: '#6366f1' } }
-            }
-          }}
+          sx={{ mb: 3, ...glassInput(isDark) }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: 20 }} />
+                <SearchIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
               </InputAdornment>
             )
           }}
         />
 
-        <Divider sx={{ mb: 3, borderStyle: 'dashed', borderColor: isDark ? '#374151' : undefined }} />
+        <Divider sx={{ mb: 3, borderStyle: 'dashed', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)' }} />
 
         {/* ===== FILTER GRID ===== */}
         <Grid container spacing={3}>
           {/* STATUS FILTER */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#94a3b8' : '#475569', mb: 1, display: 'block', letterSpacing: '0.05em' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#94a3b8' : '#475569', mb: 1, display: 'block', letterSpacing: '0.08em' }}>
               ORDER STATUS
             </Typography>
             <ToggleButtonGroup
@@ -176,7 +166,7 @@ const OrdersFilters = ({ onAddOrder }) => {
               onChange={(e, val) => updateFilter('status', val)}
               fullWidth
               size="small"
-              sx={toggleGroupStyle}
+              sx={toggleGroupSx(isDark)}
             >
               <ToggleButton value="">All</ToggleButton>
               <ToggleButton value="pending">
@@ -190,7 +180,7 @@ const OrdersFilters = ({ onAddOrder }) => {
 
           {/* PRIORITY FILTER */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#94a3b8' : '#475569', mb: 1, display: 'block', letterSpacing: '0.05em' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#94a3b8' : '#475569', mb: 1, display: 'block', letterSpacing: '0.08em' }}>
               PRIORITY LEVEL
             </Typography>
             <ToggleButtonGroup
@@ -199,12 +189,19 @@ const OrdersFilters = ({ onAddOrder }) => {
               onChange={(e, val) => updateFilter('priority', val)}
               fullWidth
               size="small"
-              sx={toggleGroupStyle}
+              sx={toggleGroupSx(isDark)}
             >
               <ToggleButton value="">Default</ToggleButton>
               <ToggleButton
                 value="high"
-                sx={{ '&.Mui-selected': { color: '#ef4444', borderColor: '#ef4444', bgcolor: alpha('#ef4444', 0.05) } }}
+                sx={{
+                  '&.Mui-selected': {
+                    color: '#ef4444',
+                    borderColor: 'transparent',
+                    bgcolor: isDark ? 'rgba(239,68,68,0.18)' : 'rgba(239,68,68,0.08)',
+                    boxShadow: 'inset 0 0 0 1.5px rgba(239,68,68,0.8), 0 6px 18px -6px rgba(239,68,68,0.5)'
+                  }
+                }}
               >
                 High
               </ToggleButton>
@@ -226,7 +223,8 @@ const OrdersFilters = ({ onAddOrder }) => {
                 color: isDark ? '#64748b' : '#94a3b8',
                 fontWeight: 700,
                 fontSize: '12px',
-                '&:hover': { color: '#6366f1', bgcolor: 'transparent' }
+                borderRadius: '10px',
+                '&:hover': { color: '#3b82f6', bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)' }
               }}
             >
               Clear all active filters

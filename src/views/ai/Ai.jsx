@@ -22,6 +22,7 @@ import {
 
 import ChatMessage from './message-view/MessageView';
 import api from '../../services/AxiosService';
+import { AuroraLayer, glassCard, GRADIENT_MAIN } from './aiUi';
 
 const STORAGE_KEY = 'ai_chat_messages';
 const STORAGE_MODEL_KEY = 'ai_chat_model';
@@ -332,9 +333,11 @@ export default function Ai() {
         flex: 1,
         minHeight: 0,
         width: '100%',
-        py: { xs: 1, sm: 2 }
+        py: { xs: 1, sm: 2 },
+        position: 'relative'
       }}
     >
+      <AuroraLayer isDark={isDark} />
       {/* ERROR SNACKBAR */}
       <Snackbar
         open={!!error}
@@ -361,6 +364,7 @@ export default function Ai() {
           display: 'flex',
           flexDirection: 'column',
           scrollBehavior: 'smooth',
+          position: 'relative',
           '&::-webkit-scrollbar': { width: 6 },
           '&::-webkit-scrollbar-thumb': { bgcolor: isDark ? '#4B5563' : '#e5e7eb', borderRadius: 3 }
         }}
@@ -368,7 +372,7 @@ export default function Ai() {
         {/* SYNCING INDICATOR */}
         {syncingHistory && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={24} sx={{ color: '#7C3AED' }} />
+            <CircularProgress size={24} sx={{ color: '#3b82f6' }} />
           </Box>
         )}
 
@@ -393,7 +397,7 @@ export default function Ai() {
                 transform: 'translate(-50%, -50%)',
                 width: 500,
                 height: 160,
-                background: 'radial-gradient(ellipse at center, rgba(94,53,177,0.12), transparent 70%)',
+                background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.14), transparent 70%)',
                 filter: 'blur(40px)',
                 pointerEvents: 'none'
               }}
@@ -404,7 +408,7 @@ export default function Ai() {
                   fontSize: { xs: 26, sm: 34, md: 40 },
                   fontWeight: 700,
                   letterSpacing: '-0.03em',
-                  background: 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 50%, #A78BFA 100%)',
+                  background: GRADIENT_MAIN,
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   lineHeight: 1.2,
@@ -434,7 +438,7 @@ export default function Ai() {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#7C3AED', flexShrink: 0 }} />
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#3b82f6', flexShrink: 0 }} />
                 <Typography sx={{ fontSize: 12, fontWeight: 500, color: 'text.secondary' }}>{getMessageCount(messages)}</Typography>
               </Box>
 
@@ -444,8 +448,8 @@ export default function Ai() {
                     onClick={handleCopyConversation}
                     size="small"
                     sx={{
-                      color: copied ? '#7C3AED' : 'text.secondary',
-                      '&:hover': { color: isDark ? '#A78BFA' : '#5E35B1', bgcolor: isDark ? '#2D1B69' : '#F5F3FF' },
+                      color: copied ? '#3b82f6' : 'text.secondary',
+                      '&:hover': { color: isDark ? '#93c5fd' : '#2563eb', bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe' },
                       transition: 'color 0.2s'
                     }}
                   >
@@ -477,7 +481,7 @@ export default function Ai() {
                     borderRadius: '8px',
                     px: 1.2,
                     minHeight: 30,
-                    '&:hover': { color: isDark ? '#A78BFA' : '#5E35B1', bgcolor: isDark ? '#2D1B69' : '#F5F3FF' }
+                    '&:hover': { color: isDark ? '#93c5fd' : '#2563eb', bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe' }
                   }}
                 >
                   New chat
@@ -524,7 +528,7 @@ export default function Ai() {
                             width: 26,
                             height: 26,
                             color: 'text.secondary',
-                            '&:hover': { color: isDark ? '#A78BFA' : '#5E35B1', bgcolor: isDark ? '#2D1B69' : '#F5F3FF' }
+                            '&:hover': { color: isDark ? '#93c5fd' : '#2563eb', bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe' }
                           }}
                         >
                           <IconRotate2 size={14} />
@@ -595,9 +599,9 @@ export default function Ai() {
                               whiteSpace: 'normal',
                               minHeight: 'auto',
                               '&:hover': {
-                                borderColor: '#7C3AED',
-                                bgcolor: isDark ? '#2D1B69' : '#F5F3FF',
-                                color: '#7C3AED',
+                                borderColor: '#3b82f6',
+                                bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe',
+                                color: '#3b82f6',
                                 '& .followup-arrow': { transform: 'translateX(4px)' }
                               },
                               transition: 'all 0.2s ease'
@@ -627,7 +631,7 @@ export default function Ai() {
                   width: 32,
                   height: 32,
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+                  background: GRADIENT_MAIN,
                   flexShrink: 0
                 }}
               />
@@ -652,13 +656,13 @@ export default function Ai() {
           background: isDark
             ? 'linear-gradient(135deg, #374151, #4B5563)'
             : isFocused
-              ? '#fff'
+              ? 'linear-gradient(135deg, #60a5fa, #2563eb)'
               : 'linear-gradient(135deg, #e5e7eb, #d1d5db)',
           mb: { xs: 2, md: 4 },
           flexShrink: 0,
           transition: 'box-shadow 0.3s ease',
           boxShadow: isFocused
-            ? '0 0 0 2px #fff, 0 8px 32px rgba(0,0,0,0.1)'
+            ? '0 0 0 3px rgba(59,130,246,0.2), 0 8px 32px rgba(2,6,23,0.15)'
             : '0 1px 3px rgba(0,0,0,0.02)'
         }}
       >
@@ -667,13 +671,15 @@ export default function Ai() {
           sx={{
             bgcolor: 'background.paper',
             borderRadius: '19px',
-            p: 2.5
+            p: 2.5,
+            ...glassCard(isDark),
+            boxShadow: 'none'
           }}
         >
           {/* TEXT INPUT ROW */}
           <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
             <Tooltip title="Attach files" arrow>
-              <IconButton sx={{ color: 'text.secondary', '&:hover': { color: isDark ? '#A78BFA' : '#5E35B1', bgcolor: isDark ? '#2D1B69' : '#F5F3FF' } }} size="small" disabled={loading}>
+              <IconButton sx={{ color: 'text.secondary', '&:hover': { color: isDark ? '#93c5fd' : '#2563eb', bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe' } }} size="small" disabled={loading}>
                 <IconPlus size={20} />
               </IconButton>
             </Tooltip>
@@ -739,14 +745,14 @@ export default function Ai() {
                 onClick={handleSend}
                 sx={{
                   color: canSend ? '#FFF' : '#D1D5DB',
-                  bgcolor: canSend ? '#7C3AED' : 'transparent',
+                  bgcolor: canSend ? '#3b82f6' : 'transparent',
                   borderRadius: '12px',
                   width: 40,
                   height: 40,
-                  '&:hover': canSend ? { bgcolor: '#6D28D9' } : {},
+                  '&:hover': canSend ? { bgcolor: '#2563eb' } : {},
                   transition: 'all 0.2s',
                   ...(canSend && {
-                    boxShadow: '0 2px 8px rgba(124,58,237,0.3)'
+                    boxShadow: '0 2px 8px rgba(59,130,246,0.35)'
                   })
                 }}
               >
@@ -774,7 +780,7 @@ export default function Ai() {
                       height: '100%',
                       width: `${Math.min(charProgress * 100, 100)}%`,
                       borderRadius: 2,
-                      bgcolor: isNearLimit ? '#dc2626' : '#A78BFA',
+                      bgcolor: isNearLimit ? '#dc2626' : '#60a5fa',
                       transition: 'width 0.2s ease, background-color 0.2s ease'
                     }}
                   />
@@ -846,23 +852,23 @@ export default function Ai() {
                       fontSize: 12,
                       fontWeight: 600,
                       textTransform: 'none',
-                      color: isDark ? '#A78BFA' : '#5E35B1',
+                      color: isDark ? '#93c5fd' : '#2563eb',
                       border: '1.5px solid',
-                      borderColor: isDark ? '#4B5563' : '#D0C5F0',
-                      bgcolor: isDark ? '#1F2937' : '#FAF8FF',
+                      borderColor: isDark ? '#374151' : '#bfdbfe',
+                      bgcolor: isDark ? '#1F2937' : 'rgba(59,130,246,0.05)',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                       minHeight: 32,
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        border: '1.5px solid #7C3AED',
-                        bgcolor: isDark ? '#2D1B69' : '#F5F3FF',
+                        border: '1.5px solid #3b82f6',
+                        bgcolor: isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe',
                         transform: 'translateY(-1px)',
-                        boxShadow: isDark ? '0 3px 10px rgba(124,58,237,0.25)' : '0 3px 10px rgba(124,58,237,0.1)'
+                        boxShadow: isDark ? '0 3px 10px rgba(59,130,246,0.25)' : '0 3px 10px rgba(59,130,246,0.1)'
                       },
                       '&:active': {
                         transform: 'translateY(0)',
-                        border: '1.5px solid #7C3AED'
+                        border: '1.5px solid #3b82f6'
                       }
                     }}
                   >
@@ -885,7 +891,7 @@ export default function Ai() {
                 fontWeight: 500,
                 fontSize: 12,
                 flexShrink: 0,
-                '&:hover': { color: isDark ? '#A78BFA' : '#5E35B1', bgcolor: 'transparent' }
+                '&:hover': { color: isDark ? '#93c5fd' : '#2563eb', bgcolor: 'transparent' }
               }}
             >
               {model.label} {model.subtitle && `· ${model.subtitle}`}
@@ -901,7 +907,7 @@ export default function Ai() {
         onClose={handleModelClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
         transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        PaperProps={{ sx: { borderRadius: 3, boxShadow: '0 10px 40px rgba(0,0,0,0.1)', bgcolor: 'background.paper' } }}
+        PaperProps={{ sx: { borderRadius: 3, boxShadow: '0 10px 40px rgba(0,0,0,0.1)', ...glassCard(isDark), bgcolor: 'transparent', border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}` } }}
       >
         <Box sx={{ p: 2, width: 280 }}>
           <Typography
@@ -918,9 +924,9 @@ export default function Ai() {
                 p: 1.5,
                 borderRadius: 2,
                 cursor: 'pointer',
-                bgcolor: model.id === m.id ? (isDark ? '#2D1B69' : '#F5F3FF') : 'transparent',
+                bgcolor: model.id === m.id ? (isDark ? 'rgba(59,130,246,0.16)' : '#dbeafe') : 'transparent',
                 border: '1px solid',
-                borderColor: model.id === m.id ? (isDark ? '#4B5563' : '#E0D7F8') : 'transparent',
+                borderColor: model.id === m.id ? (isDark ? '#4B5563' : 'rgba(59,130,246,0.3)') : 'transparent',
                 mb: 0.5,
                 '&:hover': { bgcolor: isDark ? '#1F2937' : '#F9FAFB' }
               }}
@@ -935,7 +941,7 @@ export default function Ai() {
                       fontSize: 11,
                       fontWeight: 700,
                       color: '#FFF',
-                      bgcolor: '#7C3AED',
+                      bgcolor: '#3b82f6',
                       px: 1,
                       py: 0.3,
                       borderRadius: 1
