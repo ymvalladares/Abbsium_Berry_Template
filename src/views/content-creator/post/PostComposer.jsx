@@ -599,7 +599,6 @@ export default function PostComposer() {
 
   return (
     <Box sx={{ py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%', position: 'relative' }}>
-      <AuroraLayer isDark={isDark} />
       {/* Header */}
       <Box sx={{ position: 'relative' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
@@ -703,7 +702,8 @@ export default function PostComposer() {
 
         {/* Card */}
         <Box sx={{ ...glassCard(isDark), boxShadow: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`, borderRadius: 3, overflow: 'hidden' }}>
-          <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+          <AuroraLayer isDark={isDark} />
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, position: 'relative', zIndex: 1 }}>
             {/* Step 0 */}
             {step === 0 && (
               <Stack spacing={2.5}>
@@ -1340,7 +1340,9 @@ export default function PostComposer() {
               display: 'flex',
               justifyContent: 'flex-end',
               alignItems: 'center',
-              gap: 1
+              gap: 1,
+              position: 'relative',
+              zIndex: 1
             }}
           >
             {step > 0 && !results && (

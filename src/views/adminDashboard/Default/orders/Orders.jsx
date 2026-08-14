@@ -32,7 +32,6 @@ import TuneIcon from '@mui/icons-material/Tune';
 import axios from 'axios';
 
 import {
-  AuroraLayer,
   glassCard,
   glassInput,
   gradientText,
@@ -368,9 +367,6 @@ const Orders = () => {
 
   return (
     <Box sx={{ position: 'relative', p: { xs: 2, md: 3 } }}>
-      {/* ===== AURORA / AMBIENT BACKGROUND ===== */}
-      <AuroraLayer isDark={isDark} />
-
       <Box sx={{ position: 'relative', zIndex: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3, flexWrap: 'wrap', gap: 1.5 }}>
         <Box>

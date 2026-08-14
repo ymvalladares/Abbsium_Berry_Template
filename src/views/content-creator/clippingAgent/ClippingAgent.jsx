@@ -9,9 +9,8 @@ import {
   IconButton,
   Fade,
   CircularProgress,
-  useMediaQuery,
-  Divider,
-  Chip
+  Chip,
+  LinearProgress
 } from '@mui/material';
 import { alpha, useColorScheme } from '@mui/material/styles';
 import {
@@ -30,8 +29,6 @@ import {
   IconBrandTiktok,
   IconBrandInstagram,
   IconBrandYoutube,
-  IconClock,
-  IconBulb,
   IconWand
 } from '@tabler/icons-react';
 
@@ -40,13 +37,12 @@ import { useNotification } from 'contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { clippingAPI } from 'services/AxiosService';
 import { clippingSignalR } from 'services/ClippingSignalRService';
+import { ACCENT, GRADIENT_MAIN, glowShadow, glassCard, gradientIconBox, gradientText, AuroraLayer } from '../../chat/aiUi';
 
 const getYoutubeId = (url) => {
   const m = url.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
   return m && m[2].length === 11 ? m[2] : null;
 };
-
-const ACCENT = '#5E35B1';
 
 const CLIP_COUNTS = [
   { value: 3, label: '3 clips' },
@@ -60,12 +56,6 @@ const ASPECT_RATIOS = [
   { id: '16:9', label: '16:9', sub: 'Landscape', icon: IconDeviceTv }
 ];
 
-const TIPS = [
-  { icon: IconBulb, text: 'Videos of 10-30 min generate the best clips', color: '#FF9800' },
-  { icon: IconWand, text: 'AI automatically finds the most engaging moments', color: '#5E35B1' },
-  { icon: IconClock, text: 'Average generation time: 2-5 minutes per clip', color: '#10b981' }
-];
-
 const PLATFORMS = [
   { icon: IconBrandTiktok, label: 'TikTok', color: '#000' },
   { icon: IconBrandInstagram, label: 'Reels', color: '#E4405F' },
@@ -75,7 +65,6 @@ const PLATFORMS = [
 export default function ClippingAgent() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const isMobile = useMediaQuery('(max-width:600px)');
   const notify = useNotification();
   const navigate = useNavigate();
 
@@ -280,24 +269,13 @@ export default function ClippingAgent() {
   return (
     <Box sx={{ py: { xs: 1, sm: 1.5 }, width: '100%', maxWidth: '100%' }}>
       {/* ── Header ── */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 2.5,
-              background: `linear-gradient(135deg, ${ACCENT}, #7C4DFF)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `0 2px 12px ${alpha(ACCENT, 0.25)}`
-            }}
-          >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Box sx={gradientIconBox(36, '12px')}>
             <IconScissors size={16} color="#fff" />
           </Box>
           <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em' }}>Clipping Agent</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.02em', ...gradientText }}>Clipping Agent</Typography>
             <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Turn long videos into viral short clips</Typography>
           </Box>
         </Stack>
@@ -306,7 +284,17 @@ export default function ClippingAgent() {
             size="small"
             startIcon={<IconRefresh size={14} />}
             onClick={reset}
-            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, fontSize: '0.75rem' }}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: '12px',
+              fontSize: '0.75rem',
+              color: ACCENT,
+              border: '1px solid',
+              borderColor: alpha(ACCENT, 0.25),
+              bgcolor: alpha(ACCENT, 0.06),
+              '&:hover': { bgcolor: alpha(ACCENT, 0.12), borderColor: alpha(ACCENT, 0.4) }
+            }}
           >
             New
           </Button>
@@ -314,29 +302,26 @@ export default function ClippingAgent() {
       </Stack>
 
       {/* ── Content Layout ── */}
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
+      <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'stretch' }}>
         {/* ── Main Card ── */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {!startGen && (
             <Box
               sx={{
-                height: '100%',
-                border: '1px solid',
-                borderColor: isDark ? '#1e293b' : '#e2e8f0',
-                borderRadius: 3,
-                bgcolor: isDark ? '#111827' : '#ffffff',
+                ...glassCard(isDark),
                 overflow: 'hidden',
-                boxShadow: isDark ? '0 2px 16px rgba(0,0,0,0.15)' : '0 2px 16px rgba(0,0,0,0.04)',
                 display: 'flex',
                 flexDirection: 'column'
               }}
             >
-              <Box sx={{ p: { xs: 2, sm: 2.5 }, flex: 1 }}>
+              <AuroraLayer isDark={isDark} />
+
+              <Box sx={{ p: { xs: 2.5, sm: 3 }, flex: 1, position: 'relative', zIndex: 1 }}>
                 {/* Step 0: URL */}
                 {step === 0 && (
-                  <Stack spacing={2}>
+                  <Stack spacing={2.5}>
                     <Box>
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', mb: 0.25 }}>Paste your video URL</Typography>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.25 }}>Paste your video URL</Typography>
                       <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>
                         We'll find the best moments and turn them into short clips automatically
                       </Typography>
@@ -366,17 +351,28 @@ export default function ClippingAgent() {
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 3,
                           fontSize: '0.9rem',
-                          bgcolor: isDark ? '#1e293b' : '#f8fafc',
-                          '& fieldset': { borderColor: isDark ? '#374151' : '#e2e8f0' },
-                          '&:hover fieldset': { borderColor: ACCENT },
-                          '&.Mui-focused fieldset': { borderColor: ACCENT, borderWidth: 2 }
+                          bgcolor: isDark ? 'rgba(15,23,42,0.55)' : 'rgba(255,255,255,0.85)',
+                          backdropFilter: 'blur(10px)',
+                          transition: 'all 0.25s',
+                          '& fieldset': { borderColor: isDark ? 'rgba(255,255,255,0.12)' : alpha(ACCENT, 0.2) },
+                          '&:hover fieldset': { borderColor: isDark ? 'rgba(255,255,255,0.25)' : alpha(ACCENT, 0.45) },
+                          '&.Mui-focused fieldset': { borderColor: ACCENT, borderWidth: 2 },
+                          '&.Mui-focused': { boxShadow: glowShadow('59,130,246', 0.14, 12) }
                         }
                       }}
                     />
 
                     {videoId && (
                       <Fade in timeout={300}>
-                        <Box sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid', borderColor: isDark ? '#1e293b' : '#e2e8f0' }}>
+                        <Box
+                          sx={{
+                            borderRadius: 3,
+                            overflow: 'hidden',
+                            border: '1px solid',
+                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : alpha(ACCENT, 0.15),
+                            boxShadow: glowShadow('59,130,246', 0.2, 20)
+                          }}
+                        >
                           <Box sx={{ position: 'relative', paddingTop: '56.25%', bgcolor: '#000' }}>
                             <iframe
                               src={`https://www.youtube.com/embed/${videoId}`}
@@ -395,7 +391,7 @@ export default function ClippingAgent() {
                 {step === 1 && (
                   <Stack spacing={2.5}>
                     <Box>
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', mb: 0.25 }}>Quick settings</Typography>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.25 }}>Quick settings</Typography>
                       <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
                         Choose how many clips and what format you need
                       </Typography>
@@ -427,12 +423,13 @@ export default function ClippingAgent() {
                                 py: 1.5,
                                 borderRadius: 2.5,
                                 border: '2px solid',
-                                borderColor: sel ? ACCENT : isDark ? '#374151' : '#e2e8f0',
-                                bgcolor: sel ? alpha(ACCENT, 0.06) : 'transparent',
+                                borderColor: sel ? ACCENT : isDark ? 'rgba(255,255,255,0.12)' : 'rgba(59,130,246,0.15)',
+                                bgcolor: sel ? alpha(ACCENT, 0.08) : isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
                                 cursor: 'pointer',
                                 textAlign: 'center',
                                 transition: 'all 0.2s',
                                 position: 'relative',
+                                boxShadow: sel ? glowShadow('59,130,246', 0.25, 14) : 'none',
                                 '&:hover': { borderColor: ACCENT }
                               }}
                             >
@@ -495,12 +492,13 @@ export default function ClippingAgent() {
                                 p: 1.25,
                                 borderRadius: 2.5,
                                 border: '2px solid',
-                                borderColor: sel ? ACCENT : isDark ? '#374151' : '#e2e8f0',
-                                bgcolor: sel ? alpha(ACCENT, 0.06) : 'transparent',
+                                borderColor: sel ? ACCENT : isDark ? 'rgba(255,255,255,0.12)' : 'rgba(59,130,246,0.15)',
+                                bgcolor: sel ? alpha(ACCENT, 0.08) : isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
                                 cursor: 'pointer',
                                 textAlign: 'center',
                                 transition: 'all 0.2s',
                                 position: 'relative',
+                                boxShadow: sel ? glowShadow('59,130,246', 0.25, 14) : 'none',
                                 '&:hover': { borderColor: ACCENT }
                               }}
                             >
@@ -529,10 +527,11 @@ export default function ClippingAgent() {
                                   mx: 'auto',
                                   mb: 0.5,
                                   borderRadius: 1.5,
-                                  bgcolor: sel ? ACCENT : alpha(ACCENT, 0.1),
+                                  background: sel ? GRADIENT_MAIN : alpha(ACCENT, 0.1),
                                   display: 'flex',
                                   alignItems: 'center',
-                                  justifyContent: 'center'
+                                  justifyContent: 'center',
+                                  boxShadow: sel ? glowShadow('59,130,246', 0.35, 10) : 'none'
                                 }}
                               >
                                 <Icon size={14} color={sel ? '#fff' : ACCENT} />
@@ -554,12 +553,14 @@ export default function ClippingAgent() {
               <Box
                 sx={{
                   borderTop: '1px solid',
-                  borderColor: isDark ? '#1e293b' : '#f1f5f9',
-                  px: { xs: 2, sm: 2.5 },
+                  borderColor: isDark ? 'rgba(255,255,255,0.06)' : alpha(ACCENT, 0.12),
+                  px: { xs: 2.5, sm: 3 },
                   py: { xs: 1.25, sm: 1.5 },
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  position: 'relative',
+                  zIndex: 1
                 }}
               >
                 <Box>
@@ -568,7 +569,14 @@ export default function ClippingAgent() {
                       size="small"
                       startIcon={<IconChevronLeft size={14} />}
                       onClick={() => setStep((s) => s - 1)}
-                      sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, fontSize: '0.8rem' }}
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        borderRadius: '12px',
+                        fontSize: '0.8rem',
+                        color: 'text.secondary',
+                        '&:hover': { bgcolor: alpha(ACCENT, 0.08), color: ACCENT }
+                      }}
                     >
                       Back
                     </Button>
@@ -585,11 +593,19 @@ export default function ClippingAgent() {
                       sx={{
                         textTransform: 'none',
                         fontWeight: 700,
-                        bgcolor: ACCENT,
-                        borderRadius: 2,
+                        borderRadius: '12px',
                         px: 2.5,
                         fontSize: '0.8rem',
-                        '&:disabled': { bgcolor: alpha(ACCENT, 0.3) }
+                        backgroundImage: GRADIENT_MAIN,
+                        boxShadow: glowShadow('59,130,246', 0.5, 16),
+                        transition: 'all 0.25s',
+                        '&:hover': {
+                          backgroundImage: GRADIENT_MAIN,
+                          filter: 'brightness(1.1) saturate(1.1)',
+                          boxShadow: glowShadow('59,130,246', 0.65, 20),
+                          transform: 'translateY(-1px)'
+                        },
+                        '&:disabled': { bgcolor: alpha(ACCENT, 0.3), backgroundImage: 'none', boxShadow: 'none' }
                       }}
                     >
                       Next
@@ -605,11 +621,18 @@ export default function ClippingAgent() {
                         px: 2.5,
                         textTransform: 'none',
                         fontWeight: 700,
-                        borderRadius: 2,
+                        borderRadius: '12px',
                         fontSize: '0.8rem',
-                        background: `linear-gradient(135deg, ${ACCENT}, #7C4DFF)`,
-                        boxShadow: `0 2px 12px ${alpha(ACCENT, 0.25)}`,
-                        '&:hover': { boxShadow: `0 4px 16px ${alpha(ACCENT, 0.35)}` }
+                        backgroundImage: GRADIENT_MAIN,
+                        boxShadow: glowShadow('59,130,246', 0.5, 16),
+                        transition: 'all 0.25s',
+                        '&:hover': {
+                          backgroundImage: GRADIENT_MAIN,
+                          filter: 'brightness(1.1) saturate(1.1)',
+                          boxShadow: glowShadow('59,130,246', 0.65, 20),
+                          transform: 'translateY(-1px)'
+                        },
+                        '&:disabled': { bgcolor: alpha(ACCENT, 0.3), backgroundImage: 'none', boxShadow: 'none' }
                       }}
                     >
                       {isGenerating ? 'Generating...' : `Generate ${clipCount} clips`}
@@ -642,35 +665,24 @@ export default function ClippingAgent() {
             sx={{
               display: { xs: 'none', lg: 'flex' },
               width: 420,
+              minWidth: 420,
+              maxWidth: 420,
               flexShrink: 0
             }}
           >
             <Box
               sx={{
+                ...glassCard(isDark),
                 height: '100%',
-                border: '1px solid',
-                borderColor: isDark ? alpha('#fff', 0.06) : alpha('#000', 0.06),
-                borderRadius: 3,
-                bgcolor: isDark ? '#0f172a' : '#fafbfc',
-                p: 3,
-                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.3)' : '0 8px 32px rgba(0,0,0,0.04)',
+                overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column'
               }}
             >
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 2.5,
-                    background: `linear-gradient(135deg, ${ACCENT}, #7C4DFF)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: `0 4px 16px ${alpha(ACCENT, 0.3)}`
-                  }}
-                >
+              <AuroraLayer isDark={isDark} />
+
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3, p: 3, pb: 0, position: 'relative', zIndex: 1 }}>
+                <Box sx={gradientIconBox(40, '14px')}>
                   <IconSparkles size={20} color="#fff" />
                 </Box>
                 <Box>
@@ -679,41 +691,48 @@ export default function ClippingAgent() {
                 </Box>
               </Stack>
 
-              <Stack spacing={2} sx={{ flex: 1 }}>
+              <Stack spacing={2} sx={{ flex: 1, p: 3, pt: 2.5, position: 'relative', zIndex: 1 }}>
                 {[
                   {
                     step: '01',
                     title: 'Paste a video URL',
                     desc: 'Any YouTube, Vimeo or direct video link. 10-30 min videos work best for quality clips.',
                     icon: IconLink,
-                    color: '#6366f1',
-                    bg: alpha('#6366f1', 0.1)
+                    color: '#60a5fa',
+                    bg: alpha('#60a5fa', 0.12)
                   },
                   {
                     step: '02',
                     title: 'AI finds the best moments',
                     desc: 'Our AI analyzes the transcript and identifies the most engaging, viral-worthy segments automatically.',
                     icon: IconWand,
-                    color: '#8b5cf6',
-                    bg: alpha('#8b5cf6', 0.1)
+                    color: '#2563eb',
+                    bg: alpha('#2563eb', 0.12)
                   },
                   {
                     step: '03',
                     title: 'Get ready-to-post clips',
                     desc: 'Receive 3-10 short clips in 2-5 minutes, each with viral score, hashtags, and posting tips.',
                     icon: IconScissors,
-                    color: '#5E35B1',
-                    bg: alpha('#5E35B1', 0.1)
+                    color: '#14b8a6',
+                    bg: alpha('#14b8a6', 0.12)
                   }
                 ].map((item, i) => (
                   <Box
                     key={i}
                     sx={{
                       p: 2,
-                      borderRadius: 2.5,
+                      borderRadius: '16px',
                       border: '1px solid',
-                      borderColor: isDark ? alpha('#fff', 0.06) : alpha('#000', 0.06),
-                      bgcolor: isDark ? alpha('#fff', 0.02) : alpha('#fff', 0.8)
+                      borderColor: isDark ? 'rgba(255,255,255,0.07)' : alpha(ACCENT, 0.12),
+                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                      backdropFilter: 'blur(10px)',
+                      transition: 'all 0.25s',
+                      '&:hover': {
+                        borderColor: alpha(ACCENT, 0.3),
+                        boxShadow: glowShadow('59,130,246', 0.15, 14),
+                        transform: 'translateY(-2px)'
+                      }
                     }}
                   >
                     <Stack direction="row" spacing={1.5} alignItems="flex-start">
@@ -722,7 +741,7 @@ export default function ClippingAgent() {
                           position: 'relative',
                           width: 44,
                           height: 44,
-                          borderRadius: 2.5,
+                          borderRadius: '14px',
                           bgcolor: item.bg,
                           display: 'flex',
                           alignItems: 'center',
@@ -742,7 +761,8 @@ export default function ClippingAgent() {
                             bgcolor: item.color,
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            boxShadow: `0 2px 8px ${alpha(item.color, 0.5)}`
                           }}
                         >
                           <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#fff' }}>{item.step}</Typography>
@@ -765,163 +785,242 @@ export default function ClippingAgent() {
           <Box
             sx={{
               display: { xs: 'none', lg: 'flex' },
-              width: '420px',
-              minWidth: '420px',
+              width: 420,
+              minWidth: 420,
+              maxWidth: 420,
               flexShrink: 0
             }}
           >
             <Box
               sx={{
+                ...glassCard(isDark),
                 position: 'sticky',
                 top: 100,
-                height: '100%',
-                border: '1px solid',
-                borderColor: isDark ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-                borderRadius: '28px',
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(250, 251, 252, 0.6)',
-                backdropFilter: 'blur(24px)',
-                p: 3,
-                boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.3)' : '0 8px 40px rgba(0,0,0,0.04)',
-                display: 'flex',
-                flexDirection: 'column'
+                width: '100%',
+                height: 'fit-content',
+                overflow: 'hidden'
               }}
             >
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 16px rgba(94, 53, 177, 0.3)'
-                  }}
-                >
-                  <IconSparkles size={20} color="#fff" />
-                </Box>
-                <Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em' }}>AI Processing</Typography>
-                  <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Real-time generation stats</Typography>
-                </Box>
-              </Stack>
+              <AuroraLayer isDark={isDark} />
 
-              <Stack spacing={2} sx={{ flex: 1 }}>
-                {[
-                  { label: 'Clips Generated', value: clipCount, icon: IconScissors, color: '#6366f1', bg: alpha('#6366f1', 0.1) },
-                  {
-                    label: 'Output Format',
-                    value: aspectRatio,
-                    icon: aspectRatio === '9:16' ? IconDeviceMobile : aspectRatio === '1:1' ? IconSquare : IconDeviceTv,
-                    color: '#8b5cf6',
-                    bg: alpha('#8b5cf6', 0.1)
-                  },
-                  {
-                    label: 'Status',
-                    value: jobStatus === 'completed' ? 'Ready' : jobStatus,
-                    icon: jobStatus === 'completed' ? IconCheck : IconSparkles,
-                    color: jobStatus === 'completed' ? '#10b981' : '#5E35B1',
-                    bg: jobStatus === 'completed' ? alpha('#10b981', 0.1) : alpha('#5E35B1', 0.1)
-                  },
-                  { label: 'Progress', value: `${Math.round(jobProgress)}%`, icon: IconTarget, color: '#f59e0b', bg: alpha('#f59e0b', 0.1) }
-                ].map((item, i) => (
+              <Box
+                sx={{
+                  position: 'relative',
+                  zIndex: 1,
+                  maxHeight: 'calc(100vh - 132px)',
+                  overflowY: 'auto',
+                  p: 3
+                }}
+              >
+                {/* Header */}
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
                   <Box
-                    key={i}
                     sx={{
-                      p: 2,
-                      borderRadius: '18px',
-                      border: '1px solid',
-                      borderColor: isDark ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-                      bgcolor: isDark ? alpha('#fff', 0.02) : alpha('#fff', 0.8)
+                      ...gradientIconBox(40, '14px'),
+                      '@keyframes aiPulse': {
+                        '0%': { boxShadow: glowShadow('59,130,246', 0.35, 14) },
+                        '50%': { boxShadow: glowShadow('59,130,246', 0.65, 22) },
+                        '100%': { boxShadow: glowShadow('59,130,246', 0.35, 14) }
+                      },
+                      animation: isGenerating ? 'aiPulse 2s ease-in-out infinite' : undefined
                     }}
                   >
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: '14px',
-                          bgcolor: item.bg,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}
-                      >
-                        <item.icon size={18} color={item.color} />
-                      </Box>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.65rem',
-                            color: 'text.secondary',
-                            fontWeight: 600,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.04em'
-                          }}
-                        >
-                          {item.label}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: 'text.primary', letterSpacing: '-0.01em' }}>
-                          {item.value}
-                        </Typography>
-                      </Box>
-                    </Stack>
+                    <IconSparkles size={20} color="#fff" />
                   </Box>
-                ))}
-              </Stack>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em' }}>AI Processing</Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Real-time generation stats</Typography>
+                  </Box>
+                  {jobStatus === 'completed' && (
+                    <Chip
+                      size="small"
+                      icon={<IconCheck size={12} />}
+                      label="Ready"
+                      sx={{
+                        borderRadius: '12px',
+                        height: 24,
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        bgcolor: alpha('#10b981', 0.12),
+                        color: '#10b981',
+                        boxShadow: glowShadow('16,185,129', 0.3, 8),
+                        '& .MuiChip-icon': { color: '#10b981' }
+                      }}
+                    />
+                  )}
+                </Stack>
 
-              <Box sx={{ height: 1, background: `linear-gradient(90deg, transparent, ${alpha('#5E35B1', 0.15)}, transparent)`, my: 2.5 }} />
-
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.5, letterSpacing: '-0.01em' }}>Target Platforms</Typography>
-              <Stack spacing={1}>
-                {PLATFORMS.map((p, i) => {
-                  const Icon = p.icon;
-                  return (
+                {/* Stats 2x2 grid */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                  {[
+                    { label: 'Clips Generated', value: clipCount, icon: IconScissors, color: '#3b82f6', bg: alpha('#3b82f6', 0.1) },
+                    {
+                      label: 'Output Format',
+                      value: aspectRatio,
+                      icon: aspectRatio === '9:16' ? IconDeviceMobile : aspectRatio === '1:1' ? IconSquare : IconDeviceTv,
+                      color: '#60a5fa',
+                      bg: alpha('#60a5fa', 0.1)
+                    },
+                    {
+                      label: 'Status',
+                      value: jobStatus === 'completed' ? 'Ready' : jobStatus,
+                      icon: jobStatus === 'completed' ? IconCheck : IconSparkles,
+                      color: jobStatus === 'completed' ? '#10b981' : '#2563eb',
+                      bg: jobStatus === 'completed' ? alpha('#10b981', 0.12) : alpha('#2563eb', 0.1)
+                    },
+                    {
+                      label: 'Progress',
+                      value: `${Math.round(jobProgress)}%`,
+                      icon: IconTarget,
+                      color: '#f59e0b',
+                      bg: alpha('#f59e0b', 0.1)
+                    }
+                  ].map((item, i) => (
                     <Box
                       key={i}
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        p: 1.25,
-                        borderRadius: '14px',
+                        p: 1.5,
+                        borderRadius: '16px',
                         border: '1px solid',
-                        borderColor: isDark ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-                        bgcolor: isDark ? alpha('#fff', 0.02) : alpha('#fff', 0.8),
-                        transition: 'all 0.2s',
-                        '&:hover': { borderColor: alpha(p.color, 0.3), bgcolor: alpha(p.color, 0.06) }
+                        borderColor: isDark ? 'rgba(255,255,255,0.07)' : alpha(ACCENT, 0.1),
+                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.25s',
+                        '&:hover': { borderColor: alpha(item.color, 0.4), boxShadow: glowShadow('59,130,246', 0.12, 12) }
                       }}
                     >
                       <Box
                         sx={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: '10px',
-                          bgcolor: alpha(p.color, isDark ? 0.15 : 0.08),
+                          width: 34,
+                          height: 34,
+                          borderRadius: '12px',
+                          background: `linear-gradient(135deg, ${alpha(item.color, 0.18)}, ${alpha(item.color, 0.06)})`,
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          mb: 1,
+                          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12)`
                         }}
                       >
-                        <Icon size={16} color={p.color} />
+                        <item.icon size={16} color={item.color} />
                       </Box>
-                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }}>{p.label}</Typography>
-                      <Box
+                      <Typography
                         sx={{
-                          ml: 'auto',
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          bgcolor: '#10b981',
-                          boxShadow: `0 0 8px ${alpha('#10b981', 0.6)}`
+                          fontSize: '0.6rem',
+                          color: 'text.secondary',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          lineHeight: 1.2
                         }}
-                      />
+                      >
+                        {item.label}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '1rem',
+                          fontWeight: 800,
+                          color: 'text.primary',
+                          letterSpacing: '-0.01em',
+                          mt: 0.25,
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {item.value}
+                      </Typography>
                     </Box>
-                  );
-                })}
-              </Stack>
+                  ))}
+                </Box>
+
+                {/* Progress */}
+                <Box sx={{ mt: 2.5 }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary' }}>
+                      {jobStatus === 'completed' ? 'Generation complete' : 'Generation progress'}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#f59e0b' }}>{Math.round(jobProgress)}%</Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={jobProgress || 0}
+                    sx={{
+                      height: 8,
+                      borderRadius: '8px',
+                      bgcolor: isDark ? 'rgba(59,130,246,0.1)' : alpha(ACCENT, 0.1),
+                      boxShadow: `inset 0 1px 2px rgba(0,0,0,0.08)`,
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: '8px',
+                        background:
+                          jobStatus === 'completed'
+                            ? 'linear-gradient(90deg, #10b981, #34d399)'
+                            : 'linear-gradient(90deg, #60a5fa, #2563eb)'
+                      }
+                    }}
+                  />
+                  {jobMessage && jobStatus !== 'completed' && (
+                    <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: 1 }}>{jobMessage}</Typography>
+                  )}
+                </Box>
+
+                <Box
+                  sx={{
+                    height: 1,
+                    background: `linear-gradient(90deg, transparent, ${alpha(ACCENT, 0.2)}, transparent)`,
+                    my: 2.5
+                  }}
+                />
+
+                <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.5, letterSpacing: '-0.01em' }}>Target Platforms</Typography>
+                <Stack spacing={1}>
+                  {PLATFORMS.map((p, i) => {
+                    const Icon = p.icon;
+                    return (
+                      <Box
+                        key={i}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          p: 1.25,
+                          borderRadius: '14px',
+                          border: '1px solid',
+                          borderColor: isDark ? 'rgba(255,255,255,0.07)' : alpha(ACCENT, 0.1),
+                          bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                          backdropFilter: 'blur(10px)',
+                          transition: 'all 0.2s',
+                          '&:hover': { borderColor: alpha(p.color, 0.35), bgcolor: alpha(p.color, 0.06), transform: 'translateY(-1px)' }
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '10px',
+                            bgcolor: alpha(p.color, isDark ? 0.15 : 0.08),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)`
+                          }}
+                        >
+                          <Icon size={16} color={p.color} />
+                        </Box>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }}>{p.label}</Typography>
+                        <Box
+                          sx={{
+                            ml: 'auto',
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: '#10b981',
+                            boxShadow: `0 0 8px ${alpha('#10b981', 0.6)}`
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
             </Box>
           </Box>
         )}

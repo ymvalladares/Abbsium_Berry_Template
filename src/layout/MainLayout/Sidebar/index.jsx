@@ -5,7 +5,7 @@ import Chip from '@mui/material/Chip';
 import Drawer from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import { useTheme, alpha } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 
 // project imports
 import MenuCard from './MenuCard';
@@ -60,12 +60,12 @@ function Sidebar() {
         <SimpleBar sx={{ flexGrow: 1, p: 0, pt: 1.5, '& .simplebar-track.simplebar-vertical': { top: 12 } }}>
           <Box sx={drawerSX}>
             <MenuList />
-            {drawerOpen && <Box sx={{ mt: 2 }}>{drawerContent}</Box>}
           </Box>
         </SimpleBar>
+        {drawerOpen && <Box sx={{ px: 2.5, pt: 2 }}>{drawerContent}</Box>}
       </Box>
     );
-  }, [downMD, drawerOpen]);
+  }, [drawerOpen]);
 
   const sidebarBg = 'theme.palette.background.paper';
   const sidebarBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';

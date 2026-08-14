@@ -48,7 +48,6 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import api from 'services/AxiosService';
 
 import {
-  AuroraLayer,
   glassCard,
   glassInput,
   gradientText,
@@ -393,9 +392,6 @@ export default function DealersList() {
 
   return (
     <Box sx={{ position: 'relative', py: { xs: 1, sm: 2 }, px: { xs: 0, sm: 1 }, width: '100%' }}>
-      {/* ===== AURORA / AMBIENT BACKGROUND ===== */}
-      <AuroraLayer isDark={isDark} />
-
       <Box sx={{ position: 'relative', zIndex: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Box>
