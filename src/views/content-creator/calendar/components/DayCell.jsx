@@ -19,7 +19,7 @@ function toEasternTime(dateStr, timeStr) {
   });
 }
 
-export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick, onEventClick }) {
+export default function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast, onClick, onEventClick }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -28,18 +28,19 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, onClick
 
   return (
     <Box
-      onClick={() => day && onClick(day)}
+      onClick={() => day && !isPast && onClick(day)}
       sx={{
         minHeight: { xs: 60, sm: 95, md: 110 },
         p: { xs: '4px 3px', sm: '7px 6px' },
-        cursor: day ? 'pointer' : 'default',
+        cursor: day && !isPast ? 'pointer' : 'default',
         bgcolor: isOtherMonth
           ? (isDark ? '#0f172a' : '#fafbfc')
           : (isDark ? '#111827' : '#ffffff'),
         position: 'relative',
         overflow: 'hidden',
+        opacity: isPast ? 0.4 : 1,
         transition: 'all 0.2s ease',
-        '&:hover': day ? {
+        '&:hover': day && !isPast ? {
           bgcolor: isOtherMonth
             ? (isDark ? '#1a1f35' : '#f0f4ff')
             : (isDark ? '#1e293b' : '#dbeafe'),

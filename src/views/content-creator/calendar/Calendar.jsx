@@ -14,7 +14,7 @@ import { PLATFORMS, DAYS_HEADER, MONTHS } from './constants';
 import { getDaysInMonth, getFirstDayOfMonth } from './utils';
 import ScheduleDialog from './components/ScheduleDialog';
 import DayCell from './components/DayCell';
-import { AuroraLayer, glassCard, GRADIENT_MAIN } from './aiUi';
+import { glassCard, GRADIENT_MAIN } from './aiUi';
 
 const ET_TIMEZONE = 'America/New_York';
 
@@ -141,6 +141,15 @@ export default function Calendar() {
   const openDayPopup = (d, other) => {
     if (other) return;
     const evs = getEvs(d, other);
+    if (isPastDay(d, other)) {
+      if (evs.length > 0) {
+        const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        setDayPopupDate(ds);
+        setDayPopupEvents(evs);
+        setDayPopupOpen(true);
+      }
+      return;
+    }
     if (evs.length === 0) {
       openSchedule(year, month, d);
       return;
@@ -184,7 +193,17 @@ export default function Calendar() {
     return events.filter(e => e.date === ds).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
   };
 
+  const popupDateIsPast = dayPopupDate
+    ? new Date(dayPopupDate + 'T12:00:00') < new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    : false;
+
   const isToday_ = (d, other) => !other && d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+  const isPastDay = (d, other) => {
+    if (other) return false;
+    const dayStart = new Date(year, month, d);
+    return dayStart < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  };
 
   // Stats for the current month
   const currentMonthEvents = events.filter(e => {
@@ -197,9 +216,7 @@ export default function Calendar() {
 
   return (
     <Box sx={{ py: { xs: 1, sm: 2, md: 3 }, width: '100%', position: 'relative' }}>
-      <AuroraLayer isDark={isDark} />
-      {/* Header */}
-      <Box sx={{
+      {/* Header */}      <Box sx={{
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
@@ -213,9 +230,7 @@ export default function Calendar() {
             fontWeight: 800,
             fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
             letterSpacing: '-0.5px',
-            background: GRADIENT_MAIN,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: isDark ? '#f1f5f9' : '#1e293b',
           }}>
             Content Calendar
           </Typography>
@@ -364,58 +379,53 @@ export default function Calendar() {
 
         {/* Calendar Grid */}
         {loadingEvents ? (
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-            {Array.from({ length: 35 }).map((_, idx) => {
-              const borderRight = (idx + 1) % 7 !== 0 ? '1px solid' : 'none';
-              const borderBottom = idx < 28 ? '1px solid' : 'none';
-              return (
-                <Box key={idx} sx={{
-                  borderRight, borderBottom,
-                  borderColor: isDark ? alpha('#fff', 0.04) : alpha('#000', 0.04),
-                  p: { xs: '3px 2px', sm: '6px 6px 4px' },
-                  minHeight: { xs: 60, sm: 110 },
-                }}>
-                  <Box sx={{
-                    width: { xs: 16, sm: 26 }, height: { xs: 16, sm: 26 }, borderRadius: '50%',
-                    bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.04),
-                    ml: 'auto', mb: { xs: '4px', sm: '8px' },
-                  }} />
-                  <Box sx={{
-                    width: '80%', height: { xs: 8, sm: 10 },
-                    bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.04),
-                    borderRadius: 2, mb: 0.5,
-                  }} />
-                  <Box sx={{
-                    width: '60%', height: { xs: 8, sm: 10 },
-                    bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.04),
-                    borderRadius: 2,
-                  }} />
-                </Box>
-              );
-            })}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: { xs: '4px', sm: '8px' }, p: { xs: 1, sm: 2 } }}>
+            {Array.from({ length: 35 }).map((_, idx) => (
+              <Box key={idx} sx={{
+                border: '1px solid',
+                borderColor: isDark ? alpha('#fff', 0.04) : alpha('#000', 0.04),
+                borderRadius: { xs: 1.5, sm: 3 },
+                p: { xs: '3px 2px', sm: '6px 6px 4px' },
+                minHeight: { xs: 60, sm: 110 },
+              }}>
+                <Box sx={{
+                  width: { xs: 16, sm: 26 }, height: { xs: 16, sm: 26 }, borderRadius: '50%',
+                  bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.04),
+                  ml: 'auto', mb: { xs: '4px', sm: '8px' },
+                }} />
+                <Box sx={{
+                  width: '80%', height: { xs: 8, sm: 10 },
+                  bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.04),
+                  borderRadius: 2, mb: 0.5,
+                }} />
+                <Box sx={{
+                  width: '60%', height: { xs: 8, sm: 10 },
+                  bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.04),
+                  borderRadius: 2,
+                }} />
+              </Box>
+            ))}
           </Box>
         ) : (
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-            {cells.map(({ day, other }, idx) => {
-              const borderRight = (idx + 1) % 7 !== 0 ? '1px solid' : 'none';
-              const borderBottom = idx < cells.length - 7 ? '1px solid' : 'none';
-              return (
-                <Box key={idx} sx={{
-                  borderRight, borderBottom,
-                  borderColor: isDark ? alpha('#fff', 0.04) : alpha('#000', 0.04),
-                  overflow: 'hidden',
-                }}>
-                  <DayCell
-                    day={day}
-                    dayEvents={getEvs(day, other)}
-                    isToday={isToday_(day, other)}
-                    isOtherMonth={other}
-                    onClick={d => openDayPopup(d, other)}
-                    onEventClick={setDetailEvent}
-                  />
-                </Box>
-              );
-            })}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: { xs: '4px', sm: '8px' }, p: { xs: 1, sm: 2 } }}>
+            {cells.map(({ day, other }, idx) => (
+              <Box key={idx} sx={{
+                border: '1px solid',
+                borderColor: isDark ? alpha('#fff', 0.06) : alpha('#3b82f6', 0.14),
+                borderRadius: { xs: 1.5, sm: 3 },
+                overflow: 'hidden',
+              }}>
+                <DayCell
+                  day={day}
+                  dayEvents={getEvs(day, other)}
+                  isToday={isToday_(day, other)}
+                  isOtherMonth={other}
+                  isPast={isPastDay(day, other)}
+                  onClick={d => openDayPopup(d, other)}
+                  onEventClick={setDetailEvent}
+                />
+              </Box>
+            ))}
           </Box>
         )}
       </Paper>
@@ -574,14 +584,16 @@ export default function Calendar() {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Button
-                size="small"
-                startIcon={<Add size={16} />}
-                onClick={() => { setDayPopupOpen(false); openSchedule(year, month, parseInt(dayPopupDate.split('-')[2])); }}
-                sx={{ textTransform: 'none', fontWeight: 600 }}
-              >
-                Add
-              </Button>
+              {!popupDateIsPast && (
+                <Button
+                  size="small"
+                  startIcon={<Add size={16} />}
+                  onClick={() => { setDayPopupOpen(false); openSchedule(year, month, parseInt(dayPopupDate.split('-')[2])); }}
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  Add
+                </Button>
+              )}
               <IconButton size="small" onClick={() => setDayPopupOpen(false)}>
                 <Close fontSize="small" />
               </IconButton>
