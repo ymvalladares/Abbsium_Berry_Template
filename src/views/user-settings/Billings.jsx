@@ -98,13 +98,12 @@ const Billings = () => {
     try {
       const { data } = await api.get('order/stripe-invoices');
       if (data.invoices) setStripeInvoices(data.invoices);
-      if (data.totalSpent !== undefined && data.totalSpent > totalSpent) setTotalSpent(data.totalSpent);
     } catch (err) {
       console.error('Failed to fetch Stripe invoices:', err);
     } finally {
       setStripeLoading(false);
     }
-  }, [totalSpent]);
+  }, []);
 
   useEffect(() => {
     fetchData();

@@ -159,7 +159,7 @@ const VerificationCode = ({ email, onResendCode }) => {
           padding: { xs: '24px 18px', sm: '36px 32px' },
           boxShadow: { xs: '0 -4px 30px rgba(0,0,0,0.15)', sm: '0px 10px 40px rgba(0, 0, 0, 0.2)' },
           borderRadius: { xs: '24px 24px 0 0', sm: '24px' },
-          width: { xs: '100%', sm: '420px', md: '440px' },
+          width: { xs: '100%', sm: '420px', md: '440px', lg: '460px' },
           maxWidth: '100%',
           backgroundColor: '#ffffff',
           position: 'relative'
@@ -233,7 +233,7 @@ const VerificationCode = ({ email, onResendCode }) => {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={1.5} justifyContent="center" mb={3}>
+        <Stack direction="row" spacing={1} justifyContent="center" mb={3}>
           {code.map((digit, index) => (
             <Box
               key={index}
@@ -247,9 +247,10 @@ const VerificationCode = ({ email, onResendCode }) => {
               onKeyDown={(e) => handleKeyDown(index, e)}
               disabled={loading}
               sx={{
-                width: { xs: '46px', sm: '54px' },
+                flex: 1,
+                minWidth: 0,
                 height: { xs: '54px', sm: '62px' },
-                fontSize: '22px',
+                fontSize: { xs: '18px', sm: '22px' },
                 fontWeight: 700,
                 textAlign: 'center',
                 border: '2px solid',
