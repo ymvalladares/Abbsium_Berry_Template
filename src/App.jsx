@@ -11,6 +11,8 @@ import { setSnackbarRef } from './utils/snackbarNotif';
 import { FiltersProvider } from './contexts/FiltersContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { MaintenanceProvider } from './contexts/MaintenanceContext';
+import { ConnectionProvider } from './contexts/ConnectionContext';
+import ConnectionBanner from './ui-component/ConnectionBanner';
 
 function SnackbarInitializer() {
   const { enqueueSnackbar } = useSnackbar();
@@ -57,19 +59,22 @@ export default function App() {
         }}
       >
         <SnackbarInitializer />
-        <NavigationScroll>
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <AuthProvider>
-              <DealerSetupProvider>
-                <FiltersProvider>
-                  <MaintenanceProvider>
-                    <RouterProvider router={router} />
-                  </MaintenanceProvider>
-                </FiltersProvider>
-              </DealerSetupProvider>
-            </AuthProvider>
-          </GoogleOAuthProvider>
-        </NavigationScroll>
+        <ConnectionProvider>
+          <ConnectionBanner />
+          <NavigationScroll>
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+              <AuthProvider>
+                <DealerSetupProvider>
+                  <FiltersProvider>
+                    <MaintenanceProvider>
+                      <RouterProvider router={router} />
+                    </MaintenanceProvider>
+                  </FiltersProvider>
+                </DealerSetupProvider>
+              </AuthProvider>
+            </GoogleOAuthProvider>
+          </NavigationScroll>
+        </ConnectionProvider>
       </SnackbarProvider>
     </ThemeCustomization>
   );

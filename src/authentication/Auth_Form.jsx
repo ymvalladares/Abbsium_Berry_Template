@@ -7,7 +7,7 @@ import { Box, Button, Chip, Divider, Stack, Typography, Alert, createTheme, Them
 import { BeatLoader } from 'react-spinners';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/AxiosService';
-import { Lock } from '@mui/icons-material';
+import { Lock, Shield } from '@mui/icons-material';
 
 const FORM_FIELDS = [
   { name: 'email', label: 'E-mail', type: 'email', action: ['login', 'register', 'forgetPassword'] },
@@ -38,6 +38,25 @@ const INITIAL_VALUES = {
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 30000;
 
+const getPasswordStrength = (pw = '') => {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
+  if (/\d/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score;
+};
+
+const STRENGTH_META = [
+  { label: '', color: '#e2e8f0' },
+  { label: 'Very weak', color: '#f87171' },
+  { label: 'Weak', color: '#f87171' },
+  { label: 'Medium', color: '#fbbf24' },
+  { label: 'Strong', color: '#34d399' },
+  { label: 'Very strong', color: '#10b981' }
+];
+
 const Auth_Form = ({ onSuccess }) => {
   const [userAction, setUserAction] = useState('login');
   const [authError, setAuthError] = useState(null);
@@ -48,6 +67,27 @@ const Auth_Form = ({ onSuccess }) => {
 
   const { authenticate, authLoading, googleLogin } = useAuth();
   const googleTimeoutRef = useRef(null);
+  const cardRef = useRef(null);
+  const [shakeId, setShakeId] = useState(0);
+
+  React.useEffect(() => {
+    if (authError) setShakeId((n) => n + 1);
+  }, [authError]);
+
+  React.useEffect(() => {
+    if (shakeId === 0 || !cardRef.current) return;
+    cardRef.current.animate(
+      [
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-10px)' },
+        { transform: 'translateX(10px)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(0)' }
+      ],
+      { duration: 450, easing: 'ease-in-out' }
+    );
+  }, [shakeId]);
 
   React.useEffect(() => {
     return () => {
@@ -184,6 +224,14 @@ const Auth_Form = ({ onSuccess }) => {
     []
   );
 
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 6) return 'Good night';
+    if (h < 12) return 'Good morning';
+    if (h < 19) return 'Good afternoon';
+    return 'Good evening';
+  }, []);
+
   return (
     <ThemeProvider theme={lightTheme}>
       <Box
@@ -198,7 +246,7 @@ const Auth_Form = ({ onSuccess }) => {
         }}
       >
         {/* Mobile: Logo icon + title above card */}
-        <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', alignItems: 'center', mb: 2, animation: 'fadeInDown 0.7s ease-out', '@keyframes fadeInDown': { from: { opacity: 0, transform: 'translateY(-16px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
           <Box
             sx={{
               width: 56,
@@ -216,10 +264,12 @@ const Auth_Form = ({ onSuccess }) => {
             <Lock sx={{ fontSize: 28, color: 'white' }} />
           </Box>
           <Typography sx={{ color: 'white', fontSize: '18px', fontWeight: 600, letterSpacing: '0.5px' }}>Smart Guide</Typography>
+          <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 400, mt: 0.5 }}>{greeting}</Typography>
         </Box>
 
         {/* Card */}
         <Box
+          ref={cardRef}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -230,7 +280,11 @@ const Auth_Form = ({ onSuccess }) => {
             maxWidth: '100%',
             backgroundColor: '#ffffff',
             position: 'relative',
-            borderTop: { xs: 'none', sm: '1px solid rgba(255,255,255,0.1)' }
+            borderTop: { xs: 'none', sm: '1px solid rgba(255,255,255,0.1)' },
+            transition: 'box-shadow 0.3s ease, transform 0.3s ease',
+            '@media (hover: hover)': {
+              '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }
+            }
           }}
         >
           {/* Title */}
@@ -248,7 +302,7 @@ const Auth_Form = ({ onSuccess }) => {
                 onClick={triggerGoogleSignIn}
                 disabled={isLoading}
                 sx={{
-                  height: 48,
+                  height: 40,
                   borderRadius: '12px',
                   border: '1.5px solid #e2e8f0',
                   background: '#fff',
@@ -292,7 +346,9 @@ const Auth_Form = ({ onSuccess }) => {
               </Divider>
 
               <Formik key={userAction} initialValues={INITIAL_VALUES} validationSchema={validationSchema} onSubmit={handleSubmit}>
-                {({ resetForm }) => (
+                {({ values, resetForm }) => {
+                  const strength = values.password ? getPasswordStrength(values.password) : 0;
+                  return (
                   <Form style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <input type="text" name="website" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
 
@@ -308,9 +364,44 @@ const Auth_Form = ({ onSuccess }) => {
                       </Alert>
                     )}
 
-                    {filteredInputs.map((f) => (
-                      <Input_Fields key={f.name} {...f} />
+                    {filteredInputs.map((f, index) => (
+                      <Input_Fields
+                        key={f.name}
+                        {...f}
+                        animate={index === 0}
+                        autoComplete={
+                          f.type === 'password'
+                            ? userAction === 'register'
+                              ? 'new-password'
+                              : 'current-password'
+                            : f.name === 'email'
+                            ? 'email'
+                            : 'username'
+                        }
+                      />
                     ))}
+
+                    {userAction === 'register' && values.password && (
+                      <Box sx={{ mt: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <Box
+                              key={i}
+                              sx={{
+                                height: 5,
+                                flex: 1,
+                                borderRadius: 3,
+                                background: i <= strength ? STRENGTH_META[strength].color : '#e2e8f0',
+                                transition: 'background 0.3s ease'
+                              }}
+                            />
+                          ))}
+                        </Box>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600, color: STRENGTH_META[strength].color, mt: 0.5 }}>
+                          {STRENGTH_META[strength].label}
+                        </Typography>
+                      </Box>
+                    )}
 
                     {userAction === 'login' && (
                       <Box sx={{ mt: 0.5, mb: 1.5 }}>
@@ -347,7 +438,8 @@ const Auth_Form = ({ onSuccess }) => {
                       )}
                     </Button>
                   </Form>
-                )}
+                  );
+                }}
               </Formik>
             </>
           )}
@@ -369,7 +461,7 @@ const Auth_Form = ({ onSuccess }) => {
                     </Alert>
                   )}
 
-                  <Input_Fields key="email" name="email" label="E-mail" type="email" />
+                  <Input_Fields key="email" name="email" label="E-mail" type="email" autoComplete="email" />
 
                   <Button
                     type="submit"
@@ -441,6 +533,32 @@ const Auth_Form = ({ onSuccess }) => {
               </Box>
             </>
           )}
+        </Box>
+
+        {/* Footer */}
+        <Box
+          sx={{
+            display: { xs: 'none', lg: 'flex' },
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: 1,
+            mt: 2.5,
+            pb: { xs: 3, lg: 0 },
+            color: 'rgba(255,255,255,0.75)',
+            animation: 'fadeInUp 0.7s ease-out',
+            '@keyframes fadeInUp': {
+              from: { opacity: 0, transform: 'translateY(12px)' },
+              to: { opacity: 1, transform: 'translateY(0)' }
+            }
+          }}
+        >
+          <Shield sx={{ fontSize: 15 }} />
+          <Typography sx={{ fontSize: 12, fontWeight: 500 }}>Protected by Abbsium</Typography>
+          <Box component="span" sx={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.5)' }} />
+          <Typography sx={{ fontSize: 12, cursor: 'pointer', transition: 'color 0.2s ease', '&:hover': { color: '#ffffff' } }}>Terms</Typography>
+          <Box component="span" sx={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.5)' }} />
+          <Typography sx={{ fontSize: 12, cursor: 'pointer', transition: 'color 0.2s ease', '&:hover': { color: '#ffffff' } }}>Privacy</Typography>
         </Box>
       </Box>
     </ThemeProvider>

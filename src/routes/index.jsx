@@ -1,16 +1,20 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import LandingPage from 'landing/LandingPage';
-import Authentication from '../authentication/Authentication.jsx';
+import Loadable from 'ui-component/Loadable';
 import ProtectedRoute from './ProtectedRoute';
 import MainRoutes from './MainRoutes';
 import AdminRoutes from './AdminRoutes';
-import PricingComponent from '../landing/PricingComponent.jsx';
-import EmailConfirmed from '../authentication/EmailConfirmed.jsx';
-import ResetPassword from '../authentication/ResetPassword.jsx';
-import { PrivacyPolicy } from '../utils/PrivacyPolicy.jsx';
-import { TermsOfService } from '../utils/TermsOfService.jsx';
-import AuthCallback from '../views/content-creator/socialNetwork/AuthCallback.jsx';
-import { NotFound, ErrorPage } from './error-pages';
+
+const LandingPage = Loadable(lazy(() => import('landing/LandingPage')));
+const Authentication = Loadable(lazy(() => import('../authentication/Authentication.jsx')));
+const PricingComponent = Loadable(lazy(() => import('../landing/PricingComponent.jsx')));
+const EmailConfirmed = Loadable(lazy(() => import('../authentication/EmailConfirmed.jsx')));
+const ResetPassword = Loadable(lazy(() => import('../authentication/ResetPassword.jsx')));
+const PrivacyPolicy = Loadable(lazy(() => import('../utils/PrivacyPolicy.jsx').then(m => ({ default: m.PrivacyPolicy }))));
+const TermsOfService = Loadable(lazy(() => import('../utils/TermsOfService.jsx').then(m => ({ default: m.TermsOfService }))));
+const AuthCallback = Loadable(lazy(() => import('../views/content-creator/socialNetwork/AuthCallback.jsx')));
+const NotFound = Loadable(lazy(() => import('./error-pages').then(m => ({ default: m.NotFound }))));
+const ErrorPage = Loadable(lazy(() => import('./error-pages').then(m => ({ default: m.ErrorPage }))));
 
 const router = createBrowserRouter(
   [

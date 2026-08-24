@@ -191,6 +191,7 @@ const Orders = () => {
   const [paymentHistoryTotal, setPaymentHistoryTotal] = useState(0);
   const [paymentHistoryFilters, setPaymentHistoryFilters] = useState({ status: '', userId: '' });
   const [selectedPayments, setSelectedPayments] = useState([]);
+  const [paymentOverview, setPaymentOverview] = useState(null);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(15);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -246,6 +247,9 @@ const Orders = () => {
       const res = await axios.get(`${API_BASE}/Order/payment-history?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       setPaymentHistory(res.data.payments || []);
       setPaymentHistoryTotal(res.data.total || 0);
+
+      const overviewRes = await axios.get(`${API_BASE}/Order/payment-overview?${new URLSearchParams({ status: paymentHistoryFilters.status })}`, { headers: { Authorization: `Bearer ${token}` } });
+      setPaymentOverview(overviewRes.data);
     } catch {
       showSnackbar('Failed to load payment history', 'error');
     } finally {
@@ -277,6 +281,20 @@ const Orders = () => {
       fetchSubDetails(order);
     } catch {
       showSnackbar('Failed to sync', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const syncPayments = async (order) => {
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_BASE}/Order/sync-payments/${order.id}`, null, { headers: { Authorization: `Bearer ${token}` } });
+      showSnackbar(res.data.message || 'Payments synced');
+      fetchPaymentHistory();
+    } catch {
+      showSnackbar('Failed to sync payments', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -569,16 +587,68 @@ const Orders = () => {
       )}
 
       {viewMode === 'history' && (
+        <>
+          {paymentOverview && (
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Card elevation={0} sx={glassCard(isDark)}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Total Revenue</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#10b981', mt: 0.5 }}>${paymentOverview.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{paymentOverview.totalPayments} payment{paymentOverview.totalPayments !== 1 ? 's' : ''}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Card elevation={0} sx={glassCard(isDark)}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Failed Payments</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#ef4444', mt: 0.5 }}>{paymentOverview.totalFailed}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>${paymentOverview.totalFailedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lost</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Card elevation={0} sx={glassCard(isDark)}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>By Service Type</Typography>
+                    {paymentOverview.byServiceType?.slice(0, 2).map((s, i) => (
+                      <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ textTransform: 'capitalize', fontWeight: 600 }}>{s.serviceType}</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>${s.amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Card elevation={0} sx={glassCard(isDark)}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent Months</Typography>
+                    {paymentOverview.byMonth?.slice(-3).map((m, i) => (
+                      <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>{m.month}</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>${m.amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+
         <Card elevation={0} sx={glassCard(isDark)}>
           <Box sx={{ p: 2, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)', position: 'relative', zIndex: 1 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
-              <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>Monthly Payment History</Typography>
-              <ToggleButtonGroup value={paymentHistoryFilters.status || ''} exclusive onChange={(e, val) => { setPaymentHistoryFilters(f => ({ ...f, status: val })); setPaymentHistoryPage(0); }} size="small" sx={glassToggleSx(isDark)}>
+              <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>Payment History</Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <ToggleButtonGroup value={paymentHistoryFilters.status || ''} exclusive onChange={(e, val) => { setPaymentHistoryFilters(f => ({ ...f, status: val })); setPaymentHistoryPage(0); }} size="small" sx={glassToggleSx(isDark)}>
                 <ToggleButton value="">All</ToggleButton>
                 <ToggleButton value="paid">Paid</ToggleButton>
                 <ToggleButton value="failed">Failed</ToggleButton>
                 <ToggleButton value="suspended">Suspended</ToggleButton>
               </ToggleButtonGroup>
+              </Stack>
             </Stack>
           </Box>
           <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
@@ -662,6 +732,7 @@ const Orders = () => {
             <TablePagination component="div" count={paymentHistoryTotal} page={paymentHistoryPage} onPageChange={(e, p) => setPaymentHistoryPage(p)} rowsPerPage={paymentHistoryPageSize} rowsPerPageOptions={[25, 50, 100]} sx={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }} />
           )}
         </Card>
+        </>
       )}
 
       {/* Detail Dialog */}

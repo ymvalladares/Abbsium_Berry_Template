@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Box, Typography, Button, IconButton, Paper, alpha, Chip, CircularProgress, Dialog, Stack
+  Box, Typography, Button, IconButton, Paper, alpha, Chip, CircularProgress, Dialog, Stack, Tooltip
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import {
@@ -17,6 +17,18 @@ import DayCell from './components/DayCell';
 import { glassCard, GRADIENT_MAIN } from './aiUi';
 
 const ET_TIMEZONE = 'America/New_York';
+const STORAGE_CAL_KEY = 'content_calendar_view';
+
+function loadCalendarView() {
+  try {
+    const saved = localStorage.getItem(STORAGE_CAL_KEY);
+    if (saved) {
+      const v = JSON.parse(saved);
+      if (v && typeof v.year === 'number' && typeof v.month === 'number') return v;
+    }
+  } catch {}
+  return null;
+}
 
 function toEasternTime(dateStr, timeStr) {
   if (!dateStr || !timeStr) return '';
@@ -36,8 +48,9 @@ export default function Calendar() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
+  const savedView = loadCalendarView();
+  const [year, setYear] = useState(savedView?.year ?? today.getFullYear());
+  const [month, setMonth] = useState(savedView?.month ?? today.getMonth());
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -117,6 +130,12 @@ export default function Calendar() {
   }, [mapHistoryToEvents, mapScheduledToEvents]);
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_CAL_KEY, JSON.stringify({ year, month }));
+    } catch {}
+  }, [year, month]);
 
   useEffect(() => {
     const handler = () => fetchHistory();
@@ -287,26 +306,30 @@ export default function Calendar() {
           bgcolor: isDark ? alpha('#1e293b', 0.5) : alpha('#fff', 0.8),
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <IconButton
-              onClick={goBack}
-              size="small"
-              sx={{
-                bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                '&:hover': { bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#000', 0.06) },
-              }}
-            >
-              <ChevronLeft fontSize="small" />
-            </IconButton>
-            <IconButton
-              onClick={goNext}
-              size="small"
-              sx={{
-                bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                '&:hover': { bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#000', 0.06) },
-              }}
-            >
-              <ChevronRight fontSize="small" />
-            </IconButton>
+            <Tooltip title="Previous month" arrow>
+              <IconButton
+                onClick={goBack}
+                size="small"
+                sx={{
+                  bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.03),
+                  '&:hover': { bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#000', 0.06) },
+                }}
+              >
+                <ChevronLeft fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Next month" arrow>
+              <IconButton
+                onClick={goNext}
+                size="small"
+                sx={{
+                  bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.03),
+                  '&:hover': { bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#000', 0.06) },
+                }}
+              >
+                <ChevronRight fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Typography sx={{
               fontWeight: 700,
               fontSize: { xs: '0.8rem', sm: '1rem' },
@@ -318,39 +341,43 @@ export default function Calendar() {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Button
-              size="small"
-              onClick={goToday}
-              variant="outlined"
-              sx={{
-                textTransform: 'none',
-                fontWeight: 600,
-                borderRadius: '8px',
-                fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                minWidth: { xs: 50, sm: 60 },
-                px: { xs: 1, sm: 1.5 },
-                borderColor: isDark ? alpha('#fff', 0.15) : alpha('#000', 0.12),
-                color: 'text.primary',
-                '&:hover': {
-                  borderColor: '#3b82f6',
-                  color: isDark ? '#93c5fd' : '#3b82f6',
-                  bgcolor: isDark ? alpha('#3b82f6', 0.1) : alpha('#3b82f6', 0.04),
-                },
-              }}
-            >
-              Today
-            </Button>
-            <IconButton
-              size="small"
-              onClick={fetchHistory}
-              disabled={loadingEvents}
-              sx={{
-                bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                '&:hover': { bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#000', 0.06) },
-              }}
-            >
-              {loadingEvents ? <CircularProgress size={16} /> : <Replay fontSize="small" />}
-            </IconButton>
+            <Tooltip title="Go to today" arrow>
+              <Button
+                size="small"
+                onClick={goToday}
+                variant="outlined"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                  minWidth: { xs: 50, sm: 60 },
+                  px: { xs: 1, sm: 1.5 },
+                  borderColor: isDark ? alpha('#fff', 0.15) : alpha('#000', 0.12),
+                  color: 'text.primary',
+                  '&:hover': {
+                    borderColor: '#3b82f6',
+                    color: isDark ? '#93c5fd' : '#3b82f6',
+                    bgcolor: isDark ? alpha('#3b82f6', 0.1) : alpha('#3b82f6', 0.04),
+                  },
+                }}
+              >
+                Today
+              </Button>
+            </Tooltip>
+            <Tooltip title="Refresh posts" arrow>
+              <IconButton
+                size="small"
+                onClick={fetchHistory}
+                disabled={loadingEvents}
+                sx={{
+                  bgcolor: isDark ? alpha('#fff', 0.05) : alpha('#000', 0.03),
+                  '&:hover': { bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#000', 0.06) },
+                }}
+              >
+                {loadingEvents ? <CircularProgress size={16} /> : <Replay fontSize="small" />}
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
 

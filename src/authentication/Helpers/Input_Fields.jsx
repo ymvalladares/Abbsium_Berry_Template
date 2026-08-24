@@ -4,7 +4,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import React from 'react';
 
-const Input_Fields = ({ label, ...props }) => {
+const Input_Fields = ({ label, animate = false, ...props }) => {
   const [field, meta] = useField(props);
   const [showPassword, setShowPassword] = React.useState(true);
 
@@ -14,6 +14,7 @@ const Input_Fields = ({ label, ...props }) => {
     <>
       <TextField
         {...field}
+        autoComplete={props.autoComplete || 'off'}
         type={props.type == 'password' && showPassword ? 'password' : 'text'}
         id={props.key}
         size="small"
@@ -26,7 +27,14 @@ const Input_Fields = ({ label, ...props }) => {
           mt: 1,
           '& input': {
             fontSize: '16px' // ✅ CLAVE: evita zoom en mobile
-          }
+          },
+          ...(animate && {
+            animation: 'inputGlow 1.4s ease-out',
+            '@keyframes inputGlow': {
+              '0%': { boxShadow: '0 0 0 5px rgba(124,58,237,0.22)' },
+              '100%': { boxShadow: '0 0 0 5px rgba(124,58,237,0)' }
+            }
+          })
         }}
         InputProps={
           props.type == 'password'

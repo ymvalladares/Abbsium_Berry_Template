@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import {
   Box,
   Typography,
@@ -7,10 +7,7 @@ import {
   TextField,
   InputAdornment,
   Chip,
-  useMediaQuery,
-  useTheme,
   CircularProgress,
-  Checkbox,
   IconButton,
   alpha,
   Dialog,
@@ -30,8 +27,6 @@ import {
   IconCheck,
   IconPlus,
   IconSearch,
-  IconRefresh,
-  IconChecklist,
   IconAlertCircle,
   IconX,
   IconUsers,
@@ -70,7 +65,7 @@ function ConnectionModal({ open, onClose, platform, conn }) {
   const Icon = platform.icon;
 
   const stats = [
-    { label: 'Account Name', value: conn?.accountName || '—', icon: IconUsers, color: '#8b5cf6' },
+    { label: 'Account Name', value: conn?.accountName || '—', icon: IconUsers, color: '#2563eb' },
     { label: 'Status', value: conn?.isActive ? 'Active' : 'Inactive', icon: IconCheck, color: conn?.isActive ? '#22c55e' : '#f59e0b' },
     { label: 'Connected Since', value: conn?.createdAt ? new Date(conn.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—', icon: IconCalendar, color: '#3b82f6' },
     { label: 'Token Expires', value: conn?.expiresAt ? new Date(conn.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—', icon: IconClock, color: '#f59e0b' }
@@ -123,7 +118,7 @@ function ConnectionModal({ open, onClose, platform, conn }) {
   );
 }
 
-function PlatformRow({ platform, conn, isConnecting, selectMode, isSelected, onToggle, onConnect, onDisconnect, onOpenModal }) {
+const PlatformRow = memo(function PlatformRow({ platform, conn, isConnecting, onConnect, onDisconnect, onOpenModal }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const isConnected = conn?.connected;
@@ -147,10 +142,6 @@ function PlatformRow({ platform, conn, isConnecting, selectMode, isSelected, onT
       }}
       onClick={() => isConnected && onOpenModal(platform.name)}
     >
-      {selectMode && !isConnected && (
-        <Checkbox size="small" checked={isSelected} onChange={() => onToggle(platform.name)} sx={{ p: 0 }} />
-      )}
-
       <Box
         sx={{
           width: 44,
@@ -202,13 +193,13 @@ function PlatformRow({ platform, conn, isConnecting, selectMode, isSelected, onT
 
       <Stack direction="row" spacing={1} alignItems="center">
         {isConnected && (
-          <Button size="small" onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }} sx={{ borderRadius: '10px', px: 1.5, textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', '&:hover': { bgcolor: alpha('#5E35B1', 0.06) } }}>
+          <Button size="small" onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }} sx={{ borderRadius: '10px', px: 1.5, textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', '&:hover': { bgcolor: alpha('#2563eb', 0.06) } }}>
             {showDetails ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
           </Button>
         )}
         <Button
           size="small"
-          disabled={isConnecting || (selectMode && !isConnected)}
+          disabled={isConnecting}
           onClick={(e) => {
             e.stopPropagation();
             isConnected ? onDisconnect(platform.name) : onConnect(platform.name);
@@ -236,8 +227,7 @@ function PlatformRow({ platform, conn, isConnecting, selectMode, isSelected, onT
                   border: '1px solid transparent',
                   boxShadow: `0 2px 12px ${alpha(platform.color, 0.25)}`,
                   '&:hover': { bgcolor: alpha(platform.color, 0.85), boxShadow: `0 4px 20px ${alpha(platform.color, 0.35)}` }
-                }),
-            ...(selectMode && !isConnected && { opacity: 0.3, pointerEvents: 'none' })
+                })
           }}
           startIcon={
             isConnecting ? (
@@ -252,13 +242,11 @@ function PlatformRow({ platform, conn, isConnecting, selectMode, isSelected, onT
       </Stack>
     </Box>
   );
-}
+});
 
 export default function SocialHub() {
-  const theme = useTheme();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const notify = useNotification();
 
   const [connections, setConnections] = useState({});
@@ -266,10 +254,24 @@ export default function SocialHub() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [connecting, setConnecting] = useState({});
-  const [selectMode, setSelectMode] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [modalPlatform, setModalPlatform] = useState(null);
   const [modalConn, setModalConn] = useState(null);
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const tag = document.activeElement?.tagName;
+      if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      } else if (e.key === 'Escape' && document.activeElement === searchRef.current) {
+        setSearch('');
+        searchRef.current?.blur();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -324,21 +326,6 @@ export default function SocialHub() {
     } catch (err) { notify.error(err?.response?.data?.error || `Failed to disconnect ${platform}`, 'Disconnect Failed'); }
   };
 
-  const toggleSelect = (platform) => setSelectedPlatforms((prev) => (prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]));
-  const selectAllDisconnected = () => setSelectedPlatforms(PLATFORMS.filter((p) => !connections[p.name]?.connected).map((p) => p.name));
-  const clearSelection = () => { setSelectedPlatforms([]); setSelectMode(false); };
-
-  const handleMultiConnect = () => {
-    if (selectedPlatforms.length === 0) return;
-    const available = selectedPlatforms.filter((p) => connectMethods[p]);
-    socialAPI.connectMultiple(available, () => {}, async (results) => {
-      clearSelection();
-      const successCount = Object.values(results).filter(Boolean).length;
-      if (successCount > 0) notify.success(`${successCount} platform${successCount > 1 ? 's' : ''} connected`, 'Connection Successful');
-      await fetchStatus();
-    });
-  };
-
   const openModal = (platform) => { setModalPlatform(platform); setModalConn(connections[platform.name]); };
 
   const connectedCount = Object.values(connections).filter((x) => x?.connected).length;
@@ -378,59 +365,27 @@ export default function SocialHub() {
   return (
     <Box sx={{ width: '100%', py: { xs: 1, sm: 2 } }}>
       {/* Header */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3, flexWrap: 'wrap', gap: 1 }}>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Box sx={{ width: 44, height: 44, borderRadius: '16px', background: 'linear-gradient(135deg, #5E35B1, #7C4DFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(94, 53, 177, 0.3)' }}>
+          <Box sx={{ width: 46, height: 46, borderRadius: '15px', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.3)', flexShrink: 0, position: 'relative', '&::after': { content: '""', position: 'absolute', inset: 0, borderRadius: 'inherit', border: '1px solid rgba(255,255,255,0.25)' } }}>
             <IconWorld size={22} color="#fff" />
           </Box>
           <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>Social Networks</Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{connectedCount} of {PLATFORMS.length} platforms connected</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.05rem', sm: '1.15rem' }, letterSpacing: '-0.02em' }}>Social Networks</Typography>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
+              <IconShieldCheck size={13} style={{ color: '#2563eb' }} />
+              <Typography sx={{ fontSize: '0.76rem', color: 'text.secondary' }}>We never store your social media passwords. You connect securely through OAuth 2.0.</Typography>
+            </Stack>
           </Box>
-        </Stack>
-        <Stack direction="row" spacing={1}>
-          <Button size="small" variant={selectMode ? 'contained' : 'outlined'} startIcon={<IconChecklist size={16} />} onClick={() => { if (selectMode) clearSelection(); else setSelectMode(true); }} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', ...(selectMode && { bgcolor: '#8b5cf6', '&:hover': { bgcolor: alpha('#8b5cf6', 0.85) } }) }}>
-            {selectMode ? 'Done' : 'Select All'}
-          </Button>
-          <IconButton size="small" onClick={fetchStatus} sx={{ bgcolor: alpha('#5E35B1', 0.08), color: '#5E35B1', '&:hover': { bgcolor: alpha('#5E35B1', 0.15) } }}>
-            <IconRefresh size={16} />
-          </IconButton>
         </Stack>
       </Stack>
 
-      {/* Info Banner */}
-      <Box sx={{ mb: 3, p: 2.5, borderRadius: '20px', background: `linear-gradient(135deg, ${alpha('#5E35B1', 0.08)}, ${alpha('#3b82f6', 0.06)})`, border: `1px solid ${alpha('#5E35B1', 0.12)}`, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-        <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: alpha('#5E35B1', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <IconShieldCheck size={20} color="#5E35B1" />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25, fontSize: '0.9rem' }}>Your Privacy Matters</Typography>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.5 }}>We use secure OAuth 2.0 authentication. Your social media credentials are never stored on our servers.</Typography>
-        </Box>
-      </Box>
-
-      {/* Multi-connect bar */}
-      {selectMode && (
-        <Box sx={{ mb: 3, p: 2.5, borderRadius: '20px', bgcolor: alpha('#8b5cf6', 0.04), border: `1px solid ${alpha('#8b5cf6', 0.12)}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Checkbox size="small" checked={selectedPlatforms.length === PLATFORMS.filter((p) => !connections[p.name]?.connected).length && PLATFORMS.filter((p) => !connections[p.name]?.connected).length > 0} onChange={(e) => { if (e.target.checked) selectAllDisconnected(); else setSelectedPlatforms([]); }} sx={{ p: 0.5 }} />
-            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{selectedPlatforms.length > 0 ? `${selectedPlatforms.length} platform${selectedPlatforms.length > 1 ? 's' : ''} selected` : 'Select platforms to connect'}</Typography>
-          </Stack>
-          <Stack direction="row" spacing={1}>
-            <Button size="small" onClick={clearSelection} sx={{ borderRadius: '12px', px: 2, textTransform: 'none', fontWeight: 500, color: 'text.secondary' }}>Cancel</Button>
-            <Button size="small" variant="contained" disabled={selectedPlatforms.length === 0} onClick={handleMultiConnect} sx={{ borderRadius: '12px', px: 2.5, textTransform: 'none', fontWeight: 700, bgcolor: '#8b5cf6', '&:hover': { bgcolor: alpha('#8b5cf6', 0.85) } }}>
-              Connect {selectedPlatforms.length > 0 ? `(${selectedPlatforms.length})` : ''}
-            </Button>
-          </Stack>
-        </Box>
-      )}
-
       {/* Search & Filter */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <TextField size="small" placeholder="Search platforms..." value={search} onChange={(e) => setSearch(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><IconSearch size={15} style={{ color: 'text.secondary' }} /></InputAdornment>), sx: { borderRadius: '14px', '& fieldset': { border: 'none' }, bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.8)', fontSize: '0.85rem', height: 42, boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.04)' } }} sx={{ width: { xs: '100%', sm: 320 } }} />
+        <TextField size="small" inputRef={searchRef} placeholder="Search platforms...  ( / )" value={search} onChange={(e) => setSearch(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><IconSearch size={15} style={{ color: 'text.secondary' }} /></InputAdornment>), sx: { borderRadius: '14px', '& fieldset': { border: 'none' }, bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.8)', fontSize: '0.85rem', height: 42, boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.04)' } }} sx={{ width: { xs: '100%', sm: 320 } }} />
         <Box sx={{ p: 0.5, borderRadius: '14px', bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.8)', display: 'flex', gap: 0.5, boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.04)', flexShrink: 0 }}>
           {[{ key: 'all', label: 'All' }, { key: 'connected', label: 'Connected' }, { key: 'available', label: 'Available' }].map((f) => (
-            <Button key={f.key} size="small" onClick={() => setFilter(f.key)} sx={{ borderRadius: '10px', px: { xs: 1.5, sm: 2 }, py: 0.5, fontWeight: 600, fontSize: '0.75rem', textTransform: 'none', color: filter === f.key ? '#fff' : 'text.secondary', bgcolor: filter === f.key ? '#5E35B1' : 'transparent', '&:hover': { bgcolor: filter === f.key ? alpha('#5E35B1', 0.85) : alpha('#5E35B1', 0.06) }, transition: 'all 0.2s ease' }}>
+            <Button key={f.key} size="small" onClick={() => setFilter(f.key)} sx={{ borderRadius: '10px', px: { xs: 1.5, sm: 2 }, py: 0.5, fontWeight: 600, fontSize: '0.75rem', textTransform: 'none', color: filter === f.key ? '#fff' : 'text.secondary', bgcolor: filter === f.key ? '#2563eb' : 'transparent', '&:hover': { bgcolor: filter === f.key ? alpha('#2563eb', 0.85) : alpha('#2563eb', 0.06) }, transition: 'all 0.2s ease' }}>
               {f.label}
             </Button>
           ))}
@@ -450,9 +405,6 @@ export default function SocialHub() {
               platform={platform}
               conn={connections[platform.name]}
               isConnecting={connecting[platform.name]}
-              selectMode={selectMode}
-              isSelected={selectedPlatforms.includes(platform.name)}
-              onToggle={toggleSelect}
               onConnect={handleConnect}
               onDisconnect={handleDisconnect}
               onOpenModal={openModal}

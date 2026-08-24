@@ -85,7 +85,6 @@ const VerificationCode = ({ email, onResendCode }) => {
 
     setTimeout(() => {
       if (codeToVerify === '123456') {
-        setSuccess('Verification successful! Redirecting...');
         setTimeout(() => {
           navigate('/platform/dashboard');
           setLoading(false);

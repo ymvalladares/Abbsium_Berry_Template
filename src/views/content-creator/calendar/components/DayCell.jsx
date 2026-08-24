@@ -1,6 +1,6 @@
 import { Box, Typography, Tooltip } from '@mui/material';
 import { alpha, useColorScheme } from '@mui/material/styles';
-import { IconClockFilled } from '@tabler/icons-react';
+import { memo } from 'react';
 import { PLATFORMS } from '../constants';
 
 const ET_TIMEZONE = 'America/New_York';
@@ -19,12 +19,12 @@ function toEasternTime(dateStr, timeStr) {
   });
 }
 
-export default function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast, onClick, onEventClick }) {
+export default memo(function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast, onClick, onEventClick }) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
   const hasEvents = dayEvents.length > 0;
-  const maxShow = 6;
+  const maxDots = 7;
 
   return (
     <Box
@@ -85,20 +85,20 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast,
             </Box>
           </Box>
 
-          {/* Platform icons */}
+          {/* Event dots */}
           {hasEvents && (
             <Box sx={{
               display: 'flex',
-              flexWrap: 'wrap',
-              gap: { xs: '3px', sm: '5px' },
-              justifyContent: { xs: 'center', sm: 'flex-start' },
+              flexWrap: 'nowrap',
+              gap: { xs: '2px', sm: '3px' },
+              justifyContent: 'flex-end',
+              alignItems: 'center',
             }}>
-              {dayEvents.slice(0, maxShow).map((ev) => {
+              {dayEvents.slice(0, maxDots).map((ev) => {
                 const platformColor = ev.platformColor || '#4CAF50';
                 const isScheduled = ev.isScheduled === true;
-                const Icon = isScheduled ? IconClockFilled : (ev.platformIcon || PLATFORMS.find(p => p.color === platformColor)?.icon);
-
-                const tooltipTime = toEasternTime(ev.date, ev.time);
+                const plat = ev.platforms?.[0] ? PLATFORMS.find(p => p.id === ev.platforms[0]) : null;
+                const shortTime = toEasternTime(ev.date, ev.time).replace(/\s?[A-Z]{2,4}$/, '').trim();
 
                 return (
                   <Tooltip
@@ -108,9 +108,9 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast,
                         <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.3 }}>
                           {ev.title}
                         </Typography>
-                        {tooltipTime && (
+                        {shortTime && (
                           <Typography sx={{ fontSize: '0.7rem', opacity: 0.75, fontFamily: 'monospace' }}>
-                            {tooltipTime}
+                            {shortTime}
                           </Typography>
                         )}
                         {isScheduled && (
@@ -129,52 +129,31 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast,
                         onEventClick && onEventClick(ev);
                       }}
                       sx={{
-                        width: { xs: 26, sm: 34 },
-                        height: { xs: 26, sm: 34 },
-                        minWidth: { xs: 26, sm: 34 },
-                        minHeight: { xs: 26, sm: 34 },
+                        width: { xs: 6, sm: 7 },
+                        height: { xs: 6, sm: 7 },
                         borderRadius: '50%',
-                        bgcolor: isScheduled
-                          ? (isDark ? alpha('#FF9800', 0.3) : alpha('#FF9800', 0.15))
-                          : (isDark ? alpha(platformColor, 0.25) : alpha(platformColor, 0.1)),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        bgcolor: isScheduled ? '#FF9800' : platformColor,
+                        boxShadow: isScheduled ? `0 0 6px ${alpha('#FF9800', 0.5)}` : `0 0 6px ${alpha(platformColor, 0.5)}`,
+                        flexShrink: 0,
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
                         '&:hover': {
-                          transform: { xs: 'none', sm: 'scale(1.2)' },
-                          bgcolor: isScheduled
-                            ? (isDark ? alpha('#FF9800', 0.5) : alpha('#FF9800', 0.25))
-                            : (isDark ? alpha(platformColor, 0.4) : alpha(platformColor, 0.18)),
-                          boxShadow: {
-                            xs: 'none',
-                            sm: `0 3px 10px ${alpha(isScheduled ? '#FF9800' : platformColor, 0.35)}`,
-                          },
+                          transform: { xs: 'none', sm: 'scale(1.6)' },
                         },
                       }}
-                    >
-                      {Icon && (
-                        <Icon
-                          size={isScheduled ? 14 : 16}
-                          style={{
-                            color: isScheduled ? '#FF9800' : platformColor,
-                          }}
-                        />
-                      )}
-                    </Box>
+                    />
                   </Tooltip>
                 );
               })}
-              {dayEvents.length > maxShow && (
+              {dayEvents.length > maxDots && (
                 <Typography sx={{
-                  fontSize: '0.5rem',
-                  fontWeight: 600,
+                  fontSize: { xs: '0.5rem', sm: '0.6rem' },
+                  fontWeight: 700,
                   color: isDark ? '#94a3b8' : '#64748b',
                   lineHeight: 1,
-                  alignSelf: 'center',
+                  flexShrink: 0,
                 }}>
-                  +{dayEvents.length - maxShow}
+                  +{dayEvents.length - maxDots}
                 </Typography>
               )}
             </Box>
@@ -183,4 +162,4 @@ export default function DayCell({ day, dayEvents, isToday, isOtherMonth, isPast,
       )}
     </Box>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import {
   Box,
   Typography,
@@ -64,17 +64,39 @@ const STATUS_LABELS = {
   failed: 'Generation failed'
 };
 
-function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobProgress, jobMessage }) {
+const ClipCard = memo(function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobProgress, jobMessage }) {
   const ready = hasRealClips && clip.status === 'ready';
   const [isPlaying, setIsPlaying] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const videoRef = useRef(null);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     if (!clip.videoUrl) return;
-    setIsPlaying(!isPlaying);
+    if (!videoLoaded) {
+      setVideoLoaded(true);
+    }
+    setIsPlaying((prev) => !prev);
     setVideoError(false);
-  };
+  }, [clip.videoUrl, videoLoaded]);
+
+  useEffect(() => {
+    return () => {
+      setIsPlaying(false);
+      setVideoLoaded(false);
+      setVideoError(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoLoaded && videoRef.current && isPlaying) {
+      videoRef.current.play().catch(() => {
+        setVideoError(true);
+        setIsPlaying(false);
+      });
+    }
+  }, [videoLoaded, isPlaying]);
 
   const scoreColor = clip.viralScore >= 85 ? '#10b981' : clip.viralScore >= 70 ? '#f59e0b' : '#ef4444';
 
@@ -88,12 +110,14 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
           borderColor: ready ? alpha('#fff', 0.08) : alpha('#2563eb', 0.08),
           bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(20px)',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': ready
             ? {
                 borderColor: alpha('#2563eb', 0.25),
                 boxShadow: `0 16px 48px ${alpha('#2563eb', 0.12)}, 0 0 0 1px ${alpha('#2563eb', 0.1)}`,
-                transform: 'translateY(-6px) scale(1.01)'
+                transform: 'translate3d(0, -6px, 0) scale(1.01)'
               }
             : {}
         }}
@@ -107,18 +131,23 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
             borderRadius: ready ? '24px 24px 0 0' : '24px'
           }}
         >
-          {isPlaying && clip.videoUrl ? (
+          {isPlaying && videoLoaded && clip.videoUrl ? (
             <>
               <video
-                autoPlay
+                ref={videoRef}
                 controls
                 playsInline
-                onEnded={() => setIsPlaying(false)}
+                preload="metadata"
+                onEnded={() => {
+                  setIsPlaying(false);
+                  setVideoLoaded(false);
+                }}
                 onError={() => {
                   setVideoError(true);
                   setIsPlaying(false);
+                  setVideoLoaded(false);
                 }}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', willChange: 'transform' }}
               >
                 <source src={clip.videoUrl} type="video/mp4" />
               </video>
@@ -213,9 +242,11 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
                     alignItems: 'center',
                     justifyContent: 'center',
                     border: '1px solid rgba(255,255,255,0.15)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    willChange: 'transform',
+                    transform: 'translateZ(0)',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                    '&:hover': { transform: 'scale(1.08)', bgcolor: 'rgba(255,255,255,0.2)' }
+                    '&:hover': { transform: 'translateZ(0) scale(1.08)', bgcolor: 'rgba(255,255,255,0.2)' }
                   }}
                 >
                   <IconPlayerPlay size={28} style={{ color: '#fff', marginLeft: 4 }} />
@@ -336,18 +367,20 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
               <Collapse in={showDetails}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mt: 1.5 }}>
                   {/* Viral Potential */}
-                  <Box
-                    sx={{
-                      p: 1.75,
-                      borderRadius: '16px',
-                      border: '1px solid',
-                      borderColor: isDark ? alpha('#fff', 0.07) : alpha(scoreColor, 0.15),
-                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
-                      backdropFilter: 'blur(10px)',
-                      transition: 'all 0.25s',
-                      '&:hover': { borderColor: alpha(scoreColor, 0.4), transform: 'translateY(-1px)' }
-                    }}
-                  >
+                    <Box
+                      sx={{
+                        p: 1.75,
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: isDark ? alpha('#fff', 0.07) : alpha(scoreColor, 0.15),
+                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                        backdropFilter: 'blur(10px)',
+                        willChange: 'transform',
+                        transform: 'translateZ(0)',
+                        transition: 'transform 0.2s, border-color 0.2s',
+                        '&:hover': { borderColor: alpha(scoreColor, 0.4), transform: 'translate3d(0, -1px, 0)' }
+                      }}
+                    >
                     <Box
                       sx={{
                         width: 36,
@@ -386,18 +419,20 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
                   </Box>
 
                   {/* Best Hook */}
-                  <Box
-                    sx={{
-                      p: 1.75,
-                      borderRadius: '16px',
-                      border: '1px solid',
-                      borderColor: isDark ? alpha('#fff', 0.07) : alpha('#3b82f6', 0.15),
-                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
-                      backdropFilter: 'blur(10px)',
-                      transition: 'all 0.25s',
-                      '&:hover': { borderColor: alpha('#3b82f6', 0.4), transform: 'translateY(-1px)' }
-                    }}
-                  >
+                    <Box
+                      sx={{
+                        p: 1.75,
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: isDark ? alpha('#fff', 0.07) : alpha('#3b82f6', 0.15),
+                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                        backdropFilter: 'blur(10px)',
+                        willChange: 'transform',
+                        transform: 'translateZ(0)',
+                        transition: 'transform 0.2s, border-color 0.2s',
+                        '&:hover': { borderColor: alpha('#3b82f6', 0.4), transform: 'translate3d(0, -1px, 0)' }
+                      }}
+                    >
                     <Box
                       sx={{
                         width: 36,
@@ -429,18 +464,20 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
                   </Box>
 
                   {/* Best Time to Post */}
-                  <Box
-                    sx={{
-                      p: 1.75,
-                      borderRadius: '16px',
-                      border: '1px solid',
-                      borderColor: isDark ? alpha('#fff', 0.07) : alpha('#10b981', 0.15),
-                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
-                      backdropFilter: 'blur(10px)',
-                      transition: 'all 0.25s',
-                      '&:hover': { borderColor: alpha('#10b981', 0.4), transform: 'translateY(-1px)' }
-                    }}
-                  >
+                    <Box
+                      sx={{
+                        p: 1.75,
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: isDark ? alpha('#fff', 0.07) : alpha('#10b981', 0.15),
+                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                        backdropFilter: 'blur(10px)',
+                        willChange: 'transform',
+                        transform: 'translateZ(0)',
+                        transition: 'transform 0.2s, border-color 0.2s',
+                        '&:hover': { borderColor: alpha('#10b981', 0.4), transform: 'translate3d(0, -1px, 0)' }
+                      }}
+                    >
                     <Box
                       sx={{
                         width: 36,
@@ -472,18 +509,20 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
                   </Box>
 
                   {/* Recommended Hashtags */}
-                  <Box
-                    sx={{
-                      p: 1.75,
-                      borderRadius: '16px',
-                      border: '1px solid',
-                      borderColor: isDark ? alpha('#fff', 0.07) : alpha('#2563eb', 0.15),
-                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
-                      backdropFilter: 'blur(10px)',
-                      transition: 'all 0.25s',
-                      '&:hover': { borderColor: alpha('#2563eb', 0.4), transform: 'translateY(-1px)' }
-                    }}
-                  >
+                    <Box
+                      sx={{
+                        p: 1.75,
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: isDark ? alpha('#fff', 0.07) : alpha('#2563eb', 0.15),
+                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                        backdropFilter: 'blur(10px)',
+                        willChange: 'transform',
+                        transform: 'translateZ(0)',
+                        transition: 'transform 0.2s, border-color 0.2s',
+                        '&:hover': { borderColor: alpha('#2563eb', 0.4), transform: 'translate3d(0, -1px, 0)' }
+                      }}
+                    >
                     <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
                       <IconHash size={14} color="#2563eb" />
                       <Typography
@@ -527,7 +566,7 @@ function ClipCard({ clip, i, aspectRatio, isDark, FormatIcon, hasRealClips, jobP
       </Box>
     </Zoom>
   );
-}
+});
 
 export default function GeneratedClipsQueue({
   clips,
@@ -546,8 +585,10 @@ export default function GeneratedClipsQueue({
   const [isCleaning, setIsCleaning] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     if (clips && clips.length > 0) {
-      setLocalClips(clips);
+      if (mounted) setLocalClips(clips);
       return;
     }
 
@@ -566,7 +607,11 @@ export default function GeneratedClipsQueue({
       thumbnailUrl: null
     }));
 
-    setLocalClips(initial);
+    if (mounted) setLocalClips(initial);
+
+    return () => {
+      mounted = false;
+    };
   }, [clips, clipCount, isGenerating]);
 
   if (!localClips.length) return null;

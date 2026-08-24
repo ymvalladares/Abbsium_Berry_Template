@@ -29,6 +29,23 @@ const STORAGE_MODEL_KEY = 'ai_chat_model';
 
 const MAX_CHARS = 4000;
 
+const keyCapStyle = (isDark) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  bgcolor: isDark ? '#374151' : '#f3f4f6',
+  border: '1px solid',
+  borderColor: isDark ? '#4B5563' : '#d1d5db',
+  borderBottomWidth: 2,
+  px: 0.6,
+  py: 0.2,
+  borderRadius: '5px',
+  fontSize: 10,
+  fontWeight: 600,
+  lineHeight: 1.4,
+  color: isDark ? '#e5e7eb' : '#4b5563',
+  whiteSpace: 'nowrap'
+});
+
 const QUICK_PROMPTS = [
   { icon: IconWand, label: 'Marketing', text: 'Give me marketing ideas for' },
   { icon: IconCode, label: 'Code', text: 'Write code for' },
@@ -808,16 +825,23 @@ export default function Ai() {
               </Box>
             )}
             {!input && (
-              <Typography sx={{ fontSize: 11, color: isDark ? '#6B7280' : '#D1D5DB', ml: 'auto' }}>
-                Press{' '}
-                <Box component="span" sx={{ bgcolor: isDark ? '#374151' : '#f3f4f6', px: 0.5, py: 0.1, borderRadius: 0.5, fontSize: 10 }}>
-                  Enter
-                </Box>{' '}
-                to send ·{' '}
-                <Box component="span" sx={{ bgcolor: isDark ? '#374151' : '#f3f4f6', px: 0.5, py: 0.1, borderRadius: 0.5, fontSize: 10 }}>
-                  Shift+Enter
-                </Box>{' '}
-                new line
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  ml: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: 0.6,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <Box component="span">Press</Box>
+                <Box component="span" sx={keyCapStyle(isDark)}>Enter</Box>
+                <Box component="span">to send ·</Box>
+                <Box component="span" sx={keyCapStyle(isDark)}>Shift+Enter</Box>
+                <Box component="span">new line</Box>
               </Typography>
             )}
           </Box>
@@ -907,9 +931,19 @@ export default function Ai() {
         onClose={handleModelClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
         transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        PaperProps={{ sx: { borderRadius: 3, boxShadow: '0 10px 40px rgba(0,0,0,0.1)', ...glassCard(isDark), bgcolor: 'transparent', border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}` } }}
+        PaperProps={{
+          sx: {
+            width: 300,
+            maxWidth: 'calc(100vw - 32px)',
+            borderRadius: 3,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+            ...glassCard(isDark),
+            bgcolor: 'transparent',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`
+          }
+        }}
       >
-        <Box sx={{ p: 2, width: 280 }}>
+        <Box sx={{ p: 2, width: '100%' }}>
           <Typography
             sx={{ fontSize: 12, fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}
           >

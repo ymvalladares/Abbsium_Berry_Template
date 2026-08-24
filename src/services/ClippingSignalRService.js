@@ -6,6 +6,11 @@ class ClippingSignalRService {
     this.listeners = [];
     this.pingInterval = null;
     this.started = false;
+    this.reconnectAttempt = 0;
+    this.maxReconnectAttempts = 10;
+    this.currentJobId = null;
+    this.pollingInterval = null;
+    this.isPolling = false;
   }
 
   async start() {
@@ -31,6 +36,8 @@ class ClippingSignalRService {
       .build();
 
     this.connection.on('ConnectionEstablished', (connectionId) => {
+      this.reconnectAttempt = 0;
+      this.stopPolling();
       this.listeners.forEach((fn) => fn('connected', { connectionId }));
     });
 
@@ -47,28 +54,48 @@ class ClippingSignalRService {
     });
 
     this.connection.on('ClipJobCompleted', (jobId) => {
+      this.currentJobId = null;
+      this.stopPolling();
       this.listeners.forEach((fn) => fn('completed', { jobId }));
     });
 
     this.connection.on('ClipJobFailed', (jobId, error) => {
+      this.currentJobId = null;
+      this.stopPolling();
       this.listeners.forEach((fn) => fn('failed', { jobId, error }));
     });
 
     this.connection.onreconnecting((error) => {
       console.warn('[ClippingSignalR] Reconnecting...', error);
+      this.reconnectAttempt++;
       this.listeners.forEach((fn) => fn('reconnecting', {}));
     });
 
-    this.connection.onreconnected((connectionId) => {
+    this.connection.onreconnected(async (connectionId) => {
       console.log('[ClippingSignalR] Reconnected:', connectionId);
-      this.listeners.forEach((fn) => fn('reconnected', { connectionId }));
+      this.reconnectAttempt = 0;
       this.startPing();
+      this.listeners.forEach((fn) => fn('reconnected', { connectionId }));
     });
 
-    this.connection.onclose((error) => {
+    this.connection.onclose(async (error) => {
       console.warn('[ClippingSignalR] Connection closed:', error);
       this.stopPing();
+      this.started = false;
       this.listeners.forEach((fn) => fn('disconnected', { error }));
+
+      if (this.reconnectAttempt < this.maxReconnectAttempts) {
+        console.log('[ClippingSignalR] Attempting auto-reconnect...');
+        try {
+          await this.start();
+        } catch (err) {
+          console.error('[ClippingSignalR] Auto-reconnect failed:', err);
+          this.startPolling();
+        }
+      } else {
+        console.warn('[ClippingSignalR] Max reconnect attempts reached, falling back to HTTP polling');
+        this.startPolling();
+      }
     });
 
     try {
@@ -77,8 +104,9 @@ class ClippingSignalRService {
       console.log('[ClippingSignalR] Connected');
       this.startPing();
     } catch (err) {
-      console.error('[ClippingSignalR] Connection error:', err);
+      console.error('[ClippingSignalR] Connection error, falling back to HTTP polling:', err);
       this.started = false;
+      this.startPolling();
     }
   }
 
@@ -100,6 +128,57 @@ class ClippingSignalRService {
     }
   }
 
+  startPolling() {
+    if (this.isPolling) return;
+    this.isPolling = true;
+    console.log('[ClippingSignalR] Starting HTTP polling fallback');
+
+    this.pollingInterval = setInterval(async () => {
+      if (!this.currentJobId) return;
+
+      try {
+        const { clippingAPI } = await import('services/AxiosService');
+        const res = await clippingAPI.getJob(this.currentJobId);
+        const job = res.data;
+
+        if (job.status === 'completed') {
+          this.listeners.forEach((fn) => fn('completed', { jobId: this.currentJobId }));
+          this.currentJobId = null;
+          this.stopPolling();
+        } else if (job.status === 'failed') {
+          this.listeners.forEach((fn) => fn('failed', { jobId: this.currentJobId, error: job.errorMessage || 'Job failed' }));
+          this.currentJobId = null;
+          this.stopPolling();
+        } else {
+          const progress = job.progress || 0;
+          this.listeners.forEach((fn) => fn('progress', {
+            jobId: this.currentJobId,
+            status: job.status,
+            progress,
+            message: ''
+          }));
+        }
+      } catch (err) {
+        console.error('[ClippingSignalR] Polling error:', err);
+      }
+    }, 3000);
+  }
+
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+    this.isPolling = false;
+  }
+
+  trackJob(jobId) {
+    this.currentJobId = jobId;
+    if (this.isPolling && !this.connection) {
+      console.log('[ClippingSignalR] Tracking job via polling:', jobId);
+    }
+  }
+
   onStatusChange(callback) {
     this.listeners.push(callback);
     return () => {
@@ -109,7 +188,10 @@ class ClippingSignalRService {
 
   async stop() {
     this.stopPing();
+    this.stopPolling();
     this.started = false;
+    this.reconnectAttempt = 0;
+    this.currentJobId = null;
     if (this.connection) {
       try {
         await this.connection.stop();

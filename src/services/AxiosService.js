@@ -16,6 +16,12 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const notifyNetwork = (online) => {
+  try {
+    window.dispatchEvent(new CustomEvent('app:network', { detail: { online } }));
+  } catch {}
+};
+
 const getToken = () => localStorage.getItem('token');
 const getRefreshToken = () => localStorage.getItem('refreshToken');
 
@@ -78,7 +84,10 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    notifyNetwork(true);
+    return response;
+  },
   async (error) => {
     const status = error.response?.status;
     const originalRequest = error.config;
@@ -86,6 +95,7 @@ axiosInstance.interceptors.response.use(
     if (error.code === 'ERR_CANCELED') return Promise.reject(error);
 
     if (!error.response && error.message === 'Network Error') {
+      notifyNetwork(false);
       console.error('Server is not running');
       return Promise.reject(error);
     }
@@ -101,6 +111,8 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(e);
       }
     }
+
+    notifyNetwork(true);
 
     if (status >= 500) console.error(`Server error (${status})`);
     else if (!status || status < 400) console.error('Unexpected error');
@@ -248,8 +260,8 @@ export const socialAPI = {
 };
 
 export const clippingAPI = {
-  createJob: (videoUrl, maxClips, minDuration, maxDuration) =>
-    api.post('/Clipping/create', { videoUrl, maxClips, minClipDuration: minDuration, maxClipDuration: maxDuration }),
+  createJob: (videoUrl, maxClips, minDuration, maxDuration, aspectRatio) =>
+    api.post('/Clipping/create', { videoUrl, maxClips, minClipDuration: minDuration, maxClipDuration: maxDuration, aspectRatio }),
   getJobs: () => api.get('/Clipping/jobs'),
   getJob: (jobId) => api.get(`/Clipping/job/${jobId}`),
   deleteJob: (jobId) => api.delete(`/Clipping/job/${jobId}`),

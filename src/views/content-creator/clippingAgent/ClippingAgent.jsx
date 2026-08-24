@@ -62,6 +62,26 @@ const PLATFORMS = [
   { icon: IconBrandYoutube, label: 'Shorts', color: '#FF0000' }
 ];
 
+const transformClipData = (c) => {
+  const hashtags = c.hashtags ? (typeof c.hashtags === 'string' ? c.hashtags.split(',') : c.hashtags) : ['#viral', '#fyp', '#trending'];
+  const hooks = c.hookText ? [c.hookText] : ['Wait for it...'];
+  return {
+    id: c.id,
+    progress: 100,
+    status: 'ready',
+    viralScore: Math.round(c.engagementScore || 75),
+    hookTime: `${Math.floor(c.startTimeSeconds / 60)}:${String(c.startTimeSeconds % 60).padStart(2, '0')}`,
+    hashtags,
+    hooks,
+    bestTime: c.bestTimeToPost || '9:00 AM',
+    videoUrl: c.videoUrl,
+    thumbnailUrl: c.thumbnailUrl,
+    title: c.title,
+    description: c.description,
+    duration: c.durationSeconds
+  };
+};
+
 export default function ClippingAgent() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -80,71 +100,11 @@ export default function ClippingAgent() {
   const [jobMessage, setJobMessage] = useState('');
   const [generatedClips, setGeneratedClips] = useState([]);
 
-  const pollIntervalRef = useRef(null);
+  const notifyRef = useRef(notify);
+  notifyRef.current = notify;
 
   const videoId = useMemo(() => getYoutubeId(url), [url]);
   const canNext = step === 0 ? Boolean(videoId) : true;
-
-  const startPolling = useCallback(
-    (jobId) => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-
-      pollIntervalRef.current = setInterval(async () => {
-        try {
-          const res = await clippingAPI.getJob(jobId);
-          const job = res.data;
-
-          setJobStatus(job.status);
-          setJobProgress(job.progress || 0);
-          setJobMessage(job.errorMessage || '');
-
-          if (job.status === 'completed' && job.clips && job.clips.length > 0) {
-            clearInterval(pollIntervalRef.current);
-            const clips = job.clips.map((c) => ({
-              id: c.id,
-              progress: 100,
-              status: 'ready',
-              viralScore: Math.round(c.engagementScore || 75),
-              hookTime: `${Math.floor(c.startTimeSeconds / 60)}:${String(c.startTimeSeconds % 60).padStart(2, '0')}`,
-              hashtags: ['#viral', '#fyp', '#trending'],
-              hooks: ['Wait for it...', "You won't believe this"],
-              bestTime: '9:00 AM',
-              videoUrl: c.videoUrl,
-              thumbnailUrl: c.thumbnailUrl,
-              title: c.title,
-              description: c.description,
-              duration: c.durationSeconds
-            }));
-            setGeneratedClips(clips);
-            setIsGenerating(false);
-            setJobProgress(100);
-            notify.success(`${clips.length} clips generated successfully!`, 'Clips Ready');
-          } else if (job.status === 'completed' && (!job.clips || job.clips.length === 0)) {
-            clearInterval(pollIntervalRef.current);
-            setIsGenerating(false);
-            setJobProgress(100);
-            setJobMessage('Job completed but no clips were generated. Try a different video.');
-            notify.error('No clips could be generated from this video', 'Warning');
-          } else if (job.status === 'failed') {
-            clearInterval(pollIntervalRef.current);
-            setIsGenerating(false);
-            setJobProgress(0);
-            notify.error(job.errorMessage || 'Clip generation failed', 'Error');
-          }
-        } catch (err) {
-          console.error('Polling error:', err);
-        }
-      }, 2000);
-    },
-    [notify]
-  );
-
-  const stopPolling = useCallback(() => {
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-  }, []);
 
   useEffect(() => {
     clippingSignalR.start();
@@ -159,44 +119,32 @@ export default function ClippingAgent() {
         if (data.jobId !== currentJobId) return;
         setJobStatus('completed');
         setJobProgress(100);
-        stopPolling();
-        const res = await clippingAPI.getJob(data.jobId);
-        const job = res.data;
-        if (job.clips && job.clips.length > 0) {
-          const clips = job.clips.map((c) => ({
-            id: c.id,
-            progress: 100,
-            status: 'ready',
-            viralScore: Math.round(c.engagementScore || 75),
-            hookTime: `${Math.floor(c.startTimeSeconds / 60)}:${String(c.startTimeSeconds % 60).padStart(2, '0')}`,
-            hashtags: ['#viral', '#fyp', '#trending'],
-            hooks: ['Wait for it...', "You won't believe this"],
-            bestTime: '9:00 AM',
-            videoUrl: c.videoUrl,
-            thumbnailUrl: c.thumbnailUrl,
-            title: c.title,
-            description: c.description,
-            duration: c.durationSeconds
-          }));
-          setGeneratedClips(clips);
+        try {
+          const res = await clippingAPI.getJob(data.jobId);
+          const job = res.data;
+          if (job.clips && job.clips.length > 0) {
+            const clips = job.clips.map(transformClipData);
+            setGeneratedClips(clips);
+            setIsGenerating(false);
+            notifyRef.current.success(`${clips.length} clips generated successfully!`, 'Clips Ready');
+          }
+        } catch (err) {
+          console.error('Failed to fetch completed job:', err);
           setIsGenerating(false);
-          notify.success(`${clips.length} clips generated successfully!`, 'Clips Ready');
         }
       } else if (type === 'failed') {
         if (data.jobId !== currentJobId) return;
         setJobStatus('failed');
         setJobProgress(0);
         setIsGenerating(false);
-        stopPolling();
-        notify.error(data.error || 'Clip generation failed', 'Error');
+        notifyRef.current.error(data.error || 'Clip generation failed', 'Error');
       }
     });
 
     return () => {
       unsubscribe();
-      stopPolling();
     };
-  }, [currentJobId, stopPolling, notify]);
+  }, [currentJobId]);
 
   const handleGenerate = async () => {
     try {
@@ -207,11 +155,10 @@ export default function ClippingAgent() {
       setJobMessage('Starting...');
       setGeneratedClips([]);
 
-      const res = await clippingAPI.createJob(url, clipCount, 30, 60);
+      const res = await clippingAPI.createJob(url, clipCount, 30, 60, aspectRatio);
       const jobId = res.data.jobId;
       setCurrentJobId(jobId);
-
-      startPolling(jobId);
+      clippingSignalR.trackJob(jobId);
 
       notify.info('Clip generation started. This may take a few minutes.', 'Generating Clips');
     } catch (err) {
@@ -252,7 +199,6 @@ export default function ClippingAgent() {
   };
 
   const reset = () => {
-    stopPolling();
     setUrl('');
     setClipCount(5);
     setAspectRatio('9:16');
