@@ -101,6 +101,13 @@ axiosInstance.interceptors.response.use(
     }
 
     if (status === 401 && !originalRequest?._retry) {
+      const currentToken = getToken();
+      const currentRefreshToken = getRefreshToken();
+      
+      if (!currentToken || !currentRefreshToken) {
+        return Promise.reject(error);
+      }
+      
       originalRequest._retry = true;
 
       try {

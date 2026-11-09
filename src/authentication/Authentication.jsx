@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Container, Chip } from '@mui/material';
-import { Lock, Security, Shield, CheckCircle, SmartToy } from '@mui/icons-material';
+import { Box } from '@mui/material';
 import Auth_Form from './Auth_Form';
 import VerificationCode from './VerificationCode';
+import AuthLeftPanel from './AuthLeftPanel';
+import { useAuth } from '../contexts/AuthContext';
 
 const Authentication = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, resendLoginCode } = useAuth();
   const [step, setStep] = useState('login');
   const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/platform/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLoginSuccess = (userEmail) => {
     setEmail(userEmail);
@@ -15,7 +24,7 @@ const Authentication = () => {
   };
 
   const handleResendCode = async () => {
-    return Promise.resolve();
+    return await resendLoginCode(email);
   };
 
   return (
@@ -27,7 +36,7 @@ const Authentication = () => {
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'center', lg: 'stretch' },
         justifyContent: 'center',
         '&::before': {
           content: '""',
@@ -89,96 +98,7 @@ const Authentication = () => {
         />
       ))}
 
-      {/* Desktop Left Content */}
-      <Box
-        sx={{
-          display: { xs: 'none', lg: 'flex' },
-          position: 'absolute',
-          left: '15%',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 10,
-          maxWidth: '450px',
-          flexDirection: 'column'
-        }}
-      >
-        <Box
-          sx={{
-            textAlign: 'center',
-            animation: 'fadeInLeft 0.8s ease-out',
-            '@keyframes fadeInLeft': {
-              from: { opacity: 0, transform: 'translateX(-30px)' },
-              to: { opacity: 1, transform: 'translateX(0)' }
-            }
-          }}
-        >
-          <Box sx={{ width: 200, height: 200, margin: '0 auto 3rem', position: 'relative' }}>
-            <Box
-              sx={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(20px)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                animation: 'pulse 3s ease-in-out infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(255,255,255,0.4)' },
-                  '50%': { transform: 'scale(1.05)', boxShadow: '0 0 0 20px rgba(255,255,255,0)' }
-                }
-              }}
-            >
-              <Box
-                sx={{
-                  width: '85%',
-                  height: '85%',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Lock sx={{ fontSize: 60, color: 'white' }} />
-              </Box>
-            </Box>
-          </Box>
-
-          <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, mb: 2, textShadow: '0 2px 20px rgba(0,0,0,0.2)', fontSize: '2.5rem' }}>
-            Secure Access
-          </Typography>
-          <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.95)', fontWeight: 300, mb: 4, fontSize: '1.1rem' }}>
-            Enterprise-grade security with seamless authentication for your business
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
-            {['256-bit encryption', 'Two-factor authentication', '24/7 security monitoring'].map((feature, index) => (
-              <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'white' }}>
-                <Box sx={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CheckCircle sx={{ fontSize: 16 }} />
-                </Box>
-                <Typography variant="body1">{feature}</Typography>
-              </Box>
-            ))}
-          </Box>
-
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
-            <Chip
-              icon={<Shield sx={{ color: 'white !important' }} />}
-              label="SSL Secured"
-              sx={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', fontWeight: 500, px: 1 }}
-            />
-            <Chip
-              icon={<Security sx={{ color: 'white !important' }} />}
-              label="GDPR Compliant"
-              sx={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', fontWeight: 500, px: 1 }}
-            />
-          </Box>
-        </Box>
-      </Box>
+      <AuthLeftPanel />
 
       {/* Mobile: Full screen centered layout / Desktop: Right side form */}
       <Box
@@ -187,11 +107,12 @@ const Authentication = () => {
           zIndex: 20,
           display: 'flex',
           flexDirection: { xs: 'column', lg: 'row' },
-          alignItems: { xs: 'center', lg: 'center' },
-          justifyContent: { xs: 'flex-end', lg: 'flex-end' },
-          width: '100%',
+          alignItems: 'center',
+          justifyContent: { xs: 'flex-end', lg: 'flex-start' },
+          width: { xs: '100%', lg: 'auto' },
           minHeight: { xs: '100dvh', lg: 'auto' },
-          px: { xs: 0, lg: '6%' }
+          px: { xs: 0, lg: '6%' },
+          py: { lg: 4 }
         }}
       >
         {step === 'login' && <Auth_Form onSuccess={handleLoginSuccess} />}

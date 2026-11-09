@@ -104,7 +104,6 @@ const Auth_Form = ({ onSuccess }) => {
           headers: { 'Content-Type': 'application/json' }
         });
         googleLogin(res.data);
-        onSuccess?.(res.data.email);
       } catch (err) {
         setAuthError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
       } finally {
@@ -166,8 +165,12 @@ const Auth_Form = ({ onSuccess }) => {
     if (result?.success) {
       setAuthError(null);
       setAttemptCount(0);
+      
       if (userAction === 'login') {
-        onSuccess?.(values.email);
+        if (result.requiresVerification) {
+          onSuccess?.(result.email || values.email);
+          return;
+        }
       } else if (userAction === 'register') {
         setAuthMessage('Registration successful! Please check your email to confirm your account.');
       } else if (userAction === 'forgetPassword') {

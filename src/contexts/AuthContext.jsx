@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }) => {
 
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Rehydration on mount
   useEffect(() => {
     const rehydrate = async () => {
       const storedToken = localStorage.getItem('token');
@@ -23,7 +22,6 @@ export const AuthProvider = ({ children }) => {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
 
-        // Check if token is near expiry and refresh proactively
         try {
           const parts = storedToken.split('.');
           if (parts.length === 3) {
@@ -52,7 +50,6 @@ export const AuthProvider = ({ children }) => {
     rehydrate();
   }, []);
 
-  // Periodic proactive refresh every 50 minutes
   useEffect(() => {
     if (!token) return;
 
@@ -81,6 +78,10 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post(`account/${action}`, payload);
 
       if (action === 'login') {
+        if (res.data?.data?.requiresVerification) {
+          return { success: true, requiresVerification: true, email: res.data.data.email };
+        }
+
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('refreshToken', res.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(res.data));
@@ -94,6 +95,35 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: err.response?.data?.message, data: err.response?.data?.data };
     } finally {
       setAuthLoading(false);
+    }
+  }, []);
+
+  const verifyLoginCode = useCallback(async (email, code) => {
+    try {
+      const res = await api.post('account/verify-login-code', { email, code });
+
+      if (res.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('refreshToken', res.data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(res.data));
+
+        setToken(res.data.token);
+        setUser(res.data);
+        return { success: true };
+      }
+
+      return { success: false, message: 'Verification failed.' };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Invalid verification code.' };
+    }
+  }, []);
+
+  const resendLoginCode = useCallback(async (email) => {
+    try {
+      const res = await api.post('account/send-login-code', { email });
+      return { success: true, message: res.data?.message };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to resend code.' };
     }
   }, []);
 
@@ -127,6 +157,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     setUser,
     googleLogin,
+    verifyLoginCode,
+    resendLoginCode,
     isAuthenticated: !!token,
     authLoading
   };

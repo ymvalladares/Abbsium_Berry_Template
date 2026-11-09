@@ -18,7 +18,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button
+  Button,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 
@@ -123,8 +125,11 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
   const dialogPaperSx = {
     ...glassCard(isDark),
-    borderRadius: '24px',
-    p: 1.5,
+    borderRadius: { xs: 0, sm: '24px' },
+    p: { xs: 2, sm: 1.5 },
+    m: { xs: 0, sm: 'auto' },
+    maxWidth: { xs: '100%', sm: 400 },
+    minHeight: { xs: '100vh', sm: 'auto' },
     boxShadow: isDark
       ? '0 32px 80px -20px rgba(2,6,23,0.85), inset 0 1px 0 rgba(255,255,255,0.08)'
       : '0 32px 80px -24px rgba(30,58,138,0.3), inset 0 1px 0 rgba(255,255,255,0.95)'
@@ -132,7 +137,7 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
   const infoBoxSx = {
     mt: 2,
-    p: 1.5,
+    p: { xs: 1.5, sm: 1.5 },
     borderRadius: '12px',
     bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.05)',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(59,130,246,0.12)'}`
@@ -140,8 +145,11 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
   const confirmButton = (gradient, glowRgb) => ({
     ...gradientButton(gradient, glowRgb),
-    py: '8px',
-    px: 3
+    py: { xs: '12px', sm: '8px' },
+    px: { xs: 4, sm: 3 },
+    minWidth: { xs: '45%', sm: 'auto' },
+    fontSize: { xs: '0.9rem', sm: 'inherit' },
+    fontWeight: { xs: 700, sm: 'inherit' }
   });
 
   return (
@@ -289,46 +297,59 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
       {/* =========================
           CONFIRM DELETE DIALOG
-         ========================= */}
-      <Dialog open={openConfirm} onClose={handleCancelDelete} fullWidth maxWidth="xs" PaperProps={{ sx: dialogPaperSx }}>
-        <DialogTitle>
+          ========================= */}
+      <Dialog
+        open={openConfirm}
+        onClose={handleCancelDelete}
+        fullScreen={isMobile}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: dialogPaperSx }}
+      >
+        <DialogTitle sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 1.5, sm: 2 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={gradientIconBox(40, '12px', GRADIENT_DANGER, '239,68,68')}>
-              <WarningAmberRoundedIcon sx={{ color: '#fff', fontSize: 20 }} />
+            <Box sx={gradientIconBox({ xs: 36, sm: 40 }, '12px', GRADIENT_DANGER, '239,68,68')}>
+              <WarningAmberRoundedIcon sx={{ color: '#fff', fontSize: { xs: 18, sm: 20 } }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Delete user?
             </Typography>
           </Box>
         </DialogTitle>
 
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">
+        <DialogContent sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 1.5, sm: 2 } }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '0.875rem' } }}>
             Are you sure you want to delete this user?
           </Typography>
 
           {userToDelete && (
             <Box sx={infoBoxSx}>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '0.875rem' } }}>
                 {userToDelete.name}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.75rem' } }}>
                 {userToDelete.email}
               </Typography>
             </Box>
           )}
 
-          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#fb7185', fontWeight: 700 }}>
+          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#fb7185', fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.75rem' } }}>
             This action cannot be undone.
           </Typography>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2.5, sm: 2.5 }, gap: { xs: 1, sm: 1 }, flexDirection: { xs: 'row', sm: 'row' } }}>
           <Button
             onClick={handleCancelDelete}
             variant="outlined"
             size="small"
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 700,
+              flex: { xs: 1, sm: 'none' },
+              py: { xs: '10px', sm: '6px' }
+            }}
           >
             Cancel
           </Button>
@@ -340,20 +361,27 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
       {/* =========================
           RESET PASSWORD DIALOG
-         ========================= */}
-      <Dialog open={openReset} onClose={handleCancelReset} fullWidth maxWidth="xs" PaperProps={{ sx: dialogPaperSx }}>
-        <DialogTitle>
+          ========================= */}
+      <Dialog
+        open={openReset}
+        onClose={handleCancelReset}
+        fullScreen={isMobile}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: dialogPaperSx }}
+      >
+        <DialogTitle sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 1.5, sm: 2 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={gradientIconBox(40, '12px', GRADIENT_WARM, '251,146,60')}>
-              <KeyIcon sx={{ color: '#fff', fontSize: 20 }} />
+            <Box sx={gradientIconBox({ xs: 36, sm: 40 }, '12px', GRADIENT_WARM, '251,146,60')}>
+              <KeyIcon sx={{ color: '#fff', fontSize: { xs: 18, sm: 20 } }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Reset password?
             </Typography>
           </Box>
         </DialogTitle>
 
-        <DialogContent>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 1.5, sm: 2 } }}>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to reset this user's password to the default?
           </Typography>
@@ -374,12 +402,18 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
           </Typography>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2.5, sm: 2.5 }, gap: { xs: 1, sm: 1 }, flexDirection: { xs: 'row', sm: 'row' } }}>
           <Button
             onClick={handleCancelReset}
             variant="outlined"
             size="small"
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 700,
+              flex: { xs: 1, sm: 'none' },
+              py: { xs: '10px', sm: '6px' }
+            }}
           >
             Cancel
           </Button>

@@ -15,6 +15,7 @@ const VerificationCode = ({ email, onResendCode }) => {
   const [countdown, setCountdown] = useState(60);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
+  const { verifyLoginCode, resendLoginCode } = useAuth();
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -83,19 +84,26 @@ const VerificationCode = ({ email, onResendCode }) => {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      if (codeToVerify === '123456') {
+    try {
+      const result = await verifyLoginCode(email, codeToVerify);
+      
+      if (result.success) {
+        setSuccess('Verification successful! Redirecting...');
         setTimeout(() => {
           navigate('/platform/dashboard');
-          setLoading(false);
-        }, 1500);
+        }, 1000);
       } else {
-        setError('Invalid verification code. Please try again.');
+        setError(result.message || 'Invalid verification code. Please try again.');
         setCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
-        setLoading(false);
       }
-    }, 1000);
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResend = async () => {
@@ -103,14 +111,19 @@ const VerificationCode = ({ email, onResendCode }) => {
     setError('');
 
     try {
-      await onResendCode?.();
-      setSuccess('A new verification code has been sent to your email');
-      setCountdown(60);
-      setCanResend(false);
-      setCode(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+      const result = await resendLoginCode(email);
+      
+      if (result.success) {
+        setSuccess('A new verification code has been sent to your email');
+        setCountdown(60);
+        setCanResend(false);
+        setCode(['', '', '', '', '', '']);
+        inputRefs.current[0]?.focus();
 
-      setTimeout(() => setSuccess(''), 3000);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(result.message || 'Failed to resend code. Please try again.');
+      }
     } catch (err) {
       setError('Failed to resend code. Please try again.');
     } finally {
@@ -206,10 +219,7 @@ const VerificationCode = ({ email, onResendCode }) => {
               <Key sx={{ fontSize: 18, color: 'white' }} />
             </Box>
             <Typography sx={{ fontSize: '13px', color: '#6d28d9', fontWeight: 600, letterSpacing: '0.2px' }}>
-              Demo Code:{' '}
-              <Box component="span" sx={{ fontWeight: 700, color: '#7c3aed', fontSize: '14px' }}>
-                123456
-              </Box>
+              Code expires in 10 minutes
             </Typography>
           </Box>
         </Stack>
@@ -230,6 +240,12 @@ const VerificationCode = ({ email, onResendCode }) => {
         {success && (
           <Alert severity="success" sx={{ mb: 2, fontSize: 13, borderRadius: '10px', '& .MuiAlert-icon': { fontSize: '18px' } }}>
             {success}
+          </Alert>
+        )}
+
+        {email?.toLowerCase().includes('demo') && (
+          <Alert severity="info" sx={{ mb: 2, fontSize: 13, borderRadius: '10px', '& .MuiAlert-icon': { fontSize: '18px' } }}>
+            Demo account verification code: <strong>123456</strong>
           </Alert>
         )}
 

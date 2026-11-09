@@ -93,8 +93,11 @@ export default function ScheduleDialog({ open, onClose, onSave }) {
         .map((id) => PLATFORMS.find((p) => p.id === id)?.name)
         .filter(Boolean);
 
+      const isVideoFile = selectedFile?.type?.startsWith('video');
+
       const payload = {
-        videoUrl: s3Url,
+        videoUrl: isVideoFile ? s3Url : null,
+        photoUrl: !isVideoFile && s3Url ? s3Url : null,
         title: title.trim(),
         caption: caption.trim(),
         platforms: platformNames,

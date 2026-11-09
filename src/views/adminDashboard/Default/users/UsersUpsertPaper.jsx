@@ -1,26 +1,49 @@
 import { useState, useEffect } from 'react';
-import { Paper, Box, Typography, TextField, Button, Avatar, IconButton, Fade, CircularProgress, Stack, Divider } from '@mui/material';
+import {
+  Dialog,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  IconButton,
+  CircularProgress,
+  Stack,
+  Divider,
+  Chip,
+  useTheme,
+  useMediaQuery,
+  Radio,
+  RadioGroup,
+  FormControlLabel
+} from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
-
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CloseIcon from '@mui/icons-material/Close';
 import LockIcon from '@mui/icons-material/Lock';
-import BadgeIcon from '@mui/icons-material/Badge';
-import ShieldIcon from '@mui/icons-material/Shield';
+import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
+import StoreRoundedIcon from '@mui/icons-material/StoreRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import api from '../../../../services/AxiosService';
 import { useNotification } from 'contexts/NotificationContext';
 
-import { AuroraLayer, glassInput, gradientButton, gradientText, glowShadow, GRADIENT_MAIN } from './aiUi';
+import { glassInput, gradientButton, gradientText, glowShadow, GRADIENT_MAIN } from './aiUi';
 
 const ROLES = [
-  { id: 'Admin', label: 'Administrator', desc: 'Full access to all system modules and settings.' },
-  { id: 'User', label: 'Standard User', desc: 'Limited access to personal data and basic tools.' },
-  { id: 'Dealer', label: 'Dealer', desc: 'Access to manage vehicle inventory and dealership operations.' }
+  { id: 'Admin', label: 'Administrator', desc: 'Full access to all system modules and settings.', icon: AdminPanelSettingsRoundedIcon, color: '#ef4444' },
+  { id: 'Dealer', label: 'Dealer', desc: 'Manage vehicle inventory and dealership operations.', icon: StoreRoundedIcon, color: '#3b82f6' },
+  { id: 'User', label: 'Standard User', desc: 'Limited access to personal data and basic tools.', icon: PersonRoundedIcon, color: '#8b5cf6' }
 ];
 
 const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSuccess }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const notify = useNotification();
@@ -41,17 +64,6 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
     }
     setErrors({});
   }, [mode, initialData, open]);
-
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -85,10 +97,8 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
         onClose();
       }
     } catch (error) {
-      console.error(error);
       const data = error.response?.data;
       let errorMsg = 'Operation failed';
-
       if (typeof data === 'string') {
         errorMsg = data;
       } else if (data?.errors && Array.isArray(data.errors)) {
@@ -96,7 +106,6 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
       } else if (data?.message) {
         errorMsg = data.message;
       }
-
       setErrors({ submit: errorMsg });
       notify.error(errorMsg, 'Operation Failed');
     } finally {
@@ -106,323 +115,326 @@ const UsersUpsertPaper = ({ open, mode = 'create', initialData, onClose, onSucce
 
   if (!open) return null;
 
-  const emailBg = mode === 'edit' ? (isDark ? 'rgba(15,23,42,0.35)' : 'rgba(241,245,249,0.8)') : 'rgba(255,255,255,0.75)';
+  const selectedRole = ROLES.find((r) => r.id === form.role);
 
-  const sectionLabelSx = {
-    fontWeight: 800,
-    fontSize: '0.78rem',
-    letterSpacing: '0.08em',
+  const dialogPaperSx = {
+    overflow: 'hidden',
+    width: '100%',
+    maxWidth: { xs: '100%', sm: 520, md: 560 },
+    maxHeight: { xs: '100vh', sm: '85vh' },
+    minHeight: { xs: '100vh', sm: 'auto' },
+    borderRadius: { xs: 0, sm: '20px' },
+    margin: { xs: 0, sm: 'auto' },
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)'}`,
+    background: isDark
+      ? 'linear-gradient(170deg, rgba(15,23,42,0.98) 0%, rgba(2,6,23,0.99) 100%)'
+      : 'linear-gradient(170deg, #ffffff 0%, #f8fafc 100%)',
+    boxShadow: isDark
+      ? '0 32px 80px -16px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04) inset'
+      : '0 32px 80px -20px rgba(30,58,138,0.18), 0 0 0 1px rgba(59,130,246,0.06) inset'
+  };
+
+  const sectionTitleSx = {
+    fontWeight: 700,
+    fontSize: '0.72rem',
+    letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    color: isDark ? '#f1f5f9' : '#0f172a'
+    color: isDark ? '#64748b' : '#94a3b8'
   };
 
   return (
-    <Fade in={open}>
-      <Box
-        onClick={onClose}
-        sx={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 2000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 2,
-          bgcolor: 'rgba(0, 0, 0, 0.5)'
-        }}
-      >
-        <Box sx={{ position: 'relative', width: '100%', maxWidth: 480 }}>
-          <AuroraLayer isDark={isDark} />
+    <Dialog open={open} onClose={onClose} fullScreen={isMobile} fullWidth maxWidth="sm" PaperProps={{ sx: dialogPaperSx }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: { xs: '100%', sm: 'auto' }, maxHeight: { xs: 'none', sm: '85vh' } }}>
 
-          <Paper
-            onClick={(e) => e.stopPropagation()}
-            elevation={0}
-            sx={{
-              position: 'relative',
-              zIndex: 1,
-              overflow: 'visible',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              borderRadius: '24px',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(59,130,246,0.16)'}`,
-              background: isDark
-                ? 'linear-gradient(165deg, rgba(30,58,138,0.55) 0%, rgba(15,23,42,0.9) 100%)'
-                : 'linear-gradient(165deg, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.82) 100%)',
-              backdropFilter: 'blur(28px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-              boxShadow: isDark
-                ? '0 40px 100px -20px rgba(2,6,23,0.9), inset 0 1px 0 rgba(255,255,255,0.08)'
-                : '0 40px 100px -24px rgba(30,58,138,0.35), inset 0 1px 0 rgba(255,255,255,0.95)'
-            }}
-          >
-            {/* Barra de acento superior */}
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 5,
-                height: 5,
-                borderRadius: '24px 24px 0 0',
-                backgroundImage: GRADIENT_MAIN,
-                boxShadow: glowShadow('59,130,246', 0.5, 8)
-              }}
-            />
+        {/* === HEADER === */}
+        <Box
+          sx={{
+            position: 'relative',
+            px: { xs: 2.5, sm: 3.5 },
+            pt: { xs: 2.5, sm: 3 },
+            pb: { xs: 2, sm: 2.5 },
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.06) 50%, rgba(59,130,246,0.03) 100%)'
+              : 'linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.03) 50%, rgba(59,130,246,0.01) 100%)',
+            borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)'}`
+          }}
+        >
+          <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundImage: GRADIENT_MAIN }} />
 
-            {/* Header con Título y Descripción */}
-            <Box
-              sx={{
-                p: 3,
-                pt: 2.5,
-                borderBottom: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(59,130,246,0.1)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start'
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Avatar
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    backgroundImage: GRADIENT_MAIN,
-                    boxShadow: glowShadow(),
-                    fontWeight: 800,
-                    fontSize: 20
-                  }}
-                >
-                  <AutoAwesomeIcon sx={{ fontSize: 22 }} />
-                </Avatar>
-                <Box>
-                  <Typography
-                    variant="h6"
-                    component="span"
-                    sx={{
-                      fontWeight: 800,
-                      letterSpacing: '-0.02em',
-                      lineHeight: 1.1,
-                      display: 'block',
-                      ...gradientText
-                    }}
-                  >
-                    {mode === 'create' ? 'Add new member' : 'Edit profile'}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
-                    Set up identity and system permissions
-                  </Typography>
-                </Box>
-              </Box>
-              <IconButton
-                onClick={onClose}
-                size="small"
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
                 sx={{
-                  height: 32,
-                  width: 32,
-                  borderRadius: '10px',
-                  border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(59,130,246,0.2)'}`,
-                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.05)',
-                  color: 'text.secondary',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: isDark ? 'rgba(251,113,133,0.15)' : 'rgba(251,113,133,0.1)',
-                    color: '#fb7185',
-                    transform: 'rotate(90deg)'
-                  }
+                  width: { xs: 44, sm: 48 },
+                  height: { xs: 44, sm: 48 },
+                  borderRadius: '14px',
+                  backgroundImage: mode === 'create'
+                    ? 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)'
+                    : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: mode === 'create'
+                    ? '0 8px 24px -6px rgba(59,130,246,0.4)'
+                    : '0 8px 24px -6px rgba(99,102,241,0.4)'
                 }}
               >
-                <CloseIcon fontSize="small" />
-              </IconButton>
+                {mode === 'create'
+                  ? <PersonAddAltRoundedIcon sx={{ color: '#fff', fontSize: 22 }} />
+                  : <EditRoundedIcon sx={{ color: '#fff', fontSize: 22 }} />
+                }
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.2,
+                    fontSize: { xs: '1.1rem', sm: '1.3rem' },
+                    color: isDark ? '#f1f5f9' : '#0f172a'
+                  }}
+                >
+                  {mode === 'create' ? 'Add New Member' : 'Edit Profile'}
+                </Typography>
+                <Typography
+                  sx={{
+                    color: isDark ? '#64748b' : '#64748b',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
+                    mt: 0.25
+                  }}
+                >
+                  Configure identity and access permissions
+                </Typography>
+              </Box>
             </Box>
 
-            <Box sx={{ p: 3 }}>
-              {errors.submit && (
+            <IconButton
+              onClick={onClose}
+              sx={{
+                height: 36,
+                width: 36,
+                borderRadius: '10px',
+                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.04)',
+                color: isDark ? '#94a3b8' : '#64748b',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  bgcolor: isDark ? 'rgba(251,113,133,0.12)' : 'rgba(251,113,133,0.08)',
+                  color: '#fb7185',
+                  transform: 'rotate(90deg)'
+                }
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+
+        {/* === BODY === */}
+        <Box sx={{ flex: 1, overflowY: 'auto', px: { xs: 2.5, sm: 3.5 }, py: { xs: 2, sm: 3 }, '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-thumb': { background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.15)', borderRadius: '2px' } }}>
+
+          {errors.submit && (
+            <Box sx={{ mb: 2.5, p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.2)' : '#fecaca'}` }}>
+              <Typography variant="body2" sx={{ color: '#ef4444', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'pre-line' }}>
+                {errors.submit}
+              </Typography>
+            </Box>
+          )}
+
+          {/* === SECTION: Identity === */}
+          <Typography sx={sectionTitleSx} >Identity</Typography>
+          <Stack spacing={2} sx={{ mt: 1.5, mb: 3 }}>
+            <TextField
+              label="Username"
+              placeholder="e.g. alex.dev"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value.replace(/\s/g, '') })}
+              fullWidth
+              error={!!errors.username}
+              helperText={errors.username || 'Letters and digits only, no spaces'}
+              FormHelperTextProps={{ sx: { fontSize: '0.72rem', fontWeight: 500, color: isDark ? '#64748b' : '#94a3b8', ml: 0.5 } }}
+              sx={{
+                ...glassInput(isDark),
+                '& .MuiInputLabel-root': { fontSize: '0.85rem' },
+                '& .MuiInputBase-input': { fontSize: '0.9rem', letterSpacing: '-0.01em' }
+              }}
+              size="small"
+            />
+            <TextField
+              label="Email Address"
+              placeholder="alex@company.com"
+              value={form.email}
+              onChange={(e) => mode === 'create' && setForm({ ...form, email: e.target.value })}
+              fullWidth
+              disabled={mode === 'edit'}
+              error={!!errors.email}
+              helperText={errors.email || (mode === 'edit' ? 'Email cannot be changed' : 'We\'ll send a temporary password here')}
+              FormHelperTextProps={{ sx: { fontSize: '0.72rem', fontWeight: 500, color: isDark ? '#64748b' : '#94a3b8', ml: 0.5 } }}
+              sx={{
+                ...glassInput(isDark),
+                '& .MuiInputLabel-root': { fontSize: '0.85rem' },
+                '& .MuiInputBase-input': { fontSize: '0.9rem', letterSpacing: '-0.01em' },
+                '& .Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: isDark ? 'rgba(255,255,255,0.06) !important' : 'rgba(59,130,246,0.08) !important' },
+                '& .Mui-disabled .MuiInputBase-input': { WebkitTextFillColor: isDark ? '#475569' : '#94a3b8' }
+              }}
+              size="small"
+              InputProps={{ endAdornment: mode === 'edit' && <LockIcon sx={{ fontSize: 15, color: isDark ? '#475569' : '#94a3b8' }} /> }}
+            />
+          </Stack>
+
+          <Divider sx={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.06)', mb: 3 }} />
+
+          {/* === SECTION: Role === */}
+          <Typography sx={sectionTitleSx}>Access Control</Typography>
+          <Typography sx={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.78rem', fontWeight: 500, mt: 0.5, mb: 2 }}>
+            Select the permission level for this user
+          </Typography>
+
+          <Stack spacing={1.25}>
+            {ROLES.map((r) => {
+              const isSelected = form.role === r.id;
+              const RoleIcon = r.icon;
+              return (
                 <Box
+                  key={r.id}
+                  onClick={() => mode === 'create' && setForm({ ...form, role: r.id })}
                   sx={{
-                    mb: 2,
-                    p: 1.5,
-                    borderRadius: '12px',
-                    bgcolor: isDark ? 'rgba(127,29,29,0.35)' : '#fef2f2',
-                    border: `1px solid ${isDark ? 'rgba(248,113,113,0.4)' : '#fecaca'}`,
-                    boxShadow: glowShadow('239,68,68', 0.25, 10)
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: isDark ? '#fca5a5' : '#ef4444', fontWeight: 700, whiteSpace: 'pre-line' }}>
-                    {errors.submit}
-                  </Typography>
-                </Box>
-              )}
-              <Stack spacing={3}>
-                {/* Sección 1: Identidad */}
-                <Box>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                    <BadgeIcon sx={{ fontSize: 16, color: '#3b82f6' }} />
-                    <Typography variant="subtitle2" sx={sectionLabelSx}>
-                      Identity Details
-                    </Typography>
-                  </Stack>
-                  <Stack spacing={2}>
-                    <TextField
-                      label="Username"
-                      placeholder="e.g. alex.dev"
-                      value={form.username}
-                      onChange={(e) => setForm({ ...form, username: e.target.value.replace(/\s/g, '') })}
-                      fullWidth
-                      error={!!errors.username}
-                      helperText={errors.username || 'Letters and digits only'}
-                      sx={glassInput(isDark)}
-                      size="small"
-                    />
-                    <TextField
-                      label="Email Address"
-                      placeholder="alex@company.com"
-                      value={form.email}
-                      onChange={(e) => mode === 'create' && setForm({ ...form, email: e.target.value })}
-                      fullWidth
-                      disabled={mode === 'edit'}
-                      error={!!errors.email}
-                      helperText={errors.email}
-                      sx={{
-                        ...glassInput(isDark),
-                        '& .MuiOutlinedInput-root': {
-                          ...glassInput(isDark)['& .MuiOutlinedInput-root'],
-                          bgcolor: emailBg
-                        }
-                      }}
-                      size="small"
-                      InputProps={{ endAdornment: mode === 'edit' && <LockIcon sx={{ fontSize: 14, color: '#94a3b8' }} /> }}
-                    />
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(59,130,246,0.1)' }} />
-
-                {/* Sección 2: Permisos */}
-                <Box>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                    <ShieldIcon sx={{ fontSize: 16, color: '#3b82f6' }} />
-                    <Typography variant="subtitle2" sx={sectionLabelSx}>
-                      Access Control
-                    </Typography>
-                  </Stack>
-                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', mb: 2, display: 'block', fontWeight: 500 }}>
-                    Select the level of authority this user will have.
-                  </Typography>
-
-                  <Stack spacing={1.5}>
-                    {ROLES.map((r) => {
-                      const isSelected = form.role === r.id;
-                      return (
-                        <Box
-                          key={r.id}
-                          onClick={() => mode === 'create' && setForm({ ...form, role: r.id })}
-                          sx={{
-                            p: 2,
-                            borderRadius: '14px',
-                            border: '1.5px solid',
-                            borderColor: isSelected ? '#3b82f6' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)',
-                            bgcolor: isSelected
-                              ? isDark
-                                ? 'rgba(59,130,246,0.14)'
-                                : 'rgba(59,130,246,0.07)'
-                              : isDark
-                                ? 'rgba(15,23,42,0.4)'
-                                : 'rgba(255,255,255,0.7)',
-                            cursor: mode === 'create' ? 'pointer' : 'default',
-                            transition: 'all 0.25s',
-                            position: 'relative',
-                            boxShadow: isSelected ? `inset 0 0 0 1px rgba(59,130,246,0.3), ${glowShadow('59,130,246', 0.5, 16)}` : 'none',
-                            '&:hover':
-                              mode === 'create'
-                                ? {
-                                    borderColor: isSelected ? '#3b82f6' : isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)',
-                                    transform: 'translateY(-1px)'
-                                  }
-                                : {}
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              fontWeight: 800,
-                              fontSize: '0.85rem',
-                              color: isSelected ? '#3b82f6' : isDark ? '#f1f5f9' : '#0f172a'
-                            }}
-                          >
-                            {r.label}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ color: isDark ? '#94a3b8' : '#64748b', display: 'block', lineHeight: 1.35, fontWeight: 500 }}
-                          >
-                            {r.desc}
-                          </Typography>
-                          {isSelected && (
-                            <Box
-                              sx={{
-                                position: 'absolute',
-                                top: 14,
-                                right: 14,
-                                width: 10,
-                                height: 10,
-                                borderRadius: '50%',
-                                backgroundImage: GRADIENT_MAIN,
-                                boxShadow: glowShadow('59,130,246', 0.7, 8),
-                                border: '1px solid rgba(255,255,255,0.5)'
-                              }}
-                            />
-                          )}
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                </Box>
-
-                {/* Tips Informativos */}
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderRadius: '12px',
                     display: 'flex',
-                    gap: 1.5,
-                    border: `1px solid ${isDark ? 'rgba(56,189,248,0.25)' : 'rgba(56,189,248,0.3)'}`,
-                    bgcolor: isDark ? 'rgba(14,116,144,0.15)' : 'rgba(224,242,254,0.7)'
+                    alignItems: 'center',
+                    gap: 2,
+                    p: { xs: 1.5, sm: 2 },
+                    borderRadius: '14px',
+                    border: '1.5px solid',
+                    borderColor: isSelected ? r.color : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)',
+                    bgcolor: isSelected
+                      ? isDark ? `${r.color}12` : `${r.color}08`
+                      : isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.6)',
+                    cursor: mode === 'create' ? 'pointer' : 'default',
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                    opacity: mode === 'edit' && !isSelected ? 0.7 : 1,
+                    '&:hover': mode === 'create' ? {
+                      borderColor: isSelected ? r.color : isDark ? 'rgba(255,255,255,0.15)' : 'rgba(59,130,246,0.2)',
+                      bgcolor: isSelected ? (isDark ? `${r.color}16` : `${r.color}10`) : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.02)'),
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px -4px rgba(0,0,0,0.1)'
+                    } : {}
                   }}
                 >
-                  <InfoOutlinedIcon sx={{ color: isDark ? '#38bdf8' : '#0369a1', fontSize: 18, mt: 0.2 }} />
-                  <Typography variant="caption" sx={{ color: isDark ? '#7dd3fc' : '#0369a1', lineHeight: 1.5, fontWeight: 600 }}>
-                    {mode === 'create'
-                      ? 'New users receive a temporary password sent to their email which they should change on first login.'
-                      : "Modifying security roles might affect the user's current session permissions immediately."}
-                  </Typography>
-                </Box>
-
-                <Stack spacing={1} sx={{ pt: 1 }}>
-                  <Button variant="contained" onClick={handleSubmit} disabled={loading} fullWidth disableElevation sx={gradientButton()}>
-                    {loading ? <CircularProgress size={20} color="inherit" /> : mode === 'create' ? 'Add to organization' : 'Save changes'}
-                  </Button>
-                  <Button
-                    onClick={onClose}
-                    fullWidth
+                  <Box
                     sx={{
-                      color: isDark ? '#94a3b8' : '#64748b',
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      fontSize: '0.85rem',
+                      width: 40,
+                      height: 40,
                       borderRadius: '10px',
-                      '&:hover': {
-                        bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(59,130,246,0.05)',
-                        color: '#3b82f6'
-                      }
+                      bgcolor: isSelected ? `${r.color}18` : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.04)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
                     }}
                   >
-                    Discard and exit
-                  </Button>
-                </Stack>
-              </Stack>
-            </Box>
-          </Paper>
+                    <RoleIcon sx={{ fontSize: 20, color: isSelected ? r.color : isDark ? '#64748b' : '#94a3b8' }} />
+                  </Box>
+
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: isDark ? '#e2e8f0' : '#0f172a', lineHeight: 1.3 }}>
+                      {r.label}
+                    </Typography>
+                    <Typography sx={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.73rem', fontWeight: 500, lineHeight: 1.4, mt: 0.2 }}>
+                      {r.desc}
+                    </Typography>
+                  </Box>
+
+                  {isSelected && (
+                    <CheckCircleRoundedIcon sx={{ fontSize: 22, color: r.color, flexShrink: 0 }} />
+                  )}
+
+                  {!isSelected && mode === 'create' && (
+                    <Radio
+                      checked={false}
+                      size="small"
+                      sx={{ color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(59,130,246,0.15)', p: 0, '& .MuiSvgIcon-root': { fontSize: 20 } }}
+                    />
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+
+          {/* === Tip === */}
+          <Box
+            sx={{
+              mt: 3,
+              p: { xs: 1.5, sm: 2 },
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.5,
+              bgcolor: isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)',
+              border: `1px solid ${isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.08)'}`
+            }}
+          >
+            <InfoOutlinedIcon sx={{ color: isDark ? '#3b82f6' : '#60a5fa', fontSize: 16, mt: 0.2, flexShrink: 0 }} />
+            <Typography sx={{ color: isDark ? '#64748b' : '#64748b', lineHeight: 1.5, fontWeight: 500, fontSize: '0.75rem' }}>
+              {mode === 'create'
+                ? 'New users receive a temporary password via email. They should change it on first login.'
+                : "Changing the role will take effect immediately on the user's next request."}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* === FOOTER === */}
+        <Box
+          sx={{
+            px: { xs: 2.5, sm: 3.5 },
+            py: { xs: 2, sm: 2.5 },
+            borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)'}`,
+            display: 'flex',
+            gap: 1.5,
+            alignItems: 'center',
+            bgcolor: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(59,130,246,0.015)'
+          }}
+        >
+          <Button
+            onClick={onClose}
+            sx={{
+              flex: 1,
+              color: isDark ? '#94a3b8' : '#64748b',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              borderRadius: '12px',
+              py: 1.2,
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.1)'}`,
+              '&:hover': {
+                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(59,130,246,0.03)',
+                borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(59,130,246,0.2)'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={loading}
+            disableElevation
+            sx={{
+              flex: 2,
+              ...gradientButton(),
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.88rem',
+              py: 1.2,
+              letterSpacing: '-0.01em'
+            }}
+          >
+            {loading ? <CircularProgress size={20} color="inherit" /> : mode === 'create' ? 'Add Member' : 'Save Changes'}
+          </Button>
         </Box>
       </Box>
-    </Fade>
+    </Dialog>
   );
 };
 
