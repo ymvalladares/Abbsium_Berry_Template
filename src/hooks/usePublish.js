@@ -28,7 +28,11 @@ export function usePublish({ notify }) {
 
   const progressIntervalRef = useRef(null);
   const fallbackTimeoutRef = useRef(null);
-  const listenersRegisteredRef = useRef(false);
+  const networkStatusesRef = useRef({});
+  const finalizedRef = useRef(false);
+  const handlersRef = useRef({});
+  const notifyRef = useRef(notify);
+  notifyRef.current = notify;
 
   const cleanupTimers = useCallback(() => {
     if (progressIntervalRef.current) {
@@ -41,90 +45,104 @@ export function usePublish({ notify }) {
     }
   }, []);
 
-  const removeListeners = useCallback(() => {
-    publishingSignalR.off('publish_started', handlePublishStarted);
-    publishingSignalR.off('network_status', handleNetworkStatus);
-    publishingSignalR.off('publish_finished', handlePublishFinishedWithCleanup);
-    publishingSignalR.off('error', handleError);
-    listenersRegisteredRef.current = false;
-  }, []);
+  const finalizePublish = useCallback((data) => {
+    if (finalizedRef.current) return;
+    finalizedRef.current = true;
 
-  function handlePublishStarted(data) {
-    console.log('Publish started:', data);
-  }
+    cleanupTimers();
 
-  function handleNetworkStatus(data) {
-    console.log('Network status:', data);
-    const platformId = getPlatformId(data.network);
-    setNetworkStatuses((prev) => ({
-      ...prev,
-      [platformId]: {
+    setNetworkStatuses((prev) => {
+      const r = {};
+      Object.keys(prev).forEach((id) => {
+        r[id] = prev[id]?.status === 'success' ? 'ok' : 'err';
+      });
+      return prev;
+    });
+
+    const ok = data.successful;
+    const total = data.total;
+
+    setPublishSummary({ successful: ok, total: total });
+    setPosting(false);
+
+    setNetworkStatuses((prev) => {
+      const r = {};
+      Object.keys(prev).forEach((id) => {
+        r[id] = prev[id]?.status === 'success' ? 'ok' : 'err';
+      });
+      setResults(r);
+      return prev;
+    });
+
+    setTimeout(() => {
+      if (ok === 0) {
+        notifyRef.current.error('Publish failed on all platforms', 'Publish Failed');
+      } else if (ok === total) {
+        notifyRef.current.success(`Published on ${ok} platform${ok > 1 ? 's' : ''}`, 'Publish Successful');
+      } else {
+        notifyRef.current.warning(`Published on ${ok} of ${total} platforms`, 'Partial Success');
+      }
+    }, 0);
+
+    publishingSignalR.off('publish_started', handlersRef.current.publishStarted);
+    publishingSignalR.off('network_status', handlersRef.current.networkStatus);
+    publishingSignalR.off('publish_finished', handlersRef.current.publishFinished);
+    publishingSignalR.off('error', handlersRef.current.error);
+  }, [cleanupTimers]);
+
+  useEffect(() => {
+    handlersRef.current.publishStarted = function handlePublishStarted(data) {
+      console.log('Publish started:', data);
+    };
+
+    handlersRef.current.networkStatus = function handleNetworkStatus(data) {
+      console.log('Network status:', data);
+      const platformId = getPlatformId(data.network);
+      const newEntry = {
         status: data.status,
         message: data.message,
         network: data.network,
         postId: data.postId,
         postUrl: data.postUrl,
         error: data.error,
-        progress: data.status === 'success' ? 100 : data.status === 'error' ? 0 : (prev[platformId]?.progress || 0)
-      }
-    }));
-  }
+        progress: data.status === 'success' ? 100 : data.status === 'error' ? 0 : (networkStatusesRef.current[platformId]?.progress || 0)
+      };
+      networkStatusesRef.current = {
+        ...networkStatusesRef.current,
+        [platformId]: newEntry
+      };
+      setNetworkStatuses(networkStatusesRef.current);
+    };
 
-  const finalizePublish = useCallback((data) => {
-    cleanupTimers();
-    setPublishSummary(data);
-    setPosting(false);
+    handlersRef.current.publishFinished = function handlePublishFinished(data) {
+      console.log('Publish finished:', data);
+      finalizePublish(data);
+    };
 
-    const ok = data.successful;
-    if (ok === 0) {
-      notify.error('Publish failed on all platforms', 'Publish Failed');
-    } else if (ok === data.total) {
-      notify.success(`Published on ${ok} platform${ok > 1 ? 's' : ''}`, 'Publish Successful');
-    } else {
-      notify.warning(`Published on ${ok} of ${data.total} platforms`, 'Partial Success');
-    }
+    handlersRef.current.error = function handleError(error) {
+      console.error('SignalR error:', error);
+      if (finalizedRef.current) return;
+      finalizedRef.current = true;
+      setPosting(false);
+      cleanupTimers();
+      setTimeout(() => {
+        notifyRef.current.error('Real-time connection error', 'SignalR Error');
+      }, 0);
+      publishingSignalR.off('publish_started', handlersRef.current.publishStarted);
+      publishingSignalR.off('network_status', handlersRef.current.networkStatus);
+      publishingSignalR.off('publish_finished', handlersRef.current.publishFinished);
+      publishingSignalR.off('error', handlersRef.current.error);
+    };
 
-    const r = {};
-    Object.keys(data).forEach((id) => {
-      r[id] = 'err';
-    });
-    setNetworkStatuses((prev) => {
-      Object.keys(prev).forEach((id) => {
-        r[id] = prev[id]?.status === 'success' ? 'ok' : 'err';
-      });
-      return prev;
-    });
-    setResults(r);
-
-    removeListeners();
-  }, [notify, cleanupTimers, removeListeners]);
-
-  function handlePublishFinished(data) {
-    console.log('Publish finished:', data);
-    finalizePublish(data);
-  }
-
-  function handlePublishFinishedWithCleanup(data) {
-    clearTimeout(fallbackTimeoutRef.current);
-    cleanupTimers();
-    handlePublishFinished(data);
-  }
-
-  function handleError(error) {
-    console.error('SignalR error:', error);
-    setPosting(false);
-    notify.error('Real-time connection error', 'SignalR Error');
-    cleanupTimers();
-    removeListeners();
-  }
-
-  useEffect(() => {
     return () => {
       cleanupTimers();
-      removeListeners();
+      publishingSignalR.off('publish_started', handlersRef.current.publishStarted);
+      publishingSignalR.off('network_status', handlersRef.current.networkStatus);
+      publishingSignalR.off('publish_finished', handlersRef.current.publishFinished);
+      publishingSignalR.off('error', handlersRef.current.error);
       publishingSignalR.stop();
     };
-  }, [cleanupTimers, removeListeners]);
+  }, [cleanupTimers, finalizePublish]);
 
   const validateFile = useCallback((f) => {
     if (!f) return true;
@@ -133,18 +151,18 @@ export function usePublish({ notify }) {
     const isImage = f.type.startsWith('image');
 
     if (!isVideo && !isImage) {
-      notify.error('Only image and video files are allowed', 'File Validation Error');
+      notifyRef.current.error('Only image and video files are allowed', 'File Validation Error');
       return false;
     }
 
     if (isVideo) {
       if (f.type !== 'video/mp4' && !f.name.toLowerCase().endsWith('.mp4')) {
-        notify.error('Video must be MP4 format', 'File Validation Error');
+        notifyRef.current.error('Video must be MP4 format', 'File Validation Error');
         return false;
       }
       const maxSize = 256 * 1024 * 1024;
       if (f.size > maxSize) {
-        notify.error('Video must be under 256MB', 'File Validation Error');
+        notifyRef.current.error('Video must be under 256MB', 'File Validation Error');
         return false;
       }
     }
@@ -152,13 +170,13 @@ export function usePublish({ notify }) {
     if (isImage) {
       const maxSize = 10 * 1024 * 1024;
       if (f.size > maxSize) {
-        notify.error('Images must be under 10MB', 'File Validation Error');
+        notifyRef.current.error('Images must be under 10MB', 'File Validation Error');
         return false;
       }
     }
 
     return true;
-  }, [notify]);
+  }, []);
 
   const publish = useCallback(async ({
     file,
@@ -178,19 +196,19 @@ export function usePublish({ notify }) {
     }
 
     if (!title?.trim() && !description?.trim()) {
-      notify.error('Add a title or description before publishing', 'Missing Content');
+      notifyRef.current.error('Add a title or description before publishing', 'Missing Content');
       return;
     }
 
     if (scheduleType === 'scheduled' && (!scheduledDate || !scheduledTime)) {
-      notify.error('Please select a date and time for scheduling', 'Missing Schedule');
+      notifyRef.current.error('Please select a date and time for scheduling', 'Missing Schedule');
       return;
     }
 
     if (scheduleType === 'scheduled') {
       const schedDate = new Date(`${scheduledDate}T${scheduledTime}`);
       if (schedDate <= new Date()) {
-        notify.error('Please select a future date and time', 'Invalid Schedule');
+        notifyRef.current.error('Please select a future date and time', 'Invalid Schedule');
         return;
       }
     }
@@ -199,8 +217,10 @@ export function usePublish({ notify }) {
     setResults(null);
     setShowModal(false);
     setNetworkStatuses({});
+    networkStatusesRef.current = {};
     setUploadProgress(0);
     setPublishSummary(null);
+    finalizedRef.current = false;
 
     const platformNames = platforms
       .map((id) => PLATFORMS.find((p) => p.id === id)?.name)
@@ -208,7 +228,7 @@ export function usePublish({ notify }) {
       .filter((name) => SUPPORTED_PLATFORMS.includes(name));
 
     if (platformNames.length === 0) {
-      notify.warning('Select at least one supported platform (Facebook, Instagram, YouTube, TikTok)', 'No Platform Selected');
+      notifyRef.current.warning('Select at least one supported platform (Facebook, Instagram, YouTube, TikTok)', 'No Platform Selected');
       setPosting(false);
       return;
     }
@@ -226,7 +246,7 @@ export function usePublish({ notify }) {
         const contentType = data.contentType || data.ContentType || file.type;
 
         if (!uploadUrl || !key) {
-          notify.error('Failed to get upload URL from server', 'Upload Error');
+          notifyRef.current.error('Failed to get upload URL from server', 'Upload Error');
           setPosting(false);
           return;
         }
@@ -243,10 +263,11 @@ export function usePublish({ notify }) {
         setUploadProgress(100);
       }
 
+      const isVideoFile = file?.type.startsWith('video');
+
       if (scheduleType === 'scheduled') {
         const localDate = new Date(`${scheduledDate}T${scheduledTime}`);
-        const payload = {
-          videoUrl: s3Url,
+        const basePayload = {
           title: title ?? '',
           caption: description ?? '',
           platforms: platformNames,
@@ -254,29 +275,31 @@ export function usePublish({ notify }) {
           scheduleType: 'scheduled',
           scheduledFor: localDate.toISOString()
         };
+        const payload = s3Url
+          ? (isVideoFile ? { ...basePayload, videoUrl: s3Url } : { ...basePayload, photoUrl: s3Url })
+          : basePayload;
 
         const publishResponse = await socialAPI.publishAsync(payload);
 
         if (publishResponse.data.status === 'scheduled') {
           setPosting(false);
-          notify.success(`Post scheduled for ${new Date(publishResponse.data.scheduledFor).toLocaleString()}`, 'Post Scheduled');
+          notifyRef.current.success(`Post scheduled for ${new Date(publishResponse.data.scheduledFor).toLocaleString()}`, 'Post Scheduled');
           window.dispatchEvent(new Event('refresh-scheduled-posts'));
           if (reset) reset();
           return;
         } else {
           setPosting(false);
-          notify.error('Failed to schedule post', 'Schedule Error');
+          notifyRef.current.error('Failed to schedule post', 'Schedule Error');
           return;
         }
       }
 
       const token = localStorage.getItem('token');
 
-      publishingSignalR.on('publish_started', handlePublishStarted);
-      publishingSignalR.on('network_status', handleNetworkStatus);
-      publishingSignalR.on('publish_finished', handlePublishFinishedWithCleanup);
-      publishingSignalR.on('error', handleError);
-      listenersRegisteredRef.current = true;
+      publishingSignalR.on('publish_started', handlersRef.current.publishStarted);
+      publishingSignalR.on('network_status', handlersRef.current.networkStatus);
+      publishingSignalR.on('publish_finished', handlersRef.current.publishFinished);
+      publishingSignalR.on('error', handlersRef.current.error);
 
       await publishingSignalR.start(token);
 
@@ -285,18 +308,21 @@ export function usePublish({ notify }) {
         const platformId = getPlatformId(name);
         initialStatuses[platformId] = { status: 'uploading', message: 'Starting...', network: name, progress: 0 };
       });
+      networkStatusesRef.current = initialStatuses;
       setNetworkStatuses(initialStatuses);
       setShowModal(true);
 
-      const payload = {
-        videoUrl: s3Url,
+      const basePublishPayload = {
         title: title ?? '',
         caption: description ?? '',
         platforms: platformNames,
         isShort: type === 'reel'
       };
+      const publishPayload = s3Url
+        ? (isVideoFile ? { ...basePublishPayload, videoUrl: s3Url } : { ...basePublishPayload, photoUrl: s3Url })
+        : basePublishPayload;
 
-      const publishResponse = await socialAPI.publishAsync(payload);
+      const publishResponse = await socialAPI.publishAsync(publishPayload);
       const newSessionId = publishResponse.data.sessionId;
       console.log('Session ID:', newSessionId);
 
@@ -318,37 +344,34 @@ export function usePublish({ notify }) {
       }, 500);
 
       fallbackTimeoutRef.current = setTimeout(() => {
-        setNetworkStatuses((prev) => {
-          const successful = Object.values(prev).filter((s) => s.status === 'success').length;
-          const total = Object.keys(prev).length;
-          const data = { successful, total };
-          setPublishSummary(data);
-          setPosting(false);
-          if (successful === 0) {
-            notify.error('Publish failed on all platforms', 'Publish Failed');
-          } else if (successful === total) {
-            notify.success(`Published on ${successful} platform${successful > 1 ? 's' : ''}`, 'Publish Successful');
-          } else {
-            notify.warning(`Published on ${successful} of ${total} platforms`, 'Partial Success');
-          }
-          return prev;
-        });
-        cleanupTimers();
-        removeListeners();
-      }, 60000);
+        if (finalizedRef.current) return;
+
+        const statuses = networkStatusesRef.current;
+        const successful = Object.values(statuses).filter((s) => s.status === 'success').length;
+        const total = Object.keys(statuses).length;
+
+        finalizePublish({ successful, total });
+      }, 90000);
     } catch (err) {
       console.error('Publish error:', err);
+      if (finalizedRef.current) return;
+      finalizedRef.current = true;
       setPosting(false);
-      notify.error(err.response?.data?.errorMessage || err.response?.data?.message || 'Publish failed', 'Publish Error');
+      setTimeout(() => {
+        notifyRef.current.error(err.response?.data?.errorMessage || err.response?.data?.message || 'Publish failed', 'Publish Error');
+      }, 0);
       const r = {};
       platforms.forEach((p) => {
         r[p] = 'err';
       });
       setResults(r);
       cleanupTimers();
-      removeListeners();
+      publishingSignalR.off('publish_started', handlersRef.current.publishStarted);
+      publishingSignalR.off('network_status', handlersRef.current.networkStatus);
+      publishingSignalR.off('publish_finished', handlersRef.current.publishFinished);
+      publishingSignalR.off('error', handlersRef.current.error);
     }
-  }, [posting, validateFile, notify, cleanupTimers, removeListeners]);
+  }, [posting, validateFile, cleanupTimers]);
 
   const successCount = results ? Object.values(results).filter((v) => v === 'ok').length : 0;
 
