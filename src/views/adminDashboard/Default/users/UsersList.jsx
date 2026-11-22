@@ -231,11 +231,19 @@ const UsersList = () => {
 
         {/* ===== TABLE ===== */}
         {loading ? (
-          <Card elevation={0} sx={glassCard(isDark)}>
+          <Card
+            elevation={0}
+            sx={{
+              border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+              borderRadius: 2,
+              overflow: 'hidden',
+              boxShadow: 'none'
+            }}
+          >
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB' }}>
                     <TableCell padding="checkbox">
                       <Skeleton variant="circular" width={20} height={20} />
                     </TableCell>

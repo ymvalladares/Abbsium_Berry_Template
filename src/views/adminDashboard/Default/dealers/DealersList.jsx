@@ -40,6 +40,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -111,14 +112,12 @@ const TH = ({ children, align = 'left' }) => {
     <TableCell
       align={align}
       sx={{
-        fontWeight: 800,
-        fontSize: '0.72rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        color: isDark ? '#e2e8f0' : '#334155',
+        fontWeight: 600,
+        fontSize: '0.875rem',
+        color: isDark ? '#e2e8f0' : '#374151',
         py: 1.5,
-        bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
-        borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`,
+        bgcolor: isDark ? '#0f172a' : '#F9FAFB',
+        borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
         whiteSpace: 'nowrap'
       }}
     >
@@ -128,20 +127,26 @@ const TH = ({ children, align = 'left' }) => {
 };
 
 const StatusChip = ({ active }) => {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   return (
     <Chip
       label={active ? 'Active' : 'Inactive'}
       size="small"
+      color={active ? 'success' : 'default'}
       sx={{
-        fontWeight: 700,
-        fontSize: '0.72rem',
-        borderRadius: '8px',
-        bgcolor: active ? 'rgba(20,184,166,0.12)' : 'rgba(107,114,128,0.1)',
-        color: active ? '#0D9488' : '#6B7280',
-        border: `1px solid ${active ? 'rgba(13,148,136,0.4)' : 'rgba(107,114,128,0.3)'}`,
-        boxShadow: active ? glowShadow('20,184,166', 0.4, 10) : 'none',
-        px: 0.25,
-        height: 26
+        fontWeight: 500,
+        fontSize: '0.75rem',
+        bgcolor: active
+          ? isDark ? 'rgba(34, 197, 94, 0.2)' : undefined
+          : isDark ? 'rgba(148, 163, 184, 0.2)' : undefined,
+        color: active
+          ? isDark ? '#4ade80' : undefined
+          : isDark ? '#94a3b8' : undefined,
+        border: active
+          ? isDark ? '1px solid rgba(34, 197, 94, 0.3)' : undefined
+          : isDark ? '1px solid rgba(148, 163, 184, 0.3)' : undefined,
+        px: 0.25
       }}
     />
   );
@@ -437,8 +442,17 @@ export default function DealersList() {
       </Grid>
 
       {!loading && (
-        <Card elevation={0} sx={{ ...glassCard(isDark), mb: 0, boxShadow: 'none' }}>
-        <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)', position: 'relative', zIndex: 1 }}>
+        <Card
+          elevation={0}
+          sx={{
+            border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: 'none',
+            mb: 0
+          }}
+        >
+        <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, position: 'relative', zIndex: 1 }}>
           <Box
             sx={{
               display: { xs: 'flex', sm: 'flex' },
@@ -460,10 +474,16 @@ export default function DealersList() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ fontSize: 18, color: '#3b82f6' }} />
+                      <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
                     </InputAdornment>
                   ),
-                  sx: { borderRadius: '12px', bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)', '& fieldset': { border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}` }, '&:hover fieldset': { borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)' }, '&.Mui-focused fieldset': { borderColor: '#3b82f6', borderWidth: '1.5px' } }
+                  sx: {
+                    borderRadius: '12px',
+                    bgcolor: isDark ? '#0f172a' : '#fff',
+                    '& fieldset': { border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`, borderWidth: '1.5px' },
+                    '&:hover fieldset': { borderColor: '#cbd5e1' },
+                    '&.Mui-focused fieldset': { borderColor: '#0399DF', borderWidth: '2px', boxShadow: '0 0 0 3px #E3F2FD' }
+                  }
                 }}
                 sx={{ minWidth: { sm: 220, md: 260 } }}
               />
@@ -480,10 +500,10 @@ export default function DealersList() {
                   sx={{
                     borderRadius: '12px',
                     fontSize: '0.85rem',
-                    bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)',
-                    '& fieldset': { border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}` },
-                    '&:hover fieldset': { borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6', borderWidth: '1.5px' },
+                    bgcolor: isDark ? '#0f172a' : '#fff',
+                    '& fieldset': { border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`, borderWidth: '1.5px' },
+                    '&:hover fieldset': { borderColor: '#cbd5e1' },
+                    '&.Mui-focused fieldset': { borderColor: '#0399DF', borderWidth: '2px', boxShadow: '0 0 0 3px #E3F2FD' },
                     '& .MuiSelect-select': { pl: 2, pr: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }
                   }}
                   renderValue={(selectedValue) => (
@@ -493,11 +513,10 @@ export default function DealersList() {
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          bgcolor: statusFilter === 'All' ? 'text.secondary' : statusFilter === 'Active' ? '#10b981' : '#ef4444',
-                          boxShadow: statusFilter === 'All' ? 'none' : glowShadow(statusFilter === 'Active' ? '16,185,129' : '239,68,68', 0.6, 6)
+                          bgcolor: statusFilter === 'All' ? 'text.secondary' : statusFilter === 'Active' ? '#10b981' : '#ef4444'
                         }}
                       />
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {selectedValue === 'All' ? 'All Status' : selectedValue}
                       </Typography>
                     </Box>
@@ -532,14 +551,15 @@ export default function DealersList() {
                 sx={{
                   textTransform: 'none',
                   color: '#ef4444',
-                  fontWeight: 800,
+                  fontWeight: 600,
                   fontSize: '0.82rem',
                   borderRadius: '10px',
                   px: 1.5,
                   border: '1px solid',
                   borderColor: 'rgba(239,68,68,0.5)',
                   bgcolor: 'rgba(239,68,68,0.06)',
-                  '&:hover': { bgcolor: '#ef4444', color: '#fff', boxShadow: glowShadow('239,68,68', 0.5, 16) }
+                  '&:hover': { bgcolor: '#ef4444', color: '#fff' },
+                  transition: 'all 0.2s'
                 }}
               >
                 Delete Selected ({selected.length})
@@ -553,30 +573,31 @@ export default function DealersList() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell padding="checkbox" sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`, pl: 2, minWidth: 120 }}>
+                  <TableCell padding="checkbox" sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, pl: 2, minWidth: 120 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Skeleton variant="circular" width={20} height={20} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                       <Skeleton variant="text" width={30} height={16} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={60} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={120} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                  <TableCell sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={60} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                  <TableCell align="right" sx={{ bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}` }}><Skeleton variant="text" width={30} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={60} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={100} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={120} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={60} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                  <TableCell align="right" sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB', borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={30} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                    <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Skeleton variant="circular" width={20} height={20} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                         <Skeleton variant="text" width={60} height={16} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} />
                       </Box>
                     </TableCell>
-                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                       <Stack direction="row" spacing={1.75} alignItems="center">
                         <Skeleton variant="rounded" width={48} height={48} sx={{ borderRadius: 2, bgcolor: 'rgba(148,163,184,0.18)' }} />
                         <Box>
@@ -585,11 +606,12 @@ export default function DealersList() {
                         </Box>
                       </Stack>
                     </TableCell>
-                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="text" width={120} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                    <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="rounded" width={60} height={26} sx={{ borderRadius: '8px', bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
-                    <TableCell align="right" sx={{ pr: 1.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}><Skeleton variant="circular" width={32} height={32} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={100} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={120} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="text" width={80} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="rounded" width={60} height={26} sx={{ borderRadius: '8px', bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
+                    <TableCell align="right" sx={{ pr: 1.5, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}><Skeleton variant="circular" width={32} height={32} sx={{ bgcolor: 'rgba(148,163,184,0.18)' }} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -601,21 +623,22 @@ export default function DealersList() {
                 <TableCell
                   padding="checkbox"
                   sx={{
-                    bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
-                    borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`,
+                    bgcolor: isDark ? '#0f172a' : '#F9FAFB',
+                    borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
                     pl: 2,
                     minWidth: 120
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Checkbox size="small" sx={checkboxSx} checked={allSelected} indeterminate={selected.length > 0 && !allSelected} onChange={toggleAll} />
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: isDark ? '#e2e8f0' : '#334155', fontSize: '0.75rem', letterSpacing: '0.06em' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: isDark ? '#e2e8f0' : '#374151', fontSize: '0.875rem' }}>
                       ID
                     </Typography>
                   </Box>
                 </TableCell>
                 <TH>Dealer</TH>
                 <TH>Domain</TH>
+                <TH>API Key</TH>
                 <TH>Owner Email</TH>
                 <TH>Created</TH>
                 <TH>Status</TH>
@@ -628,27 +651,26 @@ export default function DealersList() {
                   key={item.id}
                   selected={selected.includes(item.id)}
                   sx={{
-                    '&:hover': { '& td': { bgcolor: isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.045)' } },
+                    '&:hover': { '& td': { bgcolor: isDark ? '#0f172a' : '#F9FAFB' } },
                     '&:last-child td': { borderBottom: 0 },
-                    '&.Mui-selected': { '& td': { bgcolor: 'rgba(59,130,246,0.12)' } },
+                    '&.Mui-selected': { '& td': { bgcolor: isDark ? 'rgba(3, 153, 223, 0.16)' : 'rgba(3, 153, 223, 0.08)' } },
                     '& td': { transition: 'background-color 0.15s ease' }
                   }}
                 >
-                  <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Checkbox size="small" sx={checkboxSx} checked={selected.includes(item.id)} onChange={() => toggleRow(item.id)} />
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#3b82f6', fontSize: '0.78rem' }}
+                        sx={{ fontWeight: 600, fontFamily: 'monospace', color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.78rem' }}
                       >
                         {item.id.toString().slice(0, 8)}
                       </Typography>
                     </Box>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <Stack direction="row" spacing={1.75} alignItems="center">
-                      <Box sx={{ position: 'relative', borderRadius: '12px', p: '2px', backgroundImage: GRADIENT_MAIN, boxShadow: glowShadow(ACCENT_RGB, 0.4, 10), lineHeight: 0 }}>
                         <Avatar
                           variant="rounded"
                           src={item.logo}
@@ -656,6 +678,7 @@ export default function DealersList() {
                             width: 48,
                             height: 48,
                             borderRadius: '10px',
+                            border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`,
                             bgcolor: item.primaryColor || '#3b82f6',
                             color: '#fff',
                             fontWeight: 700,
@@ -664,7 +687,6 @@ export default function DealersList() {
                         >
                           {!item.logo && item.name.charAt(0).toUpperCase()}
                         </Avatar>
-                      </Box>
                       <Box>
                         <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: 'text.primary', lineHeight: 1.3 }}>
                           {item.name}
@@ -688,32 +710,71 @@ export default function DealersList() {
                     </Stack>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <Typography sx={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: 600 }}>{item.domain}</Typography>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, maxWidth: 200 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.75rem',
+                          fontFamily: 'monospace',
+                          color: item.apiKey ? (isDark ? '#a5b4fc' : '#6366f1') : 'text.disabled',
+                          bgcolor: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.05)',
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: 160
+                        }}
+                        title={item.apiKey || 'No API key'}
+                      >
+                        {item.apiKey || 'N/A'}
+                      </Typography>
+                      {item.apiKey && (
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.apiKey);
+                            notify.success('API key copied to clipboard', 'Copied');
+                          }}
+                          sx={{
+                            color: '#6366f1',
+                            p: 0.3,
+                            '&:hover': { bgcolor: 'rgba(99,102,241,0.15)' }
+                          }}
+                        >
+                          <ContentCopyIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      )}
+                    </Box>
+                  </TableCell>
+
+                  <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>{item.ownerEmail}</Typography>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <Typography sx={{ fontSize: '0.85rem', color: 'text.primary', fontWeight: 600 }}>
                       {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </Typography>
                   </TableCell>
 
-                  <TableCell sx={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell sx={{ borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <StatusChip active={item.isActive} />
                   </TableCell>
 
-                  <TableCell align="right" sx={{ pr: 1.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell align="right" sx={{ pr: 1.5, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <RowMenu dealerName={item.name} onEdit={() => openEditDialog(item)} onDelete={() => handleDelete(item.id)} />
                   </TableCell>
                 </TableRow>
               ))}
               {paginated.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 6, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }}>
+                  <TableCell colSpan={8} sx={{ textAlign: 'center', py: 6, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
                     <StorefrontIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
                       {search || statusFilter !== 'All' ? 'No dealers match your filters' : 'No dealers registered yet'}
@@ -738,7 +799,7 @@ export default function DealersList() {
               setPage(0);
             }}
             rowsPerPageOptions={[5, 10, 25]}
-            sx={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)', '& .MuiTablePagination-toolbar': { px: 2 } }}
+            sx={{ borderTop: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, '& .MuiTablePagination-toolbar': { px: 2 } }}
           />
         )}
       </Card>

@@ -29,45 +29,43 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import KeyIcon from '@mui/icons-material/Key';
 
-import { glassCard, gradientButton, gradientIconBox, glowShadow, GRADIENT_MAIN, GRADIENT_DANGER, GRADIENT_WARM } from './aiUi';
+import { glassCard, gradientButton, gradientIconBox, GRADIENT_DANGER, GRADIENT_WARM } from './aiUi';
 
 const getEmailVerifiedColor = (verified) => (verified ? 'success' : 'warning');
 
 const headerCellSx = (isDark) => ({
-  color: isDark ? '#e2e8f0' : '#334155',
-  fontWeight: 800,
-  fontSize: '0.76rem',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
-  borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`
+  color: isDark ? '#e2e8f0' : '#374151',
+  fontWeight: 600,
+  fontSize: '0.875rem',
+  borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`
 });
 
 const rowCellSx = (isDark) => ({
-  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)'}`
+  borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`
 });
 
 const chipSx = (verified, isDark) => ({
-  fontWeight: 700,
-  fontSize: '0.72rem',
-  letterSpacing: '0.02em',
-  border: `1px solid ${verified ? 'rgba(52,211,153,0.45)' : 'rgba(251,191,36,0.45)'}`,
-  bgcolor: verified ? 'rgba(52,211,153,0.12)' : 'rgba(251,191,36,0.12)',
-  color: verified ? (isDark ? '#4ade80' : '#059669') : isDark ? '#facc15' : '#d97706',
-  boxShadow: glowShadow(verified ? '52,211,153' : '251,191,36', 0.45, 12)
+  fontWeight: 500,
+  fontSize: '0.75rem',
+  bgcolor: verified
+    ? isDark ? 'rgba(34, 197, 94, 0.2)' : undefined
+    : isDark ? 'rgba(251, 191, 36, 0.2)' : undefined,
+  color: verified
+    ? isDark ? '#4ade80' : undefined
+    : isDark ? '#fbbf24' : undefined,
+  border: verified
+    ? isDark ? '1px solid rgba(34, 197, 94, 0.3)' : undefined
+    : isDark ? '1px solid rgba(251, 191, 36, 0.3)' : undefined,
+  '& .MuiChip-icon': { color: 'inherit' }
 });
 
-const actionBtnSx = (color, hoverColor, bgRgb) => ({
+const actionBtnSx = (color, bgRgb) => ({
   width: 32,
   height: 32,
-  bgcolor: `rgba(${bgRgb},0.1)`,
   color,
-  transition: 'all 0.2s',
+  transition: 'background-color 0.2s',
   '&:hover': {
-    bgcolor: `rgba(${bgRgb},0.22)`,
-    color: hoverColor,
-    transform: 'translateY(-1px)',
-    boxShadow: glowShadow(bgRgb, 0.4, 10)
+    bgcolor: `rgba(${bgRgb},0.1)`
   }
 });
 
@@ -154,11 +152,19 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
   return (
     <>
-      <Card elevation={0} sx={glassCard(isDark)}>
+      <Card
+        elevation={0}
+        sx={{
+          border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+          borderRadius: 2,
+          overflow: 'hidden',
+          boxShadow: 'none'
+        }}
+      >
         <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
           <Table>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB' }}>
                 <TableCell padding="checkbox" sx={headerCellSx(isDark)}>
                   <Checkbox
                     checked={users.length > 0 && selectedUsers.length === users.length}
@@ -183,9 +189,8 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
                   key={user.id}
                   hover
                   sx={{
-                    '& td': { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)' },
                     '&:hover': {
-                      bgcolor: isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.045)'
+                      bgcolor: isDark ? '#0f172a' : '#F9FAFB'
                     }
                   }}
                 >
@@ -199,44 +204,19 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
 
                   <TableCell sx={rowCellSx(isDark)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75 }}>
-                      <Box
+                      <Avatar
                         sx={{
-                          position: 'relative',
-                          borderRadius: '50%',
-                          p: '2px',
-                          backgroundImage: GRADIENT_MAIN,
-                          boxShadow: glowShadow('59,130,246', 0.5, 12),
-                          lineHeight: 0
+                          width: 36,
+                          height: 36,
+                          border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`,
+                          bgcolor: isDark ? '#0f172a' : '#fff',
+                          color: isDark ? '#60a5fa' : '#1d4ed8',
+                          fontWeight: 800,
+                          fontSize: 14
                         }}
                       >
-                        {user.avatar ? (
-                          <Avatar
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              bgcolor: isDark ? '#0f172a' : '#fff',
-                              color: isDark ? '#60a5fa' : '#1d4ed8',
-                              fontWeight: 800,
-                              fontSize: 14
-                            }}
-                          >
-                            {user.avatar}
-                          </Avatar>
-                        ) : (
-                          <Avatar
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              bgcolor: isDark ? '#0f172a' : '#fff',
-                              color: isDark ? '#60a5fa' : '#1d4ed8',
-                              fontWeight: 800,
-                              fontSize: 14
-                            }}
-                          >
-                            {user.name?.charAt(0) || '?'}
-                          </Avatar>
-                        )}
-                      </Box>
+                        {user.avatar || user.name?.charAt(0) || '?'}
+                      </Avatar>
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
                           {user.name}
@@ -260,21 +240,20 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
                       label={user.emailConfirmed ? 'Verified' : 'Not Verified'}
                       color={getEmailVerifiedColor(user.emailConfirmed)}
                       size="small"
-                      variant="outlined"
                       sx={chipSx(user.emailConfirmed, isDark)}
                     />
                   </TableCell>
 
                   <TableCell align="right" sx={rowCellSx(isDark)}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.75 }}>
-                      <IconButton size="small" onClick={() => onEditUser(user)} sx={actionBtnSx('#60a5fa', '#3b82f6', '59,130,246')}>
+                      <IconButton size="small" onClick={() => onEditUser(user)} sx={actionBtnSx(isDark ? '#60a5fa' : '#1d4ed8', '59,130,246')}>
                         <EditIcon fontSize="small" />
                       </IconButton>
 
                       <IconButton
                         size="small"
                         onClick={() => handleAskReset(user)}
-                        sx={actionBtnSx(isDark ? '#fbbf24' : '#d97706', isDark ? '#fcd34d' : '#b45309', '251,146,60')}
+                        sx={actionBtnSx(isDark ? '#fbbf24' : '#d97706', '251,191,36')}
                       >
                         <KeyIcon fontSize="small" />
                       </IconButton>
@@ -282,7 +261,7 @@ const UsersTable = ({ users, selectedUsers, isMobile, isTablet, onSelectAll, onS
                       <IconButton
                         size="small"
                         onClick={() => handleAskDelete(user)}
-                        sx={actionBtnSx(isDark ? '#fb7185' : '#ef4444', isDark ? '#fda4af' : '#b91c1c', '239,68,68')}
+                        sx={actionBtnSx(isDark ? '#fb7185' : '#ef4444', '239,68,68')}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>

@@ -49,30 +49,30 @@ const ACCENT_RGB = '59,130,246';
 const GRADIENT_GREEN = 'linear-gradient(135deg, #34d399 0%, #10b981 100%)';
 
 const statusConfig = {
-  'Completed': { bg: '#dcfce7', text: '#166534', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
-  'Pending': { bg: '#fef3c7', text: '#92400e', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
-  'Payment Failed': { bg: '#fee2e2', text: '#991b1b', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
-  'Cancelled': { bg: '#f1f5f9', text: '#475569', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
-  'Past Due': { bg: '#fee2e2', text: '#991b1b', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
-  'Refunded': { bg: '#e0f2fe', text: '#075985', icon: <AttachMoneyIcon sx={{ fontSize: 14 }} /> },
-  'Suspended': { bg: '#fecaca', text: '#7f1d1d', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
-  'Trialing': { bg: '#dbeafe', text: '#1e40af', icon: <PlayArrowIcon sx={{ fontSize: 14 }} /> },
-  'Unpaid': { bg: '#fef3c7', text: '#92400e', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
+  'Completed': { bg: '#dcfce7', text: '#166534', dark: '#4ade80', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
+  'Pending': { bg: '#fef3c7', text: '#92400e', dark: '#fbbf24', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
+  'Payment Failed': { bg: '#fee2e2', text: '#991b1b', dark: '#f87171', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
+  'Cancelled': { bg: '#f1f5f9', text: '#475569', dark: '#94a3b8', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
+  'Past Due': { bg: '#fee2e2', text: '#991b1b', dark: '#f87171', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
+  'Refunded': { bg: '#e0f2fe', text: '#075985', dark: '#60a5fa', icon: <AttachMoneyIcon sx={{ fontSize: 14 }} /> },
+  'Suspended': { bg: '#fecaca', text: '#7f1d1d', dark: '#f87171', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
+  'Trialing': { bg: '#dbeafe', text: '#1e40af', dark: '#60a5fa', icon: <PlayArrowIcon sx={{ fontSize: 14 }} /> },
+  'Unpaid': { bg: '#fef3c7', text: '#92400e', dark: '#fbbf24', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
 };
 
 const paymentStatusConfig = {
-  'paid': { bg: '#dcfce7', text: '#166534', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
-  'failed': { bg: '#fee2e2', text: '#991b1b', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
-  'suspended': { bg: '#fecaca', text: '#7f1d1d', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
-  'pending': { bg: '#fef3c7', text: '#92400e', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
+  'paid': { bg: '#dcfce7', text: '#166534', dark: '#4ade80', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
+  'failed': { bg: '#fee2e2', text: '#991b1b', dark: '#f87171', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
+  'suspended': { bg: '#fecaca', text: '#7f1d1d', dark: '#f87171', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
+  'pending': { bg: '#fef3c7', text: '#92400e', dark: '#fbbf24', icon: <WarningAmberIcon sx={{ fontSize: 14 }} /> },
 };
 
 const glassToggleSx = (isDark) => ({
   '& .MuiToggleButton-root': {
     borderRadius: '12px',
     textTransform: 'none',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.15)'}`,
-    bgcolor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.6)',
+    border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`,
+    bgcolor: isDark ? '#0f172a' : '#fff',
     py: 1,
     m: 0,
     color: 'text.secondary',
@@ -80,35 +80,58 @@ const glassToggleSx = (isDark) => ({
     fontWeight: 600,
     transition: 'all 0.2s',
     '&:hover': {
-      bgcolor: isDark ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)',
-      borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)'
+      bgcolor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
+      borderColor: isDark ? '#475569' : '#cbd5e1'
     },
     '&.Mui-selected': {
-      bgcolor: isDark ? 'rgba(59,130,246,0.18)' : 'rgba(59,130,246,0.1)',
-      color: isDark ? '#93c5fd' : '#1d4ed8',
-      fontWeight: 800,
+      bgcolor: isDark ? 'rgba(3, 153, 223, 0.16)' : '#E3F2FD',
+      color: isDark ? '#60a5fa' : '#0288cc',
+      fontWeight: 700,
       borderColor: 'transparent',
-      boxShadow: `inset 0 0 0 1.5px rgba(${ACCENT_RGB},0.85), 0 6px 18px -6px rgba(${ACCENT_RGB},0.55)`,
       '&:hover': {
-        bgcolor: isDark ? 'rgba(59,130,246,0.24)' : 'rgba(59,130,246,0.14)'
+        bgcolor: isDark ? 'rgba(3, 153, 223, 0.24)' : '#E3F2FD'
       }
     }
   },
   '&:not(:first-of-type)': { ml: 1 }
 });
 
+const filterFieldSx = (isDark) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    bgcolor: isDark ? '#0f172a' : '#fff',
+    transition: 'all 0.2s ease',
+    '& fieldset': { borderColor: isDark ? '#374151' : '#e2e8f0', borderWidth: '1.5px' },
+    '&:hover fieldset': { borderColor: '#cbd5e1' },
+    '&.Mui-focused fieldset': {
+      borderColor: '#0399DF',
+      borderWidth: '2px',
+      boxShadow: '0 0 0 3px #E3F2FD'
+    },
+    '& input': { py: 1.5, fontSize: '0.95rem', fontWeight: 500, color: isDark ? '#f1f5f9' : '#1e293b' }
+  }
+});
+
+const sectionCardSx = (isDark) => ({
+  mb: 3,
+  border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+  borderRadius: 3,
+  boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)',
+  background: isDark ? '#111827' : '#fff',
+  overflow: 'hidden'
+});
+
+const filterLabelSx = { mb: 1, display: 'block', fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.04em' };
+
 const headerCellSx = (isDark) => ({
-  color: isDark ? '#e2e8f0' : '#334155',
-  fontWeight: 800,
-  fontSize: '0.76rem',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)',
-  borderBottom: `1px solid ${isDark ? 'rgba(59,130,246,0.28)' : 'rgba(59,130,246,0.22)'}`
+  color: isDark ? '#e2e8f0' : '#374151',
+  fontWeight: 600,
+  fontSize: '0.875rem',
+  borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`
 });
 
 const rowCellSx = (isDark) => ({
-  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)'}`
+  borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`
 });
 
 const dialogSx = (isDark) => ({
@@ -126,31 +149,51 @@ const subPaperSx = (isDark) => ({
   p: { xs: 2, sm: 2.5 }
 });
 
-const actionBtnSx = (color, hoverColor, bgRgb) => ({
+const actionBtnSx = (color, bgRgb) => ({
   width: 32,
   height: 32,
-  bgcolor: `rgba(${bgRgb},0.1)`,
   color,
-  transition: 'all 0.2s',
+  transition: 'background-color 0.2s',
   '&:hover': {
-    bgcolor: `rgba(${bgRgb},0.22)`,
-    color: hoverColor,
-    transform: 'translateY(-1px)',
-    boxShadow: glowShadow(bgRgb, 0.4, 10)
+    bgcolor: `rgba(${bgRgb},0.1)`
   }
 });
 
 const PaymentStatusBadge = ({ status, isDark }) => {
   const cfg = paymentStatusConfig[status] || paymentStatusConfig['pending'];
   return (
-    <Chip icon={cfg.icon} label={status.charAt(0).toUpperCase() + status.slice(1)} size="small" sx={{ bgcolor: isDark ? alpha(cfg.text, 0.15) : cfg.bg, color: cfg.text, fontWeight: 600, fontSize: '0.7rem', '& .MuiChip-icon': { color: cfg.text } }} />
+    <Chip
+      icon={cfg.icon}
+      label={status.charAt(0).toUpperCase() + status.slice(1)}
+      size="small"
+      sx={{
+        fontWeight: 500,
+        fontSize: '0.75rem',
+        bgcolor: isDark ? alpha(cfg.dark, 0.2) : cfg.bg,
+        color: isDark ? cfg.dark : cfg.text,
+        border: isDark ? `1px solid ${alpha(cfg.dark, 0.3)}` : undefined,
+        '& .MuiChip-icon': { color: 'inherit' }
+      }}
+    />
   );
 };
 
 const StatusBadge = ({ status, isDark }) => {
   const cfg = statusConfig[status] || statusConfig['Pending'];
   return (
-    <Chip icon={cfg.icon} label={status} size="small" sx={{ bgcolor: isDark ? alpha(cfg.text, 0.15) : cfg.bg, color: cfg.text, fontWeight: 600, fontSize: '0.7rem', '& .MuiChip-icon': { color: cfg.text } }} />
+    <Chip
+      icon={cfg.icon}
+      label={status}
+      size="small"
+      sx={{
+        fontWeight: 500,
+        fontSize: '0.75rem',
+        bgcolor: isDark ? alpha(cfg.dark, 0.2) : cfg.bg,
+        color: isDark ? cfg.dark : cfg.text,
+        border: isDark ? `1px solid ${alpha(cfg.dark, 0.3)}` : undefined,
+        '& .MuiChip-icon': { color: 'inherit' }
+      }}
+    />
   );
 };
 
@@ -432,30 +475,30 @@ const Orders = () => {
       </Grid>
 
       {/* Filters Card */}
-      <Card elevation={0} sx={{ ...glassCard(isDark), mb: 3 }}>
+      <Card elevation={0} sx={sectionCardSx(isDark)}>
         <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box component="span" sx={gradientText}>Filters</Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 1 }}>
+                Filters
                 {activeFilterCount > 0 && (
-                  <Chip label={activeFilterCount} size="small" sx={{ backgroundImage: GRADIENT_MAIN, color: '#fff', fontWeight: 800, height: 20, minWidth: 20, boxShadow: glowShadow(ACCENT_RGB, 0.6, 12), '& .MuiChip-label': { px: 0.75 } }} />
+                  <Chip label={activeFilterCount} size="small" sx={{ bgcolor: isDark ? 'rgba(3, 153, 223, 0.16)' : '#E3F2FD', color: isDark ? '#60a5fa' : '#0288cc', fontWeight: 700, height: 20, minWidth: 20, '& .MuiChip-label': { px: 0.75 } }} />
                 )}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>Refine your orders search</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1.5 }}>
-              <Button startIcon={<DownloadIcon />} variant="outlined" size="small" onClick={exportToCSV} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, display: { xs: 'none', sm: 'flex' }, color: isDark ? '#93c5fd' : '#1d4ed8', borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.35)', bgcolor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', '&:hover': { borderColor: ACCENT_HEX, bgcolor: isDark ? 'rgba(59,130,246,0.16)' : 'rgba(59,130,246,0.1)', boxShadow: glowShadow(ACCENT_RGB, 0.5, 16) } }}>Export</Button>
+              <Button startIcon={<DownloadIcon />} variant="outlined" size="small" onClick={exportToCSV} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, fontSize: '0.85rem', display: { xs: 'none', sm: 'flex' }, color: isDark ? '#94a3b8' : '#64748b', borderColor: isDark ? '#374151' : '#e2e8f0', borderWidth: '1.5px', bgcolor: isDark ? '#111827' : '#fff', '&:hover': { borderColor: isDark ? '#4B5563' : '#cbd5e1', bgcolor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }, transition: 'all 0.2s' }}>Export</Button>
             </Box>
           </Box>
 
-          <TextField fullWidth placeholder="Search by user, dealer, plan..." value={filters.search} onChange={(e) => { setFilters(f => ({ ...f, search: e.target.value })); setPage(0); }} sx={{ mb: 3, ...glassInput(isDark) }} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: ACCENT_HEX }} /></InputAdornment> }} />
+          <TextField fullWidth placeholder="Search by user, dealer, plan..." value={filters.search} onChange={(e) => { setFilters(f => ({ ...f, search: e.target.value })); setPage(0); }} sx={{ mb: 3, ...filterFieldSx(isDark) }} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.secondary' }} /></InputAdornment> }} />
 
-          <Divider sx={{ mb: 3, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(59,130,246,0.12)' }} />
+          <Divider sx={{ mb: 3, borderColor: isDark ? '#374151' : '#f1f5f9' }} />
 
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ mb: 1, display: 'block', letterSpacing: '0.08em' }}>ORDER STATUS</Typography>
+              <Typography variant="caption" color="text.secondary" sx={filterLabelSx}>ORDER STATUS</Typography>
               <ToggleButtonGroup value={filters.status || ''} exclusive onChange={(e, val) => { setFilters(f => ({ ...f, status: val })); setPage(0); }} fullWidth size="small" sx={glassToggleSx(isDark)}>
                 <ToggleButton value=""><AccessTimeIcon sx={{ fontSize: 18, mr: 0.5 }} />All</ToggleButton>
                 <ToggleButton value="Pending"><AccessTimeIcon sx={{ fontSize: 18, mr: 0.5 }} />Pending</ToggleButton>
@@ -464,7 +507,7 @@ const Orders = () => {
               </ToggleButtonGroup>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ mb: 1, display: 'block', letterSpacing: '0.08em' }}>ORDER TYPE</Typography>
+              <Typography variant="caption" color="text.secondary" sx={filterLabelSx}>ORDER TYPE</Typography>
               <ToggleButtonGroup value={filters.planMode || ''} exclusive onChange={(e, val) => { setFilters(f => ({ ...f, planMode: val })); setPage(0); }} fullWidth size="small" sx={glassToggleSx(isDark)}>
                 <ToggleButton value=""><TuneIcon sx={{ fontSize: 18, mr: 0.5 }} />All</ToggleButton>
                 <ToggleButton value="subscription"><ShoppingBagIcon sx={{ fontSize: 18, mr: 0.5 }} />Subscription</ToggleButton>
@@ -475,21 +518,29 @@ const Orders = () => {
 
           {activeFilterCount > 0 && (
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button size="small" onClick={() => { setFilters({ status: '', planMode: '', search: '' }); setPage(0); }} sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 700, borderRadius: '10px', '&:hover': { color: ACCENT_HEX, bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)' } }}>Clear all filters</Button>
+              <Button size="small" onClick={() => { setFilters({ status: '', planMode: '', search: '' }); setPage(0); }} sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 600, borderRadius: '10px', '&:hover': { color: '#0399DF', bgcolor: isDark ? 'rgba(3, 153, 223, 0.1)' : 'rgba(3, 153, 223, 0.06)' } }}>Clear all filters</Button>
             </Box>
           )}
         </Box>
       </Card>
 
       {/* Table */}
-      <Card elevation={0} sx={{ ...glassCard(isDark), boxShadow: 'none' }}>
+      <Card
+        elevation={0}
+        sx={{
+          border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+          borderRadius: 2,
+          overflow: 'hidden',
+          boxShadow: 'none'
+        }}
+      >
         <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
           {loading ? (<Box sx={{ p: 6, textAlign: 'center' }}><CircularProgress size={32} sx={{ color: ACCENT_HEX }} /></Box>) : orders.length === 0 ? (
             <Box sx={{ p: 8, textAlign: 'center' }}><ShoppingBagIcon sx={{ fontSize: 48, color: isDark ? '#475569' : '#cbd5e1', mb: 2 }} /><Typography variant="h6" sx={{ color: isDark ? '#94a3b8' : '#64748b', mb: 1 }}>No orders found</Typography></Box>
           ) : (
             <Table>
               <TableHead>
-                <TableRow>
+                <TableRow sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB' }}>
                   <TableCell padding="checkbox" sx={headerCellSx(isDark)}>
                     <Checkbox sx={checkboxSx} checked={orders.length > 0 && selectedOrders.length === orders.length} indeterminate={selectedOrders.length > 0 && selectedOrders.length < orders.length} onChange={(e) => handleSelectAll(e.target.checked)} />
                   </TableCell>
@@ -509,8 +560,7 @@ const Orders = () => {
                     key={order.id}
                     hover
                     sx={{
-                      '& td': { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)' },
-                      '&:hover': { bgcolor: isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.045)' }
+                      '&:hover': { bgcolor: isDark ? '#0f172a' : '#F9FAFB' }
                     }}
                   >
                     <TableCell padding="checkbox" sx={rowCellSx(isDark)}>
@@ -523,9 +573,7 @@ const Orders = () => {
                     )}
                     <TableCell sx={rowCellSx(isDark)}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75 }}>
-                        <Box sx={{ position: 'relative', borderRadius: '50%', p: '2px', backgroundImage: GRADIENT_MAIN, boxShadow: glowShadow(ACCENT_RGB, 0.5, 12), lineHeight: 0 }}>
-                          <Avatar sx={{ width: 32, height: 32, fontSize: '0.7rem', bgcolor: isDark ? '#0f172a' : '#fff', color: isDark ? '#93c5fd' : '#1d4ed8', fontWeight: 800, flexShrink: 0 }}>{(order.user_data?.userName || 'U')[0].toUpperCase()}</Avatar>
-                        </Box>
+                        <Avatar sx={{ width: 32, height: 32, fontSize: '0.7rem', border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`, bgcolor: isDark ? '#0f172a' : '#fff', color: isDark ? '#93c5fd' : '#1d4ed8', fontWeight: 800, flexShrink: 0 }}>{(order.user_data?.userName || 'U')[0].toUpperCase()}</Avatar>
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>{order.user_data?.userName || order.userId}</Typography>
                           <Typography variant="caption" color="text.secondary">{order.user_data?.email || order.stripeCustomerEmail}</Typography>
@@ -544,7 +592,7 @@ const Orders = () => {
                     <TableCell sx={rowCellSx(isDark)}>
                       <Box>
                         <Typography sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{order.serviceType}</Typography>
-                        <Chip label={order.planMode === 'subscription' ? 'Monthly' : 'One-time'} size="small" sx={{ height: 18, fontSize: '0.6rem', mt: 0.5, bgcolor: order.planMode === 'subscription' ? alpha(ACCENT_HEX, 0.12) : alpha('#94a3b8', 0.1), color: order.planMode === 'subscription' ? ACCENT_HEX : '#64748b', fontWeight: 700, boxShadow: order.planMode === 'subscription' ? glowShadow(ACCENT_RGB, 0.4, 8) : 'none' }} />
+                        <Chip label={order.planMode === 'subscription' ? 'Monthly' : 'One-time'} size="small" variant="outlined" sx={{ mt: 0.5, fontWeight: 600, fontSize: '0.7rem', textTransform: 'capitalize' }} />
                       </Box>
                     </TableCell>
                     <TableCell sx={rowCellSx(isDark)}>
@@ -567,10 +615,10 @@ const Orders = () => {
                     )}
                     <TableCell align="right" sx={rowCellSx(isDark)}>
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.75 }}>
-                        <Tooltip title="View Details"><IconButton size="small" onClick={() => openDetail(order)} sx={actionBtnSx('#93c5fd', ACCENT_HEX, ACCENT_RGB)}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
-                        {order.notes && <Tooltip title="Has Notes"><IconButton size="small" onClick={() => { setSelectedOrder(order); setNoteOpen(true); }} sx={actionBtnSx(isDark ? '#fbbf24' : '#d97706', isDark ? '#fcd34d' : '#b45309', '251,146,60')}><NoteAddIcon fontSize="small" /></IconButton></Tooltip>}
-                        {order.planMode === 'subscription' && order.status !== 'Cancelled' && (<Tooltip title="Cancel"><IconButton size="small" onClick={() => { setSelectedOrder(order); setCancelOpen(true); }} sx={actionBtnSx(isDark ? '#fb7185' : '#ef4444', isDark ? '#fda4af' : '#b91c1c', '239,68,68')}><CancelIcon fontSize="small" /></IconButton></Tooltip>)}
-                        {order.status === 'Cancelled' && order.subscriptionId && (<Tooltip title="Reactivate"><IconButton size="small" onClick={handleReactivate} sx={actionBtnSx(isDark ? '#34d399' : '#059669', isDark ? '#6ee7b7' : '#047857', '16,185,129')}><PlayArrowIcon fontSize="small" /></IconButton></Tooltip>)}
+                        <Tooltip title="View Details"><IconButton size="small" onClick={() => openDetail(order)} sx={actionBtnSx(isDark ? '#93c5fd' : '#1d4ed8', ACCENT_RGB)}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
+                        {order.notes && <Tooltip title="Has Notes"><IconButton size="small" onClick={() => { setSelectedOrder(order); setNoteOpen(true); }} sx={actionBtnSx(isDark ? '#fbbf24' : '#d97706', '251,146,60')}><NoteAddIcon fontSize="small" /></IconButton></Tooltip>}
+                        {order.planMode === 'subscription' && order.status !== 'Cancelled' && (<Tooltip title="Cancel"><IconButton size="small" onClick={() => { setSelectedOrder(order); setCancelOpen(true); }} sx={actionBtnSx(isDark ? '#fb7185' : '#ef4444', '239,68,68')}><CancelIcon fontSize="small" /></IconButton></Tooltip>)}
+                        {order.status === 'Cancelled' && order.subscriptionId && (<Tooltip title="Reactivate"><IconButton size="small" onClick={handleReactivate} sx={actionBtnSx(isDark ? '#34d399' : '#059669', '16,185,129')}><PlayArrowIcon fontSize="small" /></IconButton></Tooltip>)}
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -580,7 +628,7 @@ const Orders = () => {
           )}
         </TableContainer>
         {!loading && orders.length > 0 && (
-          <TablePagination component="div" count={totalOrders} page={page} onPageChange={(e, p) => setPage(p)} rowsPerPage={pageSize} onRowsPerPageChange={(e) => { setPageSize(parseInt(e.target.value, 10)); setPage(0); }} rowsPerPageOptions={[10, 15, 25, 50]} sx={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }} />
+          <TablePagination component="div" count={totalOrders} page={page} onPageChange={(e, p) => setPage(p)} rowsPerPage={pageSize} onRowsPerPageChange={(e) => { setPageSize(parseInt(e.target.value, 10)); setPage(0); }} rowsPerPageOptions={[10, 15, 25, 50]} sx={{ borderTop: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }} />
         )}
       </Card>
       </>
@@ -637,8 +685,16 @@ const Orders = () => {
             </Grid>
           )}
 
-        <Card elevation={0} sx={glassCard(isDark)}>
-          <Box sx={{ p: 2, borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)', position: 'relative', zIndex: 1 }}>
+        <Card
+          elevation={0}
+          sx={{
+            border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: 'none'
+          }}
+        >
+          <Box sx={{ p: 2, borderBottom: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, position: 'relative', zIndex: 1 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
               <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>Payment History</Typography>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -657,7 +713,7 @@ const Orders = () => {
             ) : (
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ bgcolor: isDark ? '#0f172a' : '#F9FAFB' }}>
                     <TableCell padding="checkbox" sx={headerCellSx(isDark)}>
                       <Checkbox sx={checkboxSx} checked={paymentHistory.length > 0 && selectedPayments.length === paymentHistory.length} indeterminate={selectedPayments.length > 0 && selectedPayments.length < paymentHistory.length} onChange={(e) => handleSelectAllPayments(e.target.checked)} />
                     </TableCell>
@@ -676,8 +732,7 @@ const Orders = () => {
                       key={payment.id}
                       hover
                       sx={{
-                        '& td': { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(59,130,246,0.08)' },
-                        '&:hover': { bgcolor: isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.045)' }
+                        '&:hover': { bgcolor: isDark ? '#0f172a' : '#F9FAFB' }
                       }}
                     >
                       <TableCell padding="checkbox" sx={rowCellSx(isDark)}>
@@ -706,7 +761,7 @@ const Orders = () => {
                       {!isTablet && (
                         <TableCell sx={rowCellSx(isDark)}>
                           {payment.stripeInvoiceUrl ? (
-                            <a href={payment.stripeInvoiceUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: ACCENT_HEX, textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700 }}>
+                            <a href={payment.stripeInvoiceUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#6366F1', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700 }}>
                               <OpenInNewIcon sx={{ fontSize: 14 }} /> View
                             </a>
                           ) : (
@@ -717,9 +772,9 @@ const Orders = () => {
                       <TableCell align="right" sx={rowCellSx(isDark)}>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.75 }}>
                           {payment.stripeInvoiceUrl && (
-                            <Tooltip title="View Invoice"><IconButton size="small" component="a" href={payment.stripeInvoiceUrl} target="_blank" rel="noopener noreferrer" sx={actionBtnSx(ACCENT_HEX, '#1d4ed8', ACCENT_RGB)}><OpenInNewIcon fontSize="small" /></IconButton></Tooltip>
+                            <Tooltip title="View Invoice"><IconButton size="small" component="a" href={payment.stripeInvoiceUrl} target="_blank" rel="noopener noreferrer" sx={actionBtnSx('#6366F1', '99,102,241')}><OpenInNewIcon fontSize="small" /></IconButton></Tooltip>
                           )}
-                          <Tooltip title="View Order"><IconButton size="small" onClick={() => openDetail({ id: payment.orderId })} sx={actionBtnSx('#93c5fd', ACCENT_HEX, ACCENT_RGB)}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
+                          <Tooltip title="View Order"><IconButton size="small" onClick={() => openDetail({ id: payment.orderId })} sx={actionBtnSx(isDark ? '#93c5fd' : '#1d4ed8', ACCENT_RGB)}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -729,7 +784,7 @@ const Orders = () => {
             )}
           </TableContainer>
           {!paymentHistoryLoading && paymentHistory.length > 0 && (
-            <TablePagination component="div" count={paymentHistoryTotal} page={paymentHistoryPage} onPageChange={(e, p) => setPaymentHistoryPage(p)} rowsPerPage={paymentHistoryPageSize} rowsPerPageOptions={[25, 50, 100]} sx={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(59,130,246,0.08)' }} />
+            <TablePagination component="div" count={paymentHistoryTotal} page={paymentHistoryPage} onPageChange={(e, p) => setPaymentHistoryPage(p)} rowsPerPage={paymentHistoryPageSize} rowsPerPageOptions={[25, 50, 100]} sx={{ borderTop: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }} />
           )}
         </Card>
         </>

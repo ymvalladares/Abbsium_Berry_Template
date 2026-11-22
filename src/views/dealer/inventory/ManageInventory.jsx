@@ -337,6 +337,7 @@ export default function ManageInventory() {
     transmission: '',
     color: '',
   });
+  const [formErrors, setFormErrors] = useState({});
 
   const handlePhotoUpload = (files) => {
     const newPhotos = Array.from(files).map((file) => ({
@@ -376,12 +377,78 @@ export default function ManageInventory() {
   };
 
   const handleFormChange = (field) => (e) => {
-    setVehicleForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const value = field === 'vin' ? e.target.value.toUpperCase() : e.target.value;
+    setVehicleForm((prev) => ({ ...prev, [field]: value }));
+    setFormErrors((prev) => ({ ...prev, [field]: null }));
   };
 
+  const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
+
+  const validateVehicleForm = () => {
+    const errors = {};
+
+    if (!vehicleForm.brand.trim()) {
+      errors.brand = 'Brand is required';
+    } else if (vehicleForm.brand.trim().length > 100) {
+      errors.brand = 'Brand must be 100 characters or less';
+    }
+
+    if (!vehicleForm.model.trim()) {
+      errors.model = 'Model is required';
+    } else if (vehicleForm.model.trim().length > 100) {
+      errors.model = 'Model must be 100 characters or less';
+    }
+
+    if (!vehicleForm.year) {
+      errors.year = 'Year is required';
+    } else {
+      const year = parseInt(vehicleForm.year);
+      if (isNaN(year) || year < 1900 || year > 2099) {
+        errors.year = 'Year must be between 1900 and 2099';
+      }
+    }
+
+    if (vehicleForm.vin && vehicleForm.vin.length > 0) {
+      if (!VIN_REGEX.test(vehicleForm.vin)) {
+        errors.vin = 'Invalid VIN. Must be exactly 17 characters (letters A-H,J-N,P,R-Z and digits 0-9)';
+      }
+    }
+
+    if (vehicleForm.price && vehicleForm.price !== '') {
+      const price = parseFloat(vehicleForm.price);
+      if (isNaN(price) || price < 0) {
+        errors.price = 'Price must be a positive number';
+      } else if (price > 99999999) {
+        errors.price = 'Price must be less than $99,999,999';
+      }
+    }
+
+    if (vehicleForm.mileage && vehicleForm.mileage !== '') {
+      const mileage = parseInt(vehicleForm.mileage);
+      if (isNaN(mileage) || mileage < 0) {
+        errors.mileage = 'Mileage must be a positive number';
+      } else if (mileage > 9999999) {
+        errors.mileage = 'Mileage is too high';
+      }
+    }
+
+    if (vehicleForm.color && vehicleForm.color.trim().length > 50) {
+      errors.color = 'Color must be 50 characters or less';
+    }
+
+    if (vehicleForm.description && vehicleForm.description.trim().length > 5000) {
+      errors.description = 'Description must be 5000 characters or less';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const resetFormErrors = () => setFormErrors({});
+
   const handleSubmitVehicle = async () => {
-    if (!vehicleForm.brand || !vehicleForm.model || !vehicleForm.year) {
-      notify.error('Please fill in brand, model, and year', 'Missing Information');
+    if (!validateVehicleForm()) {
+      notify.error('Please fix the errors before submitting', 'Validation Error');
       return;
     }
 
@@ -484,7 +551,15 @@ export default function ManageInventory() {
       fetchCars();
     } catch (error) {
       console.error('Error adding vehicle:', error);
-      const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Failed to add vehicle';
+      const data = error.response?.data;
+      let errorMsg = 'Failed to add vehicle';
+      if (data?.message) {
+        errorMsg = data.message;
+      } else if (data?.errors) {
+        errorMsg = Array.isArray(data.errors) ? data.errors.join('; ') : Object.values(data.errors).flat().join('; ');
+      } else if (typeof data === 'string') {
+        errorMsg = data;
+      }
       if (errorMsg.toLowerCase().includes('dealer is not active')) {
         setIsDealerInactive(true);
         notify.error('Your dealer account is inactive. Please contact support.', 'Account Inactive');
@@ -500,6 +575,7 @@ export default function ManageInventory() {
     setOpenAddDialog(false);
     uploadedPhotos.forEach((p) => URL.revokeObjectURL(p.preview));
     setUploadedPhotos([]);
+    resetFormErrors();
   };
 
   const handleDeleteCar = async (carId) => {
@@ -529,18 +605,19 @@ export default function ManageInventory() {
       titleType: item.raw.titleType || 'Clean',
       status: item.raw.status === 'available' ? 'Published' : 'Draft',
       description: item.raw.description || '',
-      vin: item.raw.vin || '',
+      vin: (item.raw.vin || '').toUpperCase(),
       mileage: item.raw.mileage || '',
       fuelType: item.raw.fuelType || '',
       transmission: item.raw.transmission || '',
       color: item.raw.exteriorColor || '',
     });
+    resetFormErrors();
     setEditDialogOpen(true);
   };
 
   const handleEditVehicle = async () => {
-    if (!vehicleForm.brand || !vehicleForm.model || !vehicleForm.year) {
-      notify.error('Please fill in brand, model, and year', 'Missing Information');
+    if (!validateVehicleForm()) {
+      notify.error('Please fix the errors before submitting', 'Validation Error');
       return;
     }
 
@@ -587,7 +664,15 @@ export default function ManageInventory() {
       fetchCars();
     } catch (error) {
       console.error('Error updating vehicle:', error);
-      const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Failed to update vehicle';
+      const data = error.response?.data;
+      let errorMsg = 'Failed to update vehicle';
+      if (data?.message) {
+        errorMsg = data.message;
+      } else if (data?.errors) {
+        errorMsg = Array.isArray(data.errors) ? data.errors.join('; ') : Object.values(data.errors).flat().join('; ');
+      } else if (typeof data === 'string') {
+        errorMsg = data;
+      }
       if (errorMsg.toLowerCase().includes('dealer is not active')) {
         setIsDealerInactive(true);
         notify.error('Your dealer account is inactive. Please contact support.', 'Account Inactive');
@@ -607,6 +692,7 @@ export default function ManageInventory() {
       status: 'Draft', description: '', vin: '', mileage: '',
       fuelType: '', transmission: '', color: '',
     });
+    resetFormErrors();
   };
 
   const inputStyle = {
@@ -704,7 +790,7 @@ export default function ManageInventory() {
             {loading ? <Skeleton width={120} height={20} sx={{ mt: 0.5 }} /> : `${cars.length} vehicles total`}
           </Typography>
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenAddDialog(true)}
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => { resetFormErrors(); setOpenAddDialog(true); }}
           sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2, boxShadow: "none", "&:hover": { boxShadow: "none" }, fontSize: { xs: '0.75rem', sm: '0.85rem' }, px: { xs: 1.5, sm: 2 } }}>
           Add Vehicle
         </Button>
@@ -1259,20 +1345,29 @@ export default function ManageInventory() {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Brand" placeholder="e.g. Toyota" value={vehicleForm.brand} onChange={handleFormChange('brand')} sx={inputStyle} />
+                <TextField fullWidth required label="Brand" placeholder="e.g. Toyota" value={vehicleForm.brand} onChange={handleFormChange('brand')}
+                  error={!!formErrors.brand} helperText={formErrors.brand || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Model" placeholder="e.g. Camry" value={vehicleForm.model} onChange={handleFormChange('model')} sx={inputStyle} />
+                <TextField fullWidth required label="Model" placeholder="e.g. Camry" value={vehicleForm.model} onChange={handleFormChange('model')}
+                  error={!!formErrors.model} helperText={formErrors.model || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="VIN Number" placeholder="Vehicle Identification Number" value={vehicleForm.vin} onChange={handleFormChange('vin')} sx={inputStyle} />
+                <TextField fullWidth label="VIN Number" placeholder="17-character VIN" value={vehicleForm.vin}
+                  onChange={handleFormChange('vin')}
+                  error={!!formErrors.vin}
+                  helperText={formErrors.vin || `${vehicleForm.vin.length}/17 characters`}
+                  inputProps={{ maxLength: 17, style: { textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'monospace' } }}
+                  sx={inputStyle} />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Year" type="number" placeholder="2026" value={vehicleForm.year} onChange={handleFormChange('year')} sx={inputStyle} />
+                <TextField fullWidth required label="Year" type="number" placeholder="2026" value={vehicleForm.year} onChange={handleFormChange('year')}
+                  error={!!formErrors.year} helperText={formErrors.year || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Price ($)" type="number" placeholder="28500" value={vehicleForm.price} onChange={handleFormChange('price')} sx={inputStyle} />
+                <TextField fullWidth label="Price ($)" type="number" placeholder="28500" value={vehicleForm.price} onChange={handleFormChange('price')}
+                  error={!!formErrors.price} helperText={formErrors.price || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth sx={inputStyle}>
@@ -1285,7 +1380,8 @@ export default function ManageInventory() {
               </Grid>
 
               <Grid size={{ xs: 6, sm: 3 }}>
-                <TextField fullWidth label="Mileage" placeholder="e.g. 15000" value={vehicleForm.mileage} onChange={handleFormChange('mileage')} sx={inputStyle} />
+                <TextField fullWidth label="Mileage" placeholder="e.g. 15000" value={vehicleForm.mileage} onChange={handleFormChange('mileage')}
+                  error={!!formErrors.mileage} helperText={formErrors.mileage || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
                 <FormControl fullWidth sx={inputStyle}>
@@ -1311,11 +1407,13 @@ export default function ManageInventory() {
                 </FormControl>
               </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
-                <TextField fullWidth label="Color" placeholder="e.g. Black" value={vehicleForm.color} onChange={handleFormChange('color')} sx={inputStyle} />
+                <TextField fullWidth label="Color" placeholder="e.g. Black" value={vehicleForm.color} onChange={handleFormChange('color')}
+                  error={!!formErrors.color} helperText={formErrors.color || ''} sx={inputStyle} />
               </Grid>
 
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Description" multiline minRows={3} placeholder="Describe the vehicle..." value={vehicleForm.description} onChange={handleFormChange('description')} sx={inputStyle} />
+                <TextField fullWidth label="Description" multiline minRows={3} placeholder="Describe the vehicle..." value={vehicleForm.description} onChange={handleFormChange('description')}
+                  error={!!formErrors.description} helperText={formErrors.description || ''} sx={inputStyle} />
               </Grid>
             </Grid>
           </Box>
@@ -1382,20 +1480,29 @@ export default function ManageInventory() {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Brand" placeholder="e.g. Toyota" value={vehicleForm.brand} onChange={handleFormChange('brand')} sx={inputStyle} />
+                <TextField fullWidth required label="Brand" placeholder="e.g. Toyota" value={vehicleForm.brand} onChange={handleFormChange('brand')}
+                  error={!!formErrors.brand} helperText={formErrors.brand || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Model" placeholder="e.g. Camry" value={vehicleForm.model} onChange={handleFormChange('model')} sx={inputStyle} />
+                <TextField fullWidth required label="Model" placeholder="e.g. Camry" value={vehicleForm.model} onChange={handleFormChange('model')}
+                  error={!!formErrors.model} helperText={formErrors.model || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="VIN Number" placeholder="Vehicle Identification Number" value={vehicleForm.vin} onChange={handleFormChange('vin')} sx={inputStyle} />
+                <TextField fullWidth label="VIN Number" placeholder="17-character VIN" value={vehicleForm.vin}
+                  onChange={handleFormChange('vin')}
+                  error={!!formErrors.vin}
+                  helperText={formErrors.vin || `${vehicleForm.vin.length}/17 characters`}
+                  inputProps={{ maxLength: 17, style: { textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'monospace' } }}
+                  sx={inputStyle} />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Year" type="number" placeholder="2026" value={vehicleForm.year} onChange={handleFormChange('year')} sx={inputStyle} />
+                <TextField fullWidth required label="Year" type="number" placeholder="2026" value={vehicleForm.year} onChange={handleFormChange('year')}
+                  error={!!formErrors.year} helperText={formErrors.year || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField fullWidth label="Price ($)" type="number" placeholder="28500" value={vehicleForm.price} onChange={handleFormChange('price')} sx={inputStyle} />
+                <TextField fullWidth label="Price ($)" type="number" placeholder="28500" value={vehicleForm.price} onChange={handleFormChange('price')}
+                  error={!!formErrors.price} helperText={formErrors.price || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth sx={inputStyle}>
@@ -1408,7 +1515,8 @@ export default function ManageInventory() {
               </Grid>
 
               <Grid size={{ xs: 6, sm: 3 }}>
-                <TextField fullWidth label="Mileage" placeholder="e.g. 15000" value={vehicleForm.mileage} onChange={handleFormChange('mileage')} sx={inputStyle} />
+                <TextField fullWidth label="Mileage" placeholder="e.g. 15000" value={vehicleForm.mileage} onChange={handleFormChange('mileage')}
+                  error={!!formErrors.mileage} helperText={formErrors.mileage || ''} sx={inputStyle} />
               </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
                 <FormControl fullWidth sx={inputStyle}>
@@ -1434,11 +1542,13 @@ export default function ManageInventory() {
                 </FormControl>
               </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
-                <TextField fullWidth label="Color" placeholder="e.g. Black" value={vehicleForm.color} onChange={handleFormChange('color')} sx={inputStyle} />
+                <TextField fullWidth label="Color" placeholder="e.g. Black" value={vehicleForm.color} onChange={handleFormChange('color')}
+                  error={!!formErrors.color} helperText={formErrors.color || ''} sx={inputStyle} />
               </Grid>
 
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Description" multiline minRows={3} placeholder="Describe the vehicle..." value={vehicleForm.description} onChange={handleFormChange('description')} sx={inputStyle} />
+                <TextField fullWidth label="Description" multiline minRows={3} placeholder="Describe the vehicle..." value={vehicleForm.description} onChange={handleFormChange('description')}
+                  error={!!formErrors.description} helperText={formErrors.description || ''} sx={inputStyle} />
               </Grid>
             </Grid>
           </Box>
